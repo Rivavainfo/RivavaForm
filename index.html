@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rivava Finance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-dark: #000000;
+        --card-dark: #0d0d0d;
+        --accent: #00ffc3;
+        --accent-hover: #00d9aa;
+        --text-light: #ffffff;
+        --muted: #888888;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-dark);
+        color: var(--text-light);
+        margin: 0;
+        padding: 0;
+    }
+
+    header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+        background-color: var(--card-dark);
+        border-bottom: 1px solid #111;
+    }
+
+    .logo-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .logo {
+        height: 40px;
+    }
+
+    .username {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .datetime {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+    }
+
+    input[type="date"] {
+        background: var(--card-dark);
+        border: 1px solid #222;
+        padding: 5px 10px;
+        color: var(--text-light);
+        border-radius: 5px;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        background-color: var(--card-dark);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .tab.active {
+        background-color: var(--accent);
+        color: #000;
+        font-weight: 600;
+    }
+
+    .form-section {
+        display: none;
+        background-color: var(--card-dark);
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .form-section.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        background: #111;
+        border: 1px solid #222;
+        border-radius: 8px;
+        color: var(--text-light);
+        font-size: 1rem;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus {
+        border-color: var(--accent);
+        outline: none;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--accent);
+        color: #000;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: var(--accent-hover);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #222;
+        font-size: 0.9rem;
+    }
+
+    th {
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+        .datetime {
+            flex-direction: column;
+            align-items: flex-end;
+        }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="logo-user">
+        <img src="logo.png" alt="Rivava Logo" class="logo">
+        <div class="username">Rivava</div>
+    </div>
+    <div class="datetime">
+        <input type="date" id="dateInput">
+        <div id="timeDisplay"></div>
+    </div>
+</header>
+
+<main>
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('earning')">Earning</div>
+        <div class="tab" onclick="showTab('expense')">Expense</div>
+    </div>
+
+    <div id="earning" class="form-section active">
+        <label>Amount</label>
+        <input type="number" id="earningAmount" placeholder="Enter earning amount">
+        <button onclick="addEarning()">Add Earning</button>
+    </div>
+
+    <div id="expense" class="form-section">
+        <label>Amount</label>
+        <input type="number" id="expenseAmount" placeholder="Enter expense amount">
+        
+        <label>Category</label>
+        <select id="expenseCategory">
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Shopping</option>
+            <option>Bills</option>
+            <option>Entertainment</option>
+            <option>Other</option>
+        </select>
+        
+        <label>Payment Method</label>
+        <select id="paymentMethod">
+            <option>UPI</option>
+            <option>Cash</option>
+            <option>Card</option>
+            <option>Bank Transfer</option>
+        </select>
+        
+        <button onclick="addExpense()">Add Expense</button>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Category/Note</th>
+                <th>Payment</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</main>
+
+<script>
+    function showTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+        document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+        document.getElementById(tab).classList.add('active');
+    }
+
+    function setDateTime() {
+        const today = new Date();
+        document.getElementById('dateInput').value = today.toISOString().split('T')[0];
+        document.getElementById('timeDisplay').textContent = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function addEarning() {
+        const amount = document.getElementById('earningAmount').value;
+        const date = document.getElementById('dateInput').value;
+        const time = document.getElementById('timeDisplay').textContent;
+        if (amount) addRow("Earning", amount, "-", "-", date, time);
+        document.getElementById('earningAmount').value = "";
+    }
+
+    function addExpense() {
+        const amount = document.getElementById('expenseAmount').value;
+        const category = document.getElementById('expenseCategory').value;
+        const payment = document.getElementById('paymentMethod').value;
+        const date = document.getElementById('dateInput').value;
+        const time = document.getElementById('timeDisplay').textContent;
+        if (amount) addRow("Expense", amount, category, payment, date, time);
+        document.getElementById('expenseAmount').value = "";
+    }
+
+    function addRow(type, amount, category, payment, date, time) {
+        const tableBody = document.querySelector("#dataTable tbody");
+        const row = `<tr>
+            <td>${type}</td>
+            <td>${amount}</td>
+            <td>${category}</td>
+            <td>${payment}</td>
+            <td>${date}</td>
+            <td>${time}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+    }
+
+    setDateTime();
+</script>
+
+</body>
+</html>
