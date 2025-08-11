@@ -426,22 +426,61 @@
     }
   }
 
-  function submitForm() {
-    if (dataTableBody.children.length === 0) {
-      alert("Please add some earnings or expenses before submitting.");
-      return;
-    }
-    const msg = document.getElementById("confirmationMessage");
-    msg.style.display = "block";
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    setTimeout(() => {
-      msg.style.display = "none";
-    }, 3000);
+  async function submitForm() {
+  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(tr => {
+    const cells = tr.querySelectorAll('td');
+    return {
+      type: cells[0].textContent.trim(),
+      amount: cells[1].textContent.trim(),
+      category: cells[2].textContent.trim(),
+      payment: cells[3].textContent.trim(),
+      date: cells[4].textContent.trim(),
+      time: cells[5].textContent.trim()
+    };
+  });
+
+  if (rows.length === 0) {
+    alert("Please add some earnings or expenses before submitting.");
+    return;
   }
+
+  const WEBAPP_URL = "PASTE_YOUR_WEBAPP_URL_HERE";
+  const SECRET_TOKEN = "mySecret123";
+
+  const submitBtn = document.querySelector('button[onclick="submitForm()"]');
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    const res = await fetch(WEBAPP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows: rows, token: SECRET_TOKEN })
+    });
+
+    const data = await res.json();
+    if (data.result === "success") {
+      const msg = document.getElementById("confirmationMessage");
+      msg.style.display = "block";
+      setTimeout(() => { msg.style.display = "none"; }, 3000);
+
+      dataTableBody.innerHTML = "";
+      updateTotalExpense();
+    } else {
+      alert("Server error: " + (data.message || "unknown"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error sending data. Check console and web app permissions.");
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
 
   // Initialize date and live time
   setFixedDate();
   startLiveTime();
+
+  
 </script>
 
 </body>
