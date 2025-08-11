@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rivava Finance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-dark: #000000;
+    --card-dark: #0d0d0d;
+    --accent: #00ffc3;
+    --accent-hover: #00d9aa;
+    --text-light: #ffffff;
+    --muted: #888888;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: var(--card-dark);
+    border-bottom: 1px solid #111;
+  }
+  .username {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(to right, var(--accent), #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  main {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+  /* Three info blocks under header */
+  .info-blocks {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 15px 0 25px;
+    flex-wrap: wrap;
+  }
+  .info-block {
+    flex: 1 1 30%;
+    background-color: var(--card-dark);
+    border-radius: 12px;
+    padding: 15px 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    user-select: none;
+  }
+  .info-block span.value {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.8rem;
+    color: var(--accent);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    background-color: var(--card-dark);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+  .tab.active {
+    background-color: var(--accent);
+    color: #000;
+    font-weight: 600;
+  }
+  .form-section {
+    display: none;
+    background-color: var(--card-dark);
+    padding: 20px;
+    border-radius: 12px;
+  }
+  .form-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+  }
+  input:focus, select:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+  button {
+    padding: 10px 0;
+    background-color: var(--accent);
+    color: #000;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+  }
+  button:hover {
+    background-color: var(--accent-hover);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #222;
+    font-size: 0.9rem;
+  }
+  th {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  td button {
+    background: #ff4c4c;
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: background-color 0.3s ease;
+  }
+  td button:hover {
+    background-color: #e04343;
+  }
+  .confirmation-message {
+    display: none;
+    background-color: var(--card-dark);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 1.1rem;
+    border: 1px solid #222;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 600px) {
+    .info-blocks {
+      flex-direction: column;
+    }
+    .info-block {
+      flex: none;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .tabs {
+      flex-direction: column;
+    }
+    .tab {
+      flex: none;
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="username">RIVAVA</div>
+</header>
+
+<main>
+
+  <div class="info-blocks">
+    <div class="info-block" id="totalExpenseBlock">
+      Total Expense
+      <span class="value" id="totalExpense">₹0</span>
+    </div>
+    <div class="info-block" id="timeBlock">
+      Time
+      <span class="value" id="liveTime">--:--</span>
+    </div>
+    <div class="info-block" id="dateBlock">
+      Date
+      <span class="value" id="fixedDate">--/--/----</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('earning')">Earning</div>
+    <div class="tab" onclick="showTab('expense')">Expense</div>
+  </div>
+
+  <div id="earning" class="form-section active">
+    <label>Amount</label>
+    <input type="number" id="earningAmount" placeholder="Enter earning amount" min="0" step="0.01" />
+    <button onclick="addEarning()">Add Earning</button>
+  </div>
+
+  <div id="expense" class="form-section">
+    <label>Category</label>
+    <select id="expenseCategory" >
+      <option>Food</option>
+      <option>Transport</option>
+      <option>Shopping</option>
+      <option>Bills</option>
+      <option>Entertainment</option>
+      <option>Other</option>
+    </select>
+
+    <label>Amount</label>
+    <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
+
+    <label>Payment Method</label>
+    <select id="paymentMethod">
+      <option>UPI</option>
+      <option>Cash</option>
+      <option>Credit Card</option>
+      <option>Bank Transfer</option>
+    </select>
+
+    <button onclick="addExpense()">Add Expense</button>
+  </div>
+
+  <table id="dataTable" aria-label="Transactions table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Category/Note</th>
+        <th>Payment</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button onclick="submitForm()">Submit</button>
+
+  <div id="confirmationMessage" class="confirmation-message" role="alert" aria-live="assertive">
+    ✅ Thank you, your response has been submitted.
+  </div>
+
+</main>
+
+<script>
+  // Show/hide tabs
+  function showTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+    document.getElementById(tab).classList.add('active');
+  }
+
+  // Format date dd/mm/yyyy
+  function formatDate(isoDate) {
+    const [year, month, day] = isoDate.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  // Initialize fixed date (today)
+  function setFixedDate() {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const year = today.getFullYear();
+    const formatted = `${day}/${month}/${year}`;
+    document.getElementById("fixedDate").textContent = formatted;
+    return formatted;
+  }
+
+  // Live time update every second
+  function startLiveTime() {
+    const timeEl = document.getElementById("liveTime");
+    function update() {
+      const now = new Date();
+      const h = now.getHours().toString().padStart(2, "0");
+      const m = now.getMinutes().toString().padStart(2, "0");
+      const s = now.getSeconds().toString().padStart(2, "0");
+      timeEl.textContent = `${h}:${m}:${s}`;
+    }
+    update();
+    setInterval(update, 1000);
+  }
+
+  // Data Table and total expense logic
+  const dataTableBody = document.querySelector("#dataTable tbody");
+  let totalExpense = 0;
+
+  function updateTotalExpense() {
+    // Sum up all expense rows' amounts
+    let sum = 0;
+    dataTableBody.querySelectorAll("tr").forEach(row => {
+      const type = row.cells[0].textContent;
+      if (type === "Expense") {
+        const amt = parseFloat(row.cells[1].textContent);
+        if (!isNaN(amt)) sum += amt;
+      }
+    });
+    totalExpense = sum;
+    document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
+  }
+
+  function addRow(type, amount, category, payment, date, time) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${type}</td>
+      <td>${parseFloat(amount).toFixed(2)}</td>
+      <td>${category}</td>
+      <td>${payment}</td>
+      <td>${date}</td>
+      <td>${time}</td>
+      <td><button onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>
+    `;
+    dataTableBody.appendChild(row);
+    updateTotalExpense();
+  }
+
+  function deleteRow(button) {
+    button.closest("tr").remove();
+    updateTotalExpense();
+  }
+
+  function addEarning() {
+    const amountInput = document.getElementById("earningAmount");
+    const amount = amountInput.value.trim();
+    if (!amount || Number(amount) <= 0) {
+      alert("Please enter a valid earning amount.");
+      return;
+    }
+    const date = document.getElementById("fixedDate").textContent;
+    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    addRow("Earning", amount, "-", "-", date, time);
+    amountInput.value = "";
+  }
+
+  function addExpense() {
+    const amountInput = document.getElementById("expenseAmount");
+    const amount = amountInput.value.trim();
+    if (!amount || Number(amount) <= 0) {
+      alert("Please enter a valid expense amount.");
+      return;
+    }
+    const category = document.getElementById("expenseCategory").value;
+    const payment = document.getElementById("paymentMethod").value;
+    const date = document.getElementById("fixedDate").textContent;
+    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    addRow("Expense", amount, category, payment, date, time);
+    amountInput.value = "";
+  }
+
+  function submitForm() {
+    if (dataTableBody.children.length === 0) {
+      alert("Please add some earnings or expenses before submitting.");
+      return;
+    }
+    const msg = document.getElementById("confirmationMessage");
+    msg.style.display = "block";
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    setTimeout(() => {
+      msg.style.display = "none";
+    }, 3000);
+  }
+
+  // Initialize date and live time
+  setFixedDate();
+  startLiveTime();
+</script>
+
+</body>
+</html>
