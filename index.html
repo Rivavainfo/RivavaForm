@@ -569,7 +569,7 @@
   <div class="info-blocks">
     <div class="info-block" id="totalExpenseBlock">
       Total Expense
-      <span class="value" id="totalExpense">?0</span>
+      <span class="value" id="totalExpense">₹0</span>
     </div>
     <div class="info-block" id="timeBlock">
       Time
@@ -639,7 +639,7 @@
 
   <button id="submitBtn" class="primary" onclick="submitForm()">Submit</button>
 
-  <div id="confirmationMessage" class="confirmation">? Thank you, your response has been submitted.</div>
+  <div id="confirmationMessage" class="confirmation">✅ Thank you, your response has been submitted.</div>
 </main>
 
 <!-- Welcome overlay -->
@@ -919,7 +919,7 @@ function updateTotalExpense() {
     }
   });
   totalExpense = sum;
-  document.getElementById("totalExpense").textContent = `?${totalExpense.toFixed(2)}`;
+  document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
 }
 
 function addRow(type, amount, category, payment, date, time) {
@@ -1001,7 +1001,7 @@ function addExpense() {
   }
 }
 
-// ? MODIFIED submitForm to use Firebase
+// ✅ MODIFIED submitForm to use Firebase
 async function submitForm() {
   console.log("=== Starting submitForm (Firebase version) ===");
 
@@ -1062,7 +1062,7 @@ async function submitForm() {
     }
 
     // Optional: Alert the user
-    alert("? Data submitted successfully to Firebase!");
+    alert("✅ Data submitted successfully to Firebase!");
 
     // Optional: Clear the form table after successful submission
     // dataTableBody.innerHTML = '';
@@ -1071,7 +1071,7 @@ async function submitForm() {
   } catch (error) {
     // Handle any errors that occurred during the Firestore operation
     console.error("Error submitting data to Firebase:", error);
-    alert("? Failed to save data to Firebase. Please check the browser console for details. Error: " + error.message);
+    alert("❌ Failed to save data to Firebase. Please check the browser console for details. Error: " + error.message);
   }
 
   console.log("=== Finished submitForm (Firebase version) ===");
