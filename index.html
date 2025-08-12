@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,12 +42,19 @@
     top:0;
     z-index:100;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
+    will-change: padding, height;
+  }
+  header.compact {
+    padding: 10px 20px;
+    height: 50px;
   }
   .brand {
     display:flex;
     align-items:center;
     gap:12px;
     transition: transform 0.2s ease;
+    will-change: transform;
   }
   .brand:hover {
     transform: scale(1.02);
@@ -55,6 +63,12 @@
     width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bf7d0);box-shadow:0 4px 14px rgba(0,0,0,0.4);
     display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;
     transition: all 0.3s ease;
+    will-change: width, height, transform;
+  }
+  header.compact .logo {
+    width: 32px;
+    height: 32px;
+    transform: scale(0.9);
   }
   .logo:hover {
     transform: translateY(-2px);
@@ -68,6 +82,12 @@
     -webkit-text-fill-color:transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    will-change: font-size, opacity;
+  }
+  header.compact .username {
+    font-size: 1.05rem;
+    opacity: 0.95;
   }
 
   /* signin area - styled like a card */
@@ -199,8 +219,20 @@
       flex-wrap:wrap;
       gap:12px;
     }
+    header.compact {
+      padding: 8px 16px;
+      height: 44px;
+    }
     .logo{width:36px;height:36px}
+    header.compact .logo {
+      width: 28px;
+      height: 28px;
+    }
     .username{font-size:1.1rem}
+    header.compact .username {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
     
     main{
       margin:12px;
@@ -450,6 +482,52 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"
    CLIENT ID (already provided earlier)
    ---------------------- */
 const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
+
+/* ----------------------
+   Scroll handling for compact header
+   ---------------------- */
+let lastScrollTop = 0;
+const header = document.querySelector('header');
+const MOBILE_BREAKPOINT = 768;
+const SCROLL_THRESHOLD = 50;
+
+function handleScroll() {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+  
+  // Only apply compact header when scrolling down and past threshold
+  if (scrollTop > lastScrollTop && scrollTop > SCROLL_THRESHOLD) {
+    header.classList.add('compact');
+  } 
+  // Return to normal when at top or scrolling up (with a bit of buffer)
+  else if (scrollTop < lastScrollTop || scrollTop < SCROLL_THRESHOLD) {
+    header.classList.remove('compact');
+  }
+  
+  lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+}
+
+// Initialize scroll handling
+window.addEventListener('load', () => {
+  // Initial check for mobile/desktop
+  if (window.innerWidth <= MOBILE_BREAKPOINT) {
+    header.classList.add('compact');
+    setTimeout(() => {
+      header.classList.remove('compact');
+    }, 100);
+  }
+  
+  window.addEventListener('scroll', () => {
+    requestAnimationFrame(handleScroll);
+  }, { passive: true });
+  
+  // Also handle resize events
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > MOBILE_BREAKPOINT) {
+      header.classList.remove('compact');
+    }
+  });
+});
 
 /* ----------------------
    helpers
@@ -797,3 +875,4 @@ document.addEventListener('touchstart', function() {}, {passive: true});
 
 </body>
 </html>
+```
