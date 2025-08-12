@@ -389,17 +389,17 @@
       flex-wrap:wrap;
       gap:12px;
     }
-    
+
     main{
       margin:12px;
       padding:12px;
     }
-    
+
     .info-blocks{
       grid-template-columns:1fr;
       gap:12px;
     }
-    
+
     .tabs{
       flex-direction:column;
       gap:8px;
@@ -408,36 +408,36 @@
       padding:14px;
       font-size:1rem;
     }
-    
+
     .form-section{
       padding:16px;
     }
-    
+
     input,select{
       padding:14px;
       font-size:16px;
     }
-    
+
     button.primary{
       padding:14px;
       font-size:1.1rem;
     }
-    
+
     th,td{
       padding:10px 6px;
       font-size:0.8rem;
     }
-    
+
     .signin-title{
       font-size:1.2rem;
       text-align:center;
     }
-    
+
     .signin-sub{
       text-align:center;
       font-size:0.9rem;
     }
-    
+
     #welcomeOverlay{
       left:10px;
       right:10px;
@@ -454,35 +454,35 @@
       margin:12px;
       padding:12px;
     }
-    
+
     .signin-right{
       flex-direction:column;
       align-items:stretch;
     }
-    
+
     main{
       margin:8px;
       padding:8px;
     }
-    
+
     .info-block .value{
       font-size:1.4rem;
     }
-    
+
     table{
       min-width:700px;
     }
-    
+
     #welcomeOverlay{
       padding:12px 16px;
       font-size:0.9rem;
     }
-    
+
     .signout-btn{
       width:100%;
       margin-top:8px;
     }
-    
+
     .user-info {
       max-width: 150px;
       overflow: hidden;
@@ -492,7 +492,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
+
     /* Mobile table optimization */
     table {
       font-size: 0.75rem;
@@ -506,7 +506,7 @@
     td {
       font-size: 0.7rem;
     }
-    
+
     /* Ensure action button is visible */
     td button {
       min-width: 50px;
@@ -650,6 +650,7 @@
 /* ----------------------
    CONFIG: Replace this with your Apps Script URL
    ---------------------- */
+// ✅ FIXED: Removed trailing spaces from the URL
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQfsUHfwBUO-ufxMQM1RKrUsZ9dempwB8ORbCFE83P2IXnQT5WPHffMzwwKXquIGkUNA/exec";
 
 /* ----------------------
@@ -690,9 +691,9 @@ function showWelcome(name, picture){
 function setSignedInUI(userObj, showWelcomeFlag){
   const top = document.getElementById('topUserArea');
   top.innerHTML = '';
-  
+
   const firstName = userObj.name.split(' ')[0];
-  
+
   const chip = document.createElement('div');
   chip.className = 'user-chip';
   chip.innerHTML = `
@@ -724,15 +725,15 @@ function signOut(){
   document.getElementById('signedInInfo').style.display = 'none';
   document.getElementById('signoutBtn').style.display = 'none';
   document.getElementById('topUserArea').innerHTML = '';
-  
+
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.disableAutoSelect();
   }
-  
+
   setTimeout(() => {
     renderSignIn();
   }, 100);
-  
+
   document.querySelector("#dataTable tbody").innerHTML = '';
   updateTotalExpense();
   console.log('User signed out successfully');
@@ -744,23 +745,22 @@ function signOut(){
 function renderSignIn(){
   const container = document.getElementById('g_id_signin_container');
   container.innerHTML = '';
-  
+
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
       auto_select: false,
       ux_mode: 'popup',
-      // This makes popup close itself after login
       login_uri: window.location.origin,
       context: 'signin'
     });
     google.accounts.id.renderButton(
       container,
-      { 
-        theme: 'outline', 
-        size: 'large', 
-        type: 'standard', 
+      {
+        theme: 'outline',
+        size: 'large',
+        type: 'standard',
         text: 'signin_with',
         shape: 'rounded',
         logo_alignment: 'left'
@@ -797,7 +797,7 @@ function handleCredentialResponse(response){
 window.addEventListener('load', ()=> {
   setFixedDate();
   startLiveTime();
-  
+
   const s = localStorage.getItem('rivava_user');
   if(s){
     try{
@@ -940,59 +940,83 @@ function addExpense() {
   }
 }
 
-// ✅ Fixed and improved submitForm
+// ✅ FIXED and improved submitForm
 async function submitForm() {
+  console.log("=== Starting submitForm ===");
   if (dataTableBody.children.length === 0) {
     alert("Please add some earnings or expenses before submitting.");
+    console.warn("Submit clicked but no data in table.");
     return;
   }
-
-  const msg = document.getElementById("confirmationMessage");
-  msg.style.display = "block";
-  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-  setTimeout(() => { msg.style.display = "none"; }, 3000);
 
   const stored = localStorage.getItem('rivava_user');
   if (!stored) {
     alert("You must sign in first.");
+    console.warn("Submit clicked but user not signed in.");
     return;
   }
 
   const user = JSON.parse(stored);
+  console.log("Signed in user:", user.email);
+
   const rows = [];
   dataTableBody.querySelectorAll('tr').forEach(r => {
+    // ✅ Ensure amount is parsed as a float
     rows.push({
-      type: r.cells[0].textContent,
-      amount: r.cells[1].textContent,
-      category: r.cells[2].textContent,
-      payment: r.cells[3].textContent,
-      date: r.cells[4].textContent,
-      time: r.cells[5].textContent
+      type: r.cells[0].textContent.trim(),
+      amount: parseFloat(r.cells[1].textContent.trim()), // Parse to number
+      category: r.cells[2].textContent.trim(),
+      payment: r.cells[3].textContent.trim(),
+      date: r.cells[4].textContent.trim(),
+      time: r.cells[5].textContent.trim()
     });
   });
 
-  const payload = { userEmail: user.email, transactions: rows };
+  // Prepare the data payload exactly as the script expects
+  const payload = {
+    userEmail: user.email,
+    transactions: rows
+  };
+
+  console.log("Prepared payload to send:");
+  console.log(JSON.stringify(payload, null, 2)); // Log the payload for debugging
 
   try {
+    console.log("Attempting to send data to:", APPS_SCRIPT_URL);
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type': 'application/json' // Crucial for Apps Script
+      },
+      body: JSON.stringify(payload) // Crucial for sending the data
     });
 
+    console.log("Fetch request sent. Awaiting response...");
+    // Always read the response text, even for errors
+    const responseText = await res.text();
+    console.log("Server response received. Status:", res.status, "Text:", responseText);
+
     if (res.ok) {
-      // Optional: clear form
+      console.log("Server reported success.");
+      const msg = document.getElementById("confirmationMessage");
+      msg.style.display = "block";
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      setTimeout(() => { msg.style.display = "none"; }, 3000);
+
+      // Optional: Clear the form after successful submission
       // dataTableBody.innerHTML = '';
       // updateTotalExpense();
     } else {
-      const text = await res.text();
-      console.error("Save failed:", res.status, text);
-      alert("Failed to save data. Please try again.");
+      // Server responded with an error status (e.g., 400, 500)
+      console.error("Server returned an error status:", res.status);
+      alert(`Server Error (${res.status}): ${responseText}`);
     }
   } catch (e) {
-    console.warn("Network error:", e);
-    alert("Could not connect to server.");
+    // This catches network errors (offline, CORS, unreachable URL)
+    console.error("Network error occurred:", e);
+    alert("Could not connect to the server. Please check your internet connection and ensure the Apps Script URL is correct. Error details: " + e.message);
   }
+  console.log("=== Finished submitForm ===");
 }
 
 // Passive touch listener
