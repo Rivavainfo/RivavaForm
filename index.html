@@ -1088,4 +1088,344 @@ function showWelcome(name, picture) {
 }
 
 /* ----------------------
-   Auth
+   Auth Functions
+   ---------------------- */
+function setSignedInUI(userObj, showWelcomeFlag) {
+  // Top area user chip
+  const topArea = document.getElementById('topUserArea');
+  topArea.innerHTML = '';
+  
+  const chip = document.createElement('div');
+  chip.className = 'top-user-chip';
+  chip.innerHTML = `
+    <img src="${userObj.picture}" class="top-user-avatar" alt="Profile">
+    <div class="top-user-info">
+      <div class="top-user-name">${userObj.name}</div>
+      <div class="top-user-email">${userObj.email}</div>
+    </div>
+  `;
+  topArea.appendChild(chip);
+
+  // Show profile in signin card
+  document.getElementById('signedInInfo').style.display = 'block';
+  document.getElementById('profilePic').src = userObj.picture || '';
+  document.getElementById('displayName').textContent = userObj.name || '';
+  document.getElementById('displayEmail').textContent = userObj.email || '';
+  document.getElementById('signoutBtn').style.display = 'inline-flex';
+
+  // Hide signin button
+  document.getElementById('g_id_signin_container').innerHTML = '';
+
+  if (showWelcomeFlag) showWelcome(userObj.name, userObj.picture);
+}
+
+function signOut() {
+  console.log('Sign out clicked');
+  
+  // Clear stored user data
+  localStorage.removeItem('rivava_user');
+  
+  // Hide signed-in UI elements
+  document.getElementById('signedInInfo').style.display = 'none';
+  document.getElementById('signoutBtn').style.display = 'none';
+  
+  // Clear top area user info
+  document.getElementById('topUserArea').innerHTML = '';
+  
+  // Revoke Google sign-in session
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.disableAutoSelect();
+  }
+  
+  // Re-render signin button
+  setTimeout(() => {
+    renderSignIn();
+  }, 100);
+  
+  console.log('User signed out successfully');
+}
+
+function renderSignIn() {
+  const container = document.getElementById('g_id_signin_container');
+  container.innerHTML = '';
+  
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleCredentialResponse,
+      auto_select: false,
+      ux_mode: 'popup'
+    });
+    google.accounts.id.renderButton(
+      container,
+      { 
+        theme: 'outline', 
+        size: 'large', 
+        type: 'standard', 
+        text: 'signin_with',
+        shape: 'rounded',
+        logo_alignment: 'left'
+      }
+    );
+  } else {
+    setTimeout(renderSignIn, 300);
+  }
+}
+
+function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  if (!payload || !payload.email) {
+    console.error('Invalid ID token payload', payload);
+    return;
+  }
+  
+  const user = {
+    name: payload.name,
+    email: payload.email,
+    picture: payload.picture,
+    token: response.credential,
+    sub: payload.sub
+  };
+  localStorage.setItem('rivava_user', JSON.stringify(user));
+  setSignedInUI(user, true);
+}
+
+/* ----------------------
+   Date & Time Functions
+   ---------------------- */
+function setFixedDate() {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const year = today.getFullYear();
+  const formatted = `${day}/${month}/${year}`;
+  document.getElementById("fixedDate").textContent = formatted;
+  return formatted;
+}
+
+function startLiveTime() {
+  const timeEl = document.getElementById("liveTime");
+  function update() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2, "0");
+    const m = now.getMinutes().toString().padStart(2, "0");
+    const s = now.getSeconds().toString().padStart(2, "0");
+    timeEl.textContent = `${h}:${m}:${s}`;
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+/* ----------------------
+   Initialize App
+   ---------------------- */
+window.addEventListener('load', () => {
+  // Initialize date & time
+  setFixedDate();
+  startLiveTime();
+  
+  // Check for stored user
+  const stored = localStorage.getItem('rivava_user');
+  if (stored) {
+    try {
+      const user = JSON.parse(stored);
+      setSignedInUI(user, true);
+    } catch (e) {
+      console.warn('restore user failed', e);
+      localStorage.removeItem('rivava_user');
+      renderSignIn();
+    }
+  } else {
+    renderSignIn();
+  }
+});
+
+/* ----------------------
+   Form Functions
+   ---------------------- */
+const dataTableBody = document.querySelector("#dataTable tbody");
+let totalExpense = 0;
+
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+  document.getElementById(tab).classList.add('active');
+}
+
+function updateTotalExpense() {
+  let sum = 0;
+  dataTableBody.querySelectorAll("tr").forEach(row => {
+    if (row.cells.length > 1) {
+      const type = row.cells[0].textContent;
+      if (type === "Expense") {
+        const amt = parseFloat(row.cells[1].textContent);
+        if (!isNaN(amt)) sum += amt;
+      }
+    }
+  });
+  totalExpense = sum;
+  document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
+  
+  // Hide empty state if we have data
+  const emptyState = document.querySelector('.empty-state');
+  if (dataTableBody.children.length > 1 && emptyState) {
+    emptyState.remove();
+  }
+}
+
+function addRow(type, amount, category, payment, date, time) {
+  // Remove empty state if exists
+  const emptyState = document.querySelector('.empty-state');
+  if (emptyState) {
+    emptyState.remove();
+  }
+  
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${type}</td>
+    <td>${parseFloat(amount).toFixed(2)}</td>
+    <td>${category}</td>
+    <td>${payment}</td>
+    <td>${date}</td>
+    <td>${time}</td>
+    <td><button class="delete-btn" onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>
+  `;
+  dataTableBody.appendChild(row);
+  updateTotalExpense();
+}
+
+function deleteRow(button) {
+  button.closest("tr").remove();
+  updateTotalExpense();
+  
+  // Show empty state if no data
+  if (dataTableBody.children.length === 0) {
+    const emptyRow = document.createElement('tr');
+    emptyRow.className = 'empty-state';
+    emptyRow.innerHTML = `
+      <td colspan="7">
+        <div class="empty-icon">📊</div>
+        <div>No transactions yet. Add your first transaction above!</div>
+      </td>
+    `;
+    dataTableBody.appendChild(emptyRow);
+  }
+}
+
+function handleCategoryChange() {
+  const categorySelect = document.getElementById("expenseCategory");
+  const customGroup = document.getElementById("customCategoryGroup");
+  const customInput = document.getElementById("customCategory");
+  
+  if (categorySelect.value === "Other") {
+    customGroup.style.display = "block";
+    customInput.focus();
+  } else {
+    customGroup.style.display = "none";
+    customInput.value = "";
+  }
+}
+
+function addEarning() {
+  const amountInput = document.getElementById("earningAmount");
+  const amount = amountInput.value.trim();
+  if (!amount || Number(amount) <= 0) {
+    showToast("Please enter a valid earning amount.", 'error');
+    return;
+  }
+  const date = document.getElementById("fixedDate").textContent;
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  addRow("Earning", amount, "-", "-", date, time);
+  amountInput.value = "";
+  showToast("Earning added successfully!", 'success');
+}
+
+function addExpense() {
+  const amountInput = document.getElementById("expenseAmount");
+  const amount = amountInput.value.trim();
+  if (!amount || Number(amount) <= 0) {
+    showToast("Please enter a valid expense amount.", 'error');
+    return;
+  }
+
+  const categorySelect = document.getElementById("expenseCategory");
+  let category = categorySelect.value;
+
+  if (category === "Other") {
+    const customCat = document.getElementById("customCategory").value.trim();
+    if (!customCat) {
+      showToast("Please enter a custom category.", 'error');
+      return;
+    }
+    category = customCat;
+  }
+
+  const payment = document.getElementById("paymentMethod").value;
+  const date = document.getElementById("fixedDate").textContent;
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  addRow("Expense", amount, category, payment, date, time);
+  amountInput.value = "";
+
+  // Reset custom category
+  if (categorySelect.value === "Other") {
+    document.getElementById("customCategory").value = "";
+    document.getElementById("customCategoryGroup").style.display = "none";
+    categorySelect.value = "Personal";
+  }
+  
+  showToast("Expense added successfully!", 'success');
+}
+
+async function submitForm() {
+  const rows = dataTableBody.querySelectorAll('tr:not(.empty-state)');
+  if (rows.length === 0) {
+    showToast("Please add some earnings or expenses before submitting.", 'error');
+    return;
+  }
+  
+  const msg = document.getElementById("confirmationMessage");
+  msg.style.display = "block";
+  setTimeout(() => {
+    msg.style.display = "none";
+  }, 3000);
+
+  // Optional: send to backend if configured and user signed in
+  const stored = localStorage.getItem('rivava_user');
+  if (stored && APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_DEPLOY_ID')) {
+    const user = JSON.parse(stored);
+    const transactions = [];
+    rows.forEach(r => {
+      transactions.push({
+        type: r.cells[0].textContent,
+        amount: r.cells[1].textContent,
+        category: r.cells[2].textContent,
+        payment: r.cells[3].textContent,
+        date: r.cells[4].textContent,
+        time: r.cells[5].textContent
+      });
+    });
+
+    const payload = {
+      userEmail: user.email,
+      userName: user.name,
+      transactions: transactions,
+      id_token: user.token
+    };
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload) 
+      });
+      const text = await res.text();
+      console.log('Server response', res.status, text);
+    } catch (e) {
+      console.warn('Send failed', e);
+    }
+  }
+}
+
+// Add touch events for better mobile experience
+document.addEventListener('touchstart', function() {}, {passive: true});
