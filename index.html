@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,10 +43,8 @@
     top:0;
     z-index:100;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transition: padding 0.3s ease;
-  }
-  header.compact {
-    padding: 10px 20px;
+    transform: translateZ(0);
+    will-change: auto;
   }
   .brand {
     display:flex;
@@ -55,11 +54,6 @@
   .logo {
     width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bf7d0);box-shadow:0 4px 14px rgba(0,0,0,0.4);
     display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;
-    transition: all 0.3s ease;
-  }
-  header.compact .logo {
-    width: 32px;
-    height: 32px;
   }
   .username {
     font-size:1.25rem;
@@ -76,19 +70,12 @@
     header {
       padding: 12px 16px;
     }
-    header.compact {
-      padding: 8px 16px;
-    }
     .brand {
       gap: 10px;
     }
     .logo {
       width: 36px;
       height: 36px;
-    }
-    header.compact .logo {
-      width: 28px;
-      height: 28px;
     }
     .username {
       font-size: 1.15rem;
@@ -508,6 +495,20 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    
+    /* Mobile table optimization */
+    table {
+      font-size: 0.75rem;
+    }
+    th, td {
+      padding: 8px 4px;
+    }
+    th {
+      font-size: 0.7rem;
+    }
+    td {
+      font-size: 0.7rem;
+    }
   }
 
   /* Dark scrollbar */
@@ -655,35 +656,10 @@ const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.goo
 let lastScrollTop = 0;
 const header = document.querySelector('header');
 const SCROLL_THRESHOLD = 50;
-let ticking = false;
 
-function updateHeader() {
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  
-  if (scrollTop > lastScrollTop && scrollTop > SCROLL_THRESHOLD) {
-    header.classList.add('compact');
-  } else if (scrollTop < lastScrollTop || scrollTop < SCROLL_THRESHOLD) {
-    header.classList.remove('compact');
-  }
-  
-  lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-  ticking = false;
-}
-
-function requestTick() {
-  if (!ticking) {
-    requestAnimationFrame(updateHeader);
-    ticking = true;
-  }
-}
-
-function handleScroll() {
-  requestTick();
-}
-
-// Initialize scroll handling
+// Remove scroll handling to keep header static
 window.addEventListener('load', () => {
-  window.addEventListener('scroll', handleScroll, { passive: true });
+  // No scroll handling - header stays in place
 });
 
 /* ----------------------
@@ -721,13 +697,17 @@ function setSignedInUI(userObj, showWelcomeFlag){
   // top area
   const top = document.getElementById('topUserArea');
   top.innerHTML = ''; // clear
+  
+  // Extract first name only
+  const firstName = userObj.name.split(' ')[0];
+  
   // Show user chip in header
   const chip = document.createElement('div');
   chip.className = 'user-chip';
   chip.innerHTML = `
     <img src="${userObj.picture}" class="avatar" alt="Profile">
     <div class="user-info">
-      <div class="user-name">${userObj.name}</div>
+      <div class="user-name">${firstName}</div>
       <div class="user-email">${userObj.email}</div>
     </div>
   `;
@@ -736,7 +716,7 @@ function setSignedInUI(userObj, showWelcomeFlag){
   // Show profile inside signin card
   document.getElementById('signedInInfo').style.display = 'block';
   document.getElementById('profilePic').src = userObj.picture || '';
-  document.getElementById('displayName').textContent = userObj.name || '';
+  document.getElementById('displayName').textContent = firstName || '';
   document.getElementById('displayEmail').textContent = userObj.email || '';
 
   // show sign out button
@@ -745,7 +725,7 @@ function setSignedInUI(userObj, showWelcomeFlag){
   // hide signin button container
   document.getElementById('g_id_signin_container').innerHTML = '';
 
-  if(showWelcomeFlag) showWelcome(userObj.name, userObj.picture);
+  if(showWelcomeFlag) showWelcome(firstName, userObj.picture);
 }
 
 /* ----------------------
@@ -1038,3 +1018,4 @@ document.addEventListener('touchstart', function() {}, {passive: true});
 
 </body>
 </html>
+```
