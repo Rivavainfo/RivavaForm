@@ -46,33 +46,27 @@
     will-change: padding, height;
   }
   header.compact {
-    padding: 10px 20px;
-    height: 50px;
+    padding: 8px 16px;
+    height: 48px;
+    background: rgba(13, 13, 13, 0.95);
   }
   .brand {
     display:flex;
     align-items:center;
-    gap:12px;
-    transition: transform 0.2s ease;
-    will-change: transform;
-  }
-  .brand:hover {
-    transform: scale(1.02);
+    gap:10px;
+    transition: all 0.3s ease;
+    will-change: transform, gap;
   }
   .logo {
     width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bf7d0);box-shadow:0 4px 14px rgba(0,0,0,0.4);
     display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;
     transition: all 0.3s ease;
-    will-change: width, height, transform;
+    will-change: width, height;
   }
   header.compact .logo {
-    width: 32px;
-    height: 32px;
-    transform: scale(0.9);
-  }
-  .logo:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 255, 195, 0.3);
+    width: 30px;
+    height: 30px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
   }
   .username {
     font-size:1.25rem;
@@ -86,8 +80,66 @@
     will-change: font-size, opacity;
   }
   header.compact .username {
-    font-size: 1.05rem;
-    opacity: 0.95;
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+
+  /* Mobile header improvements */
+  @media(max-width:768px) {
+    header {
+      padding: 14px 16px;
+      height: 56px;
+      background: rgba(13, 13, 13, 0.98);
+    }
+    header.compact {
+      padding: 6px 12px;
+      height: 44px;
+      background: rgba(13, 13, 13, 0.95);
+    }
+    .brand {
+      gap: 8px;
+    }
+    .logo {
+      width: 36px;
+      height: 36px;
+    }
+    header.compact .logo {
+      width: 26px;
+      height: 26px;
+    }
+    .username {
+      font-size: 1.1rem;
+    }
+    header.compact .username {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      display: none;
+    }
+    #topUserArea {
+      margin-right: 0;
+    }
+    .user-chip {
+      padding: 6px 10px;
+      gap: 8px;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+    }
+    .user-name {
+      font-size: 0.85rem;
+    }
+    header.compact .user-chip {
+      padding: 4px 8px;
+      gap: 6px;
+    }
+    header.compact .avatar {
+      width: 26px;
+      height: 26px;
+    }
+    header.compact .user-name {
+      display: none;
+    }
   }
 
   /* signin area - styled like a card */
@@ -214,25 +266,6 @@
       flex-wrap:wrap;
       gap:12px;
     }
-    header{
-      padding:12px 16px;
-      flex-wrap:wrap;
-      gap:12px;
-    }
-    header.compact {
-      padding: 8px 16px;
-      height: 44px;
-    }
-    .logo{width:36px;height:36px}
-    header.compact .logo {
-      width: 28px;
-      height: 28px;
-    }
-    .username{font-size:1.1rem}
-    header.compact .username {
-      font-size: 0.95rem;
-      opacity: 0.9;
-    }
     
     main{
       margin:12px;
@@ -270,18 +303,6 @@
     th,td{
       padding:10px 6px;
       font-size:0.8rem;
-    }
-    
-    .user-chip{
-      flex-direction:column;
-      text-align:center;
-      padding:10px;
-      gap:8px;
-    }
-    
-    .avatar{
-      width:36px;
-      height:36px;
     }
     
     .signin-title{
@@ -327,10 +348,6 @@
     
     table{
       min-width:600px;
-    }
-    
-    .user-chip{
-      padding:8px;
     }
     
     #welcomeOverlay{
@@ -524,6 +541,9 @@ window.addEventListener('load', () => {
   // Also handle resize events
   window.addEventListener('resize', () => {
     if (window.innerWidth > MOBILE_BREAKPOINT) {
+      header.classList.remove('compact');
+    } else {
+      // Reset to normal state on mobile resize
       header.classList.remove('compact');
     }
   });
