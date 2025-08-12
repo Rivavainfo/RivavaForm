@@ -29,8 +29,6 @@
     --accent-2:#00d9aa;
     --text:#fff;
     --muted:#888;
-    --danger:#ff4757;
-    --success:#2ed573;
   }
   *{box-sizing:border-box}
   body{
@@ -60,8 +58,7 @@
     will-change: auto;
     transition: all 0.3s ease;
   }
-  header.scrolled {
-    opacity: 0.9;
+  header.hidden {
     transform: translateY(-100%);
   }
   .brand {
@@ -81,20 +78,6 @@
     -webkit-text-fill-color:transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.5px;
-  }
-
-  /* Info blocks with fade animation */
-  .info-blocks {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:15px;
-    margin-bottom:18px;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-  .info-blocks.fade-out {
-    opacity: 0;
-    transform: translateY(-20px);
-    pointer-events: none;
   }
 
   /* Mobile header improvements */
@@ -216,6 +199,17 @@
     margin:18px auto;
     padding:18px;
   }
+  .info-blocks{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+    margin-bottom:18px;
+    transition: opacity 0.3s ease;
+  }
+  .info-blocks.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
   .info-block{
     background:var(--card-dark);
     padding:14px;
@@ -234,11 +228,10 @@
     display:flex;
     gap:10px;
     margin-bottom:16px;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.3s ease;
   }
-  .tabs.fade-out {
+  .tabs.hidden {
     opacity: 0;
-    transform: translateY(-20px);
     pointer-events: none;
   }
   .tab{
@@ -250,31 +243,14 @@
     cursor:pointer;
     border:1px solid #111;
     transition:all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  .tab::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: all 0.5s ease;
-  }
-  .tab:hover::before {
-    left: 100%;
   }
   .tab:hover{
     background:#111;
-    transform: translateY(-2px);
   }
   .tab.active{
     background:var(--accent);
     color:#000;
     font-weight:700;
-    box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
   }
   .form-section{
     display:none;
@@ -282,11 +258,6 @@
     padding:18px;
     border-radius:12px;
     border:1px solid #111;
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
   }
   .form-section.active{
     display:block;
@@ -306,13 +277,11 @@
     color:var(--text);
     margin-bottom:12px;
     font-size:16px;
-    transition: all 0.2s ease;
   }
   input:focus,select:focus{
     outline:none;
     border-color:var(--accent);
     box-shadow:0 0 0 2px rgba(0,255,195,0.2);
-    transform: translateY(-2px);
   }
   button.primary{
     background:linear-gradient(90deg,var(--accent),var(--accent-2));
@@ -325,43 +294,11 @@
     width:100%;
     margin-top:8px;
     font-size:1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 255, 195, 0.2);
+    transition: all 0.2s ease;
   }
   button.primary:hover{
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 255, 195, 0.4);
-  }
-  button.primary:active{
-    transform: translateY(-1px);
-  }
-  button.primary::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.5);
-    opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%);
-    transform-origin: 50% 50%;
-  }
-  button.primary:focus:not(:active)::after {
-    animation: ripple 1s ease-out;
-  }
-  @keyframes ripple {
-    0% {
-      transform: scale(0, 0);
-      opacity: 0.5;
-    }
-    100% {
-      transform: scale(50, 50);
-      opacity: 0;
-    }
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
   }
 
   /* Table styling with horizontal scrolling */
@@ -393,7 +330,7 @@
     font-size:0.85rem;
   }
   td button{
-    background:var(--danger);
+    background:#ff4757;
     color:#fff;
     border:none;
     padding:6px 10px;
@@ -402,60 +339,39 @@
     font-size:0.8rem;
     transition: all 0.2s ease;
     min-width: 60px;
-    position: relative;
-    overflow: hidden;
   }
   td button:hover{
     background:#ff3838;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 71, 87, 0.3);
-  }
-  td button::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.5);
-    opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%);
-    transform-origin: 50% 50%;
-  }
-  td button:focus:not(:active)::after {
-    animation: ripple 0.6s ease-out;
   }
 
-  /* confirmation message */
+  /* Enhanced confirmation message */
   .confirmation{
     display:none;
-    background:var(--card-dark);
+    background:linear-gradient(90deg, #18c29a, #00ffc3);
+    color: #012;
+    font-weight: 600;
     padding:14px;
     border-radius:12px;
     margin-top:16px;
     border:1px solid #222;
     text-align:center;
+    animation: slideDown 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
     position: fixed;
-    top: 20px;
+    top: -100px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     max-width: 90%;
     width: 400px;
-    opacity: 0;
-    transition: opacity 0.3s ease, top 0.3s ease;
   }
-  .confirmation.show {
-    display: block;
-    opacity: 1;
-    top: 80px;
+  @keyframes slideDown {
+    from { top: -100px; }
+    to { top: 20px; }
   }
-  .confirmation.success {
-    background: linear-gradient(90deg, #18c29a, #00ffc3);
-    color: #012;
-    font-weight: 600;
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
   }
   .confirmation.error {
     background: linear-gradient(90deg, #ff6b6b, #ff5252);
@@ -500,30 +416,10 @@
     font-size: 0.9rem;
     transition: all 0.2s ease;
     min-width: 100px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
   }
   .signout-btn:hover {
     background: linear-gradient(90deg, #ff5252, #ff4444) !important;
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-  }
-  .signout-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.5);
-    opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%);
-    transform-origin: 50% 50%;
-  }
-  .signout-btn:focus:not(:active)::after {
-    animation: ripple 0.6s ease-out;
   }
 
   /* Mobile responsive styles */
@@ -879,18 +775,18 @@ window.addEventListener('scroll', () => {
   
   // Header hide/show on scroll
   if (scrollTop > lastScrollTop && scrollTop > SCROLL_THRESHOLD) {
-    header.classList.add('scrolled');
+    header.classList.add('hidden');
   } else {
-    header.classList.remove('scrolled');
+    header.classList.remove('hidden');
   }
   
-  // Fade out info blocks and tabs when scrolling to form
+  // Hide info blocks and tabs when scrolling to form
   if (scrollTop > 300) {
-    infoBlocks.classList.add('fade-out');
-    tabs.classList.add('fade-out');
+    infoBlocks.classList.add('hidden');
+    tabs.classList.add('hidden');
   } else {
-    infoBlocks.classList.remove('fade-out');
-    tabs.classList.remove('fade-out');
+    infoBlocks.classList.remove('hidden');
+    tabs.classList.remove('hidden');
   }
   
   lastScrollTop = scrollTop;
@@ -1219,14 +1115,14 @@ async function submitForm() {
   console.log("=== Starting submitForm (Firebase version) ===");
 
   if (dataTableBody.children.length === 0) {
-    showConfirmation("Please add some earnings or expenses before submitting.", "error");
+    showConfirmation("Please add some earnings or expenses before submitting.", true);
     console.warn("Submit clicked but no data in table.");
     return;
   }
 
   const stored = localStorage.getItem('rivava_user');
   if (!stored) {
-    showConfirmation("You must sign in first.", "error");
+    showConfirmation("You must sign in first.", true);
     console.warn("Submit clicked but user not signed in.");
     return;
   }
@@ -1265,7 +1161,7 @@ async function submitForm() {
     console.log("Data successfully written to Firebase with ID: ", docRef.id);
 
     // Show success message with animation
-    showConfirmation("✅ Data submitted successfully to Firebase!", "success");
+    showConfirmation("✅ Data submitted successfully to Firebase!", false);
 
     // Optional: Clear the form table after successful submission
     // dataTableBody.innerHTML = '';
@@ -1274,26 +1170,31 @@ async function submitForm() {
   } catch (error) {
     // Handle any errors that occurred during the Firestore operation
     console.error("Error submitting data to Firebase:", error);
-    showConfirmation("❌ Failed to save data to Firebase. Please check the browser console for details.", "error");
+    showConfirmation("❌ Failed to save data to Firebase. Please check the browser console for details.", true);
   }
 
   console.log("=== Finished submitForm (Firebase version) ===");
 }
 
 // Enhanced confirmation message with animations
-function showConfirmation(message, type) {
+function showConfirmation(message, isError) {
   const msg = document.getElementById("confirmationMessage");
   msg.textContent = message;
-  msg.className = \`confirmation \${type}\`;
+  msg.className = "confirmation";
+  if (isError) {
+    msg.classList.add("error");
+  }
   
   // Show with animation
   setTimeout(() => {
-    msg.classList.add('show');
+    msg.style.display = "block";
+    // Scroll to top to see message
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, 10);
   
   // Auto hide after 3 seconds
   setTimeout(() => {
-    msg.classList.remove('show');
+    msg.style.display = "none";
   }, 3000);
 }
 
