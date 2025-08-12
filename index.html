@@ -2,787 +2,436 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 <title>Rivava Finance Tracker</title>
 
 <!-- Fonts & Google Identity lib -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
   :root{
-    --bg-primary:#0a0a0b;
-    --bg-secondary:#111115;
-    --bg-tertiary:#1a1a1f;
-    --accent-primary:#00ff88;
-    --accent-secondary:#00cc6a;
-    --accent-glow:rgba(0,255,136,0.15);
-    --text-primary:#ffffff;
-    --text-secondary:#a1a1aa;
-    --text-muted:#71717a;
-    --border-primary:#27272a;
-    --border-secondary:#3f3f46;
-    --success:#22c55e;
-    --error:#ef4444;
-    --warning:#f59e0b;
-    --shadow-sm:0 1px 2px 0 rgba(0,0,0,0.05);
-    --shadow:0 4px 6px -1px rgba(0,0,0,0.1);
-    --shadow-lg:0 20px 25px -5px rgba(0,0,0,0.1);
-    --radius-sm:6px;
-    --radius:12px;
-    --radius-lg:16px;
-    --transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
-    --transition-bounce:all 0.3s cubic-bezier(0.68,-0.55,0.265,1.55);
+    --bg-dark:#000;
+    --card-dark:#0d0d0d;
+    --accent:#00ffc3;
+    --accent-2:#00d9aa;
+    --text:#fff;
+    --muted:#888;
   }
-
-  *{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-  }
-
+  *{box-sizing:border-box}
   body{
-    font-family:'Inter',system-ui,-apple-system,sans-serif;
-    background:var(--bg-primary);
-    color:var(--text-primary);
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--bg-dark);
+    color:var(--text);
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
-    line-height:1.5;
     min-height:100vh;
     overflow-x:hidden;
   }
 
-  /* Smooth scroll */
-  html{scroll-behavior:smooth}
-
-  /* Enhanced Header with Glass Effect */
+  /* Header */
   header{
-    position:sticky;
-    top:0;
-    z-index:100;
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    background:rgba(10,10,11,0.8);
-    border-bottom:1px solid var(--border-primary);
-    padding:16px 20px;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    transition:var(--transition);
+    padding:16px 20px;
+    background:var(--card-dark);
+    border-bottom:1px solid #111;
+    position:sticky;
+    top:0;
+    z-index:100;
+    min-height:70px;
   }
-
   .brand {
     display:flex;
     align-items:center;
     gap:12px;
-    animation:slideInLeft 0.6s ease-out;
+    flex-shrink:0;
   }
-
   .logo {
-    width:44px;
-    height:44px;
-    border-radius:var(--radius);
-    background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#000;
-    font-weight:700;
-    font-size:1.2rem;
-    box-shadow:0 8px 32px var(--accent-glow);
-    transition:var(--transition-bounce);
-    cursor:pointer;
+    width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bf7d0);box-shadow:0 4px 14px rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;
+    flex-shrink:0;
   }
-
-  .logo:hover{
-    transform:scale(1.05) rotate(5deg);
-    box-shadow:0 12px 48px var(--accent-glow);
-  }
-
-  .brand-text {
-    font-size:1.5rem;
-    font-weight:700;
-    background:linear-gradient(90deg,var(--accent-primary),var(--text-primary));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
-  }
-
-  /* Top User Area */
-  .top-user-chip{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    background:var(--bg-secondary);
-    padding:8px 16px;
-    border-radius:50px;
-    border:1px solid var(--border-primary);
-    backdrop-filter:blur(10px);
-    transition:var(--transition);
-    animation:slideInRight 0.6s ease-out;
-  }
-
-  .top-user-chip:hover{
-    background:var(--bg-tertiary);
-    border-color:var(--border-secondary);
-    transform:translateY(-1px);
-  }
-
-  .top-user-avatar{
-    width:32px;
-    height:32px;
-    border-radius:50%;
-    object-fit:cover;
-    border:2px solid var(--accent-primary);
-  }
-
-  .top-user-info{
-    display:flex;
-    flex-direction:column;
-    min-width:0;
-  }
-
-  .top-user-name{
-    font-weight:600;
-    font-size:0.9rem;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    max-width:120px;
-  }
-
-  .top-user-email{
-    font-size:0.75rem;
-    color:var(--text-muted);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    max-width:120px;
-  }
-
-  /* Modern Signin Card */
-  .signin-container{
-    padding:20px;
-    max-width:480px;
-    margin:0 auto;
-    animation:fadeInUp 0.8s ease-out;
-  }
-
-  .signin-card{
-    background:linear-gradient(145deg,var(--bg-secondary),var(--bg-tertiary));
-    border:1px solid var(--border-primary);
-    border-radius:var(--radius-lg);
-    padding:32px;
-    text-align:center;
-    backdrop-filter:blur(20px);
-    box-shadow:var(--shadow-lg);
-    position:relative;
-    overflow:hidden;
-    transition:var(--transition);
-  }
-
-  .signin-card::before{
-    content:'';
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    height:1px;
-    background:linear-gradient(90deg,transparent,var(--accent-primary),transparent);
-    opacity:0.6;
-  }
-
-  .signin-card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 32px 64px rgba(0,0,0,0.2);
-    border-color:var(--border-secondary);
-  }
-
-  .signin-title{
-    font-size:1.5rem;
-    font-weight:700;
-    margin-bottom:8px;
-    background:linear-gradient(135deg,var(--text-primary),var(--text-secondary));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-  }
-
-  .signin-subtitle{
-    color:var(--text-secondary);
-    margin-bottom:32px;
-    line-height:1.6;
-  }
-
-  .signed-in-profile{
-    display:none;
-    text-align:center;
-    animation:scaleIn 0.4s ease-out;
-  }
-
-  .profile-avatar{
-    width:80px;
-    height:80px;
-    border-radius:50%;
-    object-fit:cover;
-    margin:0 auto 16px;
-    border:4px solid var(--accent-primary);
-    box-shadow:0 8px 32px var(--accent-glow);
-  }
-
-  .profile-name{
+  .username {
     font-size:1.25rem;
-    font-weight:600;
-    margin-bottom:4px;
-  }
-
-  .profile-email{
-    color:var(--text-secondary);
-    font-size:0.9rem;
-    margin-bottom:24px;
-  }
-
-  /* Enhanced Buttons */
-  .btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    padding:12px 24px;
-    border-radius:var(--radius);
-    font-weight:600;
-    font-size:0.95rem;
-    border:none;
-    cursor:pointer;
-    transition:var(--transition-bounce);
-    position:relative;
-    overflow:hidden;
-    text-decoration:none;
+    font-weight:700;
+    background:linear-gradient(90deg,var(--accent),#fff);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
     white-space:nowrap;
   }
 
-  .btn::before{
-    content:'';
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:linear-gradient(45deg,transparent,rgba(255,255,255,0.1),transparent);
-    transform:translateX(-100%);
-    transition:transform 0.6s ease;
+  #topUserArea {
+    flex-shrink:0;
+    max-width:60%;
   }
 
-  .btn:hover::before{
-    transform:translateX(100%);
+  /* signin area - styled like a card */
+  .signin-card{
+    max-width:920px;margin:20px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;border:1px solid #111;display:flex;align-items:center;gap:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  }
+  .signin-left{flex:1;min-width:0}
+  .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;}
+  .signin-title{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+  .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
+
+  /* user display */
+  .user-chip{display:flex;gap:10px;align-items:center;background:#0b0b0b;padding:8px 12px;border-radius:999px;border:1px solid #111;max-width:100%;}
+  .avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0}
+  .user-name{font-weight:700;font-size:0.95rem;word-break:break-word;}
+
+  /* main form area */
+  main{max-width:920px;margin:18px auto;padding:18px}
+  .info-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:18px}
+  .info-block{background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #111}
+  .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent);font-weight:600}
+  .tabs{display:flex;gap:10px;margin-bottom:16px}
+  .tab{flex:1;background:var(--card-dark);padding:12px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid #111;transition:all 0.3s ease}
+  .tab:hover{background:#111}
+  .tab.active{background:var(--accent);color:#000;font-weight:700}
+  .form-section{display:none;background:var(--card-dark);padding:18px;border-radius:12px;border:1px solid #111}
+  .form-section.active{display:block}
+  label{display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem}
+  input,select{width:100%;padding:12px;border-radius:8px;background:#111;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2)}
+  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:12px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:8px;font-size:1rem;transition:transform 0.2s ease}
+  button.primary:hover{transform:translateY(-2px)}
+  button.primary:active{transform:translateY(0)}
+
+  /* Table styling */
+  .table-container{overflow-x:auto;margin-top:16px;border-radius:8px;background:var(--card-dark);border:1px solid #111;}
+  table{width:100%;border-collapse:collapse;min-width:700px}
+  th,td{padding:12px 8px;border-bottom:1px solid #222;text-align:left}
+  th{color:var(--accent);font-weight:700;font-size:0.9rem;white-space:nowrap}
+  td{font-size:0.85rem}
+  td button{background:#ff4757;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem}
+  td button:hover{background:#ff3838}
+
+  /* confirmation message */
+  .confirmation{display:none;background:var(--card-dark);padding:14px;border-radius:12px;margin-top:16px;border:1px solid #222;text-align:center}
+
+  /* welcome overlay */
+  #welcomeOverlay{
+    position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;
+    transition:opacity .45s ease, transform .45s ease;
+    max-width:90vw;
+  }
+  #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+
+  /* Sign out button styling */
+  .signout-btn {
+    background: linear-gradient(90deg, #ff6b6b, #ff5252) !important;
+    color: white !important;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    min-width: 100px;
+  }
+  .signout-btn:hover {
+    background: linear-gradient(90deg, #ff5252, #ff4444) !important;
+    transform: translateY(-1px);
   }
 
-  .btn-primary{
-    background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
-    color:#000;
-    box-shadow:0 4px 16px var(--accent-glow);
-  }
-
-  .btn-primary:hover{
-    transform:translateY(-2px) scale(1.02);
-    box-shadow:0 8px 32px var(--accent-glow);
-  }
-
-  .btn-primary:active{
-    transform:translateY(0) scale(0.98);
-  }
-
-  .btn-secondary{
-    background:var(--bg-tertiary);
-    color:var(--text-primary);
-    border:1px solid var(--border-secondary);
-  }
-
-  .btn-secondary:hover{
-    background:var(--border-secondary);
-    transform:translateY(-1px);
-  }
-
-  .btn-danger{
-    background:linear-gradient(135deg,#ff6b6b,#ee5a52);
-    color:white;
-    box-shadow:0 4px 16px rgba(255,107,107,0.3);
-  }
-
-  .btn-danger:hover{
-    transform:translateY(-2px);
-    box-shadow:0 8px 32px rgba(255,107,107,0.4);
-  }
-
-  /* Main Content */
-  .main-container{
-    max-width:480px;
-    margin:0 auto;
-    padding:20px;
-    animation:fadeInUp 1s ease-out;
-  }
-
-  /* Stats Cards */
-  .stats-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-    gap:16px;
-    margin-bottom:32px;
-  }
-
-  .stat-card{
-    background:var(--bg-secondary);
-    border:1px solid var(--border-primary);
-    border-radius:var(--radius-lg);
-    padding:20px;
-    text-align:center;
-    transition:var(--transition);
-    position:relative;
-    overflow:hidden;
-  }
-
-  .stat-card::before{
-    content:'';
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:2px;
-    background:linear-gradient(90deg,var(--accent-primary),var(--accent-secondary));
-    transform:scaleX(0);
-    transition:transform 0.3s ease;
-  }
-
-  .stat-card:hover::before{
-    transform:scaleX(1);
-  }
-
-  .stat-card:hover{
-    transform:translateY(-4px);
-    box-shadow:var(--shadow-lg);
-    border-color:var(--border-secondary);
-  }
-
-  .stat-label{
-    font-size:0.85rem;
-    color:var(--text-secondary);
-    font-weight:500;
-    margin-bottom:8px;
-  }
-
-  .stat-value{
-    font-size:1.5rem;
-    font-weight:700;
-    color:var(--accent-primary);
-    font-family:'Inter',monospace;
-  }
-
-  /* Enhanced Tabs */
-  .tabs-container{
-    background:var(--bg-secondary);
-    border-radius:var(--radius-lg);
-    padding:6px;
-    margin-bottom:24px;
-    border:1px solid var(--border-primary);
-    position:relative;
-  }
-
-  .tabs{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:4px;
-    position:relative;
-  }
-
-  .tab{
-    padding:16px;
-    text-align:center;
-    font-weight:600;
-    border-radius:var(--radius);
-    cursor:pointer;
-    transition:var(--transition);
-    position:relative;
-    z-index:2;
-  }
-
-  .tab.active{
-    color:#000;
-    background:var(--accent-primary);
-    box-shadow:0 4px 12px var(--accent-glow);
-  }
-
-  .tab:not(.active){
-    color:var(--text-secondary);
-  }
-
-  .tab:not(.active):hover{
-    color:var(--text-primary);
-    background:var(--bg-tertiary);
-  }
-
-  /* Form Sections */
-  .form-section{
-    display:none;
-    background:var(--bg-secondary);
-    border:1px solid var(--border-primary);
-    border-radius:var(--radius-lg);
-    padding:24px;
-    animation:slideInUp 0.4s ease-out;
-  }
-
-  .form-section.active{
-    display:block;
-  }
-
-  .form-group{
-    margin-bottom:20px;
-  }
-
-  .form-label{
-    display:block;
-    font-weight:600;
-    font-size:0.9rem;
-    color:var(--text-primary);
-    margin-bottom:8px;
-  }
-
-  .form-input{
-    width:100%;
-    padding:16px;
-    border-radius:var(--radius);
-    background:var(--bg-tertiary);
-    border:1px solid var(--border-primary);
-    color:var(--text-primary);
-    font-size:16px;
-    transition:var(--transition);
-    font-family:inherit;
-  }
-
-  .form-input:focus{
-    outline:none;
-    border-color:var(--accent-primary);
-    box-shadow:0 0 0 3px var(--accent-glow);
-    background:var(--bg-primary);
-  }
-
-  .form-input::placeholder{
-    color:var(--text-muted);
-  }
-
-  /* Enhanced Table */
-  .table-container{
-    background:var(--bg-secondary);
-    border:1px solid var(--border-primary);
-    border-radius:var(--radius-lg);
-    overflow:hidden;
-    margin:24px 0;
-  }
-
-  .table-wrapper{
-    overflow-x:auto;
-    max-height:400px;
-    overflow-y:auto;
-  }
-
-  table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:600px;
-  }
-
-  th{
-    background:var(--bg-tertiary);
-    padding:16px 12px;
-    text-align:left;
-    font-weight:600;
-    font-size:0.85rem;
-    color:var(--accent-primary);
-    border-bottom:1px solid var(--border-primary);
-    position:sticky;
-    top:0;
-    z-index:1;
-  }
-
-  td{
-    padding:16px 12px;
-    border-bottom:1px solid var(--border-primary);
-    font-size:0.9rem;
-    vertical-align:middle;
-  }
-
-  tbody tr{
-    transition:var(--transition);
-  }
-
-  tbody tr:hover{
-    background:var(--bg-tertiary);
-  }
-
-  .delete-btn{
-    padding:6px 12px;
-    background:var(--error);
-    color:white;
-    border:none;
-    border-radius:var(--radius-sm);
-    font-size:0.8rem;
-    cursor:pointer;
-    transition:var(--transition);
-  }
-
-  .delete-btn:hover{
-    background:#dc2626;
-    transform:scale(1.05);
-  }
-
-  /* Empty State */
-  .empty-state{
-    text-align:center;
-    padding:60px 20px;
-    color:var(--text-muted);
-  }
-
-  .empty-icon{
-    font-size:3rem;
-    margin-bottom:16px;
-    opacity:0.5;
-  }
-
-  /* Success Message */
-  .success-message{
-    display:none;
-    background:linear-gradient(135deg,var(--success),#16a34a);
-    color:white;
-    padding:16px;
-    border-radius:var(--radius);
-    text-align:center;
-    margin:24px 0;
-    font-weight:600;
-    animation:slideInUp 0.4s ease-out;
-  }
-
-  /* Welcome Toast */
-  .welcome-toast{
-    position:fixed;
-    top:100px;
-    left:50%;
-    transform:translateX(-50%) translateY(-20px);
-    background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));
-    color:#000;
-    padding:16px 24px;
-    border-radius:50px;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    font-weight:600;
-    box-shadow:0 20px 40px rgba(0,255,136,0.3);
-    z-index:1000;
-    opacity:0;
-    pointer-events:none;
-    transition:all 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
-  }
-
-  .welcome-toast.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-  }
-
-  .welcome-avatar{
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    object-fit:cover;
-    border:2px solid rgba(0,0,0,0.2);
-  }
-
-  /* Loading States */
-  .loading{
-    opacity:0.7;
-    pointer-events:none;
-    position:relative;
-  }
-
-  .loading::after{
-    content:'';
-    position:absolute;
-    top:50%;
-    left:50%;
-    width:20px;
-    height:20px;
-    margin:-10px 0 0 -10px;
-    border:2px solid var(--accent-primary);
-    border-top-color:transparent;
-    border-radius:50%;
-    animation:spin 1s linear infinite;
-  }
-
-  /* Animations */
-  @keyframes fadeInUp{
-    from{opacity:0;transform:translateY(30px)}
-    to{opacity:1;transform:translateY(0)}
-  }
-
-  @keyframes slideInLeft{
-    from{opacity:0;transform:translateX(-30px)}
-    to{opacity:1;transform:translateX(0)}
-  }
-
-  @keyframes slideInRight{
-    from{opacity:0;transform:translateX(30px)}
-    to{opacity:1;transform:translateX(0)}
-  }
-
-  @keyframes slideInUp{
-    from{opacity:0;transform:translateY(20px)}
-    to{opacity:1;transform:translateY(0)}
-  }
-
-  @keyframes scaleIn{
-    from{opacity:0;transform:scale(0.9)}
-    to{opacity:1;transform:scale(1)}
-  }
-
-  @keyframes spin{
-    to{transform:rotate(360deg)}
-  }
-
-  @keyframes pulse{
-    0%,100%{opacity:1}
-    50%{opacity:0.5}
-  }
-
-  /* Mobile Optimizations */
-  @media (max-width: 640px) {
+  /* Mobile responsive styles */
+  @media(max-width:768px){
+    body {
+      font-size: 14px;
+    }
+    
+    .signin-card{
+      flex-direction:column;
+      align-items:stretch;
+      margin:16px 12px;
+      padding:16px;
+      gap:16px;
+    }
+    .signin-right{
+      width:100%;
+      flex-direction:column;
+      align-items:stretch;
+      gap:12px;
+    }
+    
     header{
       padding:12px 16px;
-    }
-
-    .logo{
-      width:36px;
-      height:36px;
-      font-size:1rem;
-    }
-
-    .brand-text{
-      font-size:1.25rem;
-    }
-
-    .top-user-name{
-      max-width:80px;
-    }
-
-    .top-user-email{
-      max-width:80px;
-    }
-
-    .signin-container{
-      padding:16px;
-    }
-
-    .signin-card{
-      padding:24px 20px;
-    }
-
-    .signin-title{
-      font-size:1.25rem;
-    }
-
-    .main-container{
-      padding:16px;
-    }
-
-    .stats-grid{
-      grid-template-columns:1fr;
+      flex-wrap:nowrap;
       gap:12px;
-      margin-bottom:24px;
+      min-height:60px;
     }
-
-    .stat-card{
-      padding:16px;
+    .logo{width:36px;height:36px}
+    .username{font-size:1.1rem}
+    
+    #topUserArea {
+      max-width:50%;
     }
-
-    .form-section{
-      padding:20px 16px;
-    }
-
-    .form-input{
-      padding:14px;
-    }
-
-    .btn{
-      padding:14px 20px;
-      font-size:1rem;
-    }
-
-    th,td{
-      padding:12px 8px;
-      font-size:0.85rem;
-    }
-
-    table{
-      min-width:500px;
-    }
-
-    .welcome-toast{
-      left:16px;
-      right:16px;
-      transform:translateX(0) translateY(-20px);
-      border-radius:var(--radius);
-    }
-
-    .welcome-toast.show{
-      transform:translateX(0) translateY(0);
-    }
-  }
-
-  /* Ultra small devices */
-  @media (max-width: 375px) {
-    .signin-card{
-      padding:20px 16px;
-    }
-
-    .main-container{
+    
+    main{
+      margin:12px;
       padding:12px;
     }
-
+    
+    .info-blocks{
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    
+    .info-block{
+      padding:12px;
+    }
+    
+    .info-block .value{
+      font-size:1.4rem;
+      margin-top:6px;
+    }
+    
+    .tabs{
+      flex-direction:column;
+      gap:8px;
+    }
+    .tab{
+      padding:14px;
+      font-size:1rem;
+    }
+    
     .form-section{
-      padding:16px 12px;
+      padding:16px;
+    }
+    
+    input,select{
+      padding:14px;
+      font-size:16px;
+      margin-bottom:16px;
+    }
+    
+    button.primary{
+      padding:16px;
+      font-size:1.1rem;
+      margin-top:12px;
+    }
+    
+    .table-container{
+      margin-left:-12px;
+      margin-right:-12px;
+      border-radius:0;
+      border-left:none;
+      border-right:none;
+    }
+    
+    table{
+      min-width:650px;
+    }
+    
+    th,td{
+      padding:10px 6px;
+      font-size:0.8rem;
+    }
+    
+    .user-chip{
+      flex-direction:row;
+      text-align:left;
+      padding:8px 10px;
+      gap:8px;
+      font-size:0.85rem;
+    }
+    
+    .avatar{
+      width:32px;
+      height:32px;
+    }
+    
+    .user-name{
+      font-size:0.85rem;
+      line-height:1.2;
+    }
+    
+    .signin-title{
+      font-size:1.2rem;
+      text-align:center;
+      margin-bottom:8px;
+    }
+    
+    .signin-sub{
+      text-align:center;
+      font-size:0.9rem;
+      margin-bottom:16px;
+    }
+    
+    #welcomeOverlay{
+      left:10px;
+      right:10px;
+      transform:translateX(0) translateY(-10px);
+      max-width:calc(100% - 20px);
+    }
+    #welcomeOverlay.show{
+      transform:translateX(0) translateY(0);
+    }
+    
+    .signout-btn{
+      padding:12px;
+      font-size:1rem;
     }
   }
 
-  /* Dark scrollbar for all elements */
-  *::-webkit-scrollbar{
-    width:8px;
-    height:8px;
-  }
-
-  *::-webkit-scrollbar-track{
-    background:var(--bg-secondary);
-  }
-
-  *::-webkit-scrollbar-thumb{
-    background:var(--border-secondary);
-    border-radius:4px;
-  }
-
-  *::-webkit-scrollbar-thumb:hover{
-    background:var(--text-muted);
-  }
-
-  /* Reduce motion for accessibility */
-  @media (prefers-reduced-motion: reduce) {
-    *,::before,::after{
-      animation-duration:0.01ms !important;
-      animation-iteration-count:1 !important;
-      transition-duration:0.01ms !important;
+  @media(max-width:480px){
+    .signin-card{
+      margin:12px 8px;
+      padding:12px;
+    }
+    
+    header{
+      padding:10px 12px;
+    }
+    
+    main{
+      margin:8px;
+      padding:8px;
+    }
+    
+    .info-blocks{
+      gap:10px;
+    }
+    
+    .info-block{
+      padding:10px;
+    }
+    
+    .info-block .value{
+      font-size:1.3rem;
+    }
+    
+    .form-section{
+      padding:12px;
+    }
+    
+    .table-container{
+      margin-left:-8px;
+      margin-right:-8px;
+    }
+    
+    table{
+      min-width:600px;
+    }
+    
+    th,td{
+      padding:8px 4px;
+      font-size:0.75rem;
+    }
+    
+    .user-chip{
+      padding:6px 8px;
+      font-size:0.8rem;
+    }
+    
+    .avatar{
+      width:28px;
+      height:28px;
+    }
+    
+    .user-name{
+      font-size:0.8rem;
+    }
+    
+    #welcomeOverlay{
+      padding:12px 16px;
+      font-size:0.9rem;
+      left:8px;
+      right:8px;
+      max-width:calc(100% - 16px);
+    }
+    
+    .username{
+      font-size:1rem;
+    }
+    
+    .logo{
+      width:32px;
+      height:32px;
+      font-size:0.9rem;
     }
   }
 
-  /* High contrast for accessibility */
-  @media (prefers-contrast: high) {
-    :root{
-      --border-primary:#666;
-      --border-secondary:#999;
-      --text-secondary:#ccc;
+  @media(max-width:360px){
+    .signin-card{
+      margin:8px 6px;
+      padding:10px;
     }
+    
+    header{
+      padding:8px 10px;
+    }
+    
+    main{
+      margin:6px;
+      padding:6px;
+    }
+    
+    .brand{
+      gap:8px;
+    }
+    
+    .username{
+      font-size:0.95rem;
+    }
+    
+    .logo{
+      width:30px;
+      height:30px;
+      font-size:0.8rem;
+    }
+    
+    .user-chip{
+      padding:6px;
+      gap:6px;
+    }
+    
+    .avatar{
+      width:24px;
+      height:24px;
+    }
+    
+    .user-name{
+      font-size:0.75rem;
+    }
+    
+    th,td{
+      padding:6px 3px;
+      font-size:0.7rem;
+    }
+    
+    td button{
+      padding:4px 6px;
+      font-size:0.7rem;
+    }
+  }
+
+  /* Dark scrollbar */
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:#111}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#444}
+
+  /* Prevent zoom on input focus for iOS */
+  @supports (-webkit-touch-callout: none) {
+    input, select {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Better touch targets */
+  .tab, button, .user-chip {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>
 </head>
@@ -791,205 +440,405 @@
 <header>
   <div class="brand">
     <div class="logo">R</div>
-    <div class="brand-text">RIVAVA</div>
+    <div class="username">RIVAVA</div>
   </div>
-  <div id="topUserArea"></div>
+
+  <!-- top-right: user area (shows signin button or user) -->
+  <div id="topUserArea" style="margin-right:14px;">
+    <!-- will be filled by JS -->
+  </div>
 </header>
 
-<!-- Signin Section -->
-<div class="signin-container" id="signinContainer">
-  <div class="signin-card">
+<!-- Sign-in card (designer style) -->
+<section class="signin-card" id="signinCard">
+  <div class="signin-left">
     <div class="signin-title">Welcome to Rivava Finance</div>
-    <div class="signin-subtitle">Track your earnings and expenses with secure authentication</div>
-    
-    <div id="signedInInfo" class="signed-in-profile">
-      <img id="profilePic" class="profile-avatar" src="" alt="Profile">
-      <div class="profile-name" id="displayName"></div>
-      <div class="profile-email" id="displayEmail"></div>
-      <button id="signoutBtn" class="btn btn-danger" onclick="signOut()">
-        <span>Sign out</span>
-      </button>
+    <div class="signin-sub">Track earnings & expenses quickly — secure sign in required to save your data privately.</div>
+
+    <div id="signedInInfo" style="display:none;">
+      <div class="user-chip">
+        <img id="profilePic" class="avatar" src="" alt="avatar">
+        <div>
+          <div class="user-name" id="displayName"></div>
+          <div style="color:var(--muted);font-size:0.85rem" id="displayEmail"></div>
+        </div>
+      </div>
     </div>
-    
+  </div>
+
+  <div class="signin-right">
     <div id="g_id_signin_container"></div>
+    <button id="signoutBtn" class="signout-btn" style="display:none;" onclick="signOut()">Sign out</button>
   </div>
-</div>
+</section>
 
-<!-- Main App -->
-<div class="main-container">
-  <!-- Stats -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">Total Expense</div>
-      <div class="stat-value" id="totalExpense">₹0</div>
+<!-- form (your original form UI preserved) -->
+<main>
+  <div class="info-blocks">
+    <div class="info-block" id="totalExpenseBlock">
+      Total Expense
+      <span class="value" id="totalExpense">₹0</span>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Time</div>
-      <div class="stat-value" id="liveTime">--:--:--</div>
+    <div class="info-block" id="timeBlock">
+      Time
+      <span class="value" id="liveTime">--:--:--</span>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Date</div>
-      <div class="stat-value" id="fixedDate">--/--/----</div>
-    </div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs-container">
-    <div class="tabs">
-      <div class="tab active" onclick="showTab('earning')">💰 Earning</div>
-      <div class="tab" onclick="showTab('expense')">💸 Expense</div>
+    <div class="info-block" id="dateBlock">
+      Date
+      <span class="value" id="fixedDate">--/--/----</span>
     </div>
   </div>
 
-  <!-- Earning Form -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('earning')">Earning</div>
+    <div class="tab" onclick="showTab('expense')">Expense</div>
+  </div>
+
   <div id="earning" class="form-section active">
-    <div class="form-group">
-      <label class="form-label">Amount</label>
-      <input type="number" id="earningAmount" class="form-input" placeholder="Enter earning amount" min="0" step="0.01" />
-    </div>
-    <button class="btn btn-primary" onclick="addEarning()">Add Earning</button>
+    <label>Amount</label>
+    <input type="number" id="earningAmount" placeholder="Enter earning amount" min="0" step="0.01" />
+    <button class="primary" onclick="addEarning()">Add Earning</button>
   </div>
 
-  <!-- Expense Form -->
   <div id="expense" class="form-section">
-    <div class="form-group">
-      <label class="form-label">Category</label>
-      <select id="expenseCategory" class="form-input" onchange="handleCategoryChange()">
-        <option value="Personal">Personal</option>
-        <option value="Food">Food</option>
-        <option value="Transport">Transport</option>
-        <option value="Shopping">Shopping</option>
-        <option value="Recharge and Bills">Recharge and Bills</option>
-        <option value="Entertainment">Entertainment</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
+    <label>Category</label>
+    <select id="expenseCategory" onchange="handleCategoryChange()">
+      <option>Personal</option>
+      <option>Food</option>
+      <option>Transport</option>
+      <option>Shopping</option>
+      <option>Recharge and Bills</option>
+      <option>Entertainment</option>
+      <option>Other</option>
+    </select>
 
-    <div class="form-group" id="customCategoryGroup" style="display:none;">
-      <label class="form-label">Custom Category</label>
-      <input type="text" id="customCategory" class="form-input" placeholder="Enter custom category" />
-    </div>
+    <input type="text" id="customCategory" placeholder="Enter data" style="display:none;margin-top:8px;padding:12px;border-radius:8px;border:1px solid #222;background:#111;color:var(--text);font-size:16px;" />
 
-    <div class="form-group">
-      <label class="form-label">Amount</label>
-      <input type="number" id="expenseAmount" class="form-input" placeholder="Enter expense amount" min="0" step="0.01" />
-    </div>
+    <label>Amount</label>
+    <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
 
-    <div class="form-group">
-      <label class="form-label">Payment Method</label>
-      <select id="paymentMethod" class="form-input">
-        <option value="UPI">UPI</option>
-        <option value="Cash">Cash</option>
-        <option value="Credit Card">Credit Card</option>
-        <option value="Bank Transfer">Bank Transfer</option>
-      </select>
-    </div>
+    <label>Payment Method</label>
+    <select id="paymentMethod">
+      <option>UPI</option>
+      <option>Cash</option>
+      <option>Credit Card</option>
+      <option>Bank Transfer</option>
+    </select>
 
-    <button class="btn btn-primary" onclick="addExpense()">Add Expense</button>
+    <button class="primary" onclick="addExpense()">Add Expense</button>
   </div>
 
-  <!-- Transactions Table -->
   <div class="table-container">
-    <div class="table-wrapper">
-      <table id="dataTable">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Amount</th>
-            <th>Category</th>
-            <th>Payment</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="empty-state">
-            <td colspan="7">
-              <div class="empty-icon">📊</div>
-              <div>No transactions yet. Add your first transaction above!</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <table id="dataTable" aria-label="Transactions table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Category/Note</th>
+          <th>Payment</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <button id="submitBtn" class="btn btn-primary" onclick="submitForm()">Submit Data</button>
+  <button id="submitBtn" class="primary" onclick="submitForm()">Submit</button>
 
-  <div id="confirmationMessage" class="success-message">
-    ✅ Thank you! Your data has been submitted successfully.
-  </div>
-</div>
+  <div id="confirmationMessage" class="confirmation">✅ Thank you, your response has been submitted.</div>
+</main>
 
-<!-- Welcome Toast -->
-<div id="welcomeToast" class="welcome-toast">
-  <img id="welcomeAvatar" class="welcome-avatar" src="" alt="">
-  <div id="welcomeText"></div>
+<!-- Welcome overlay -->
+<div id="welcomeOverlay" role="status" aria-live="polite">
+  <img id="welcomeAvatar" src="" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+  <div id="welcomeText" style="font-weight:800;color:#012"></div>
 </div>
 
 <script>
 /* ----------------------
-   CONFIG
+   CONFIG: Replace this with your Apps Script URL if using backend
    ---------------------- */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec";
+
+/* ----------------------
+   CLIENT ID (already provided earlier)
+   ---------------------- */
 const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
 
 /* ----------------------
-   Utilities
+   helpers
    ---------------------- */
-function parseJwt(token) {
-  try {
+function parseJwt(token){
+  try{
     const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => 
-      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c=>'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
     return JSON.parse(jsonPayload);
-  } catch (e) {
+  }catch(e){
     return null;
   }
 }
 
-function showToast(message, type = 'success', duration = 3000) {
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  toast.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 16px 24px;
-    border-radius: 12px;
-    color: white;
-    font-weight: 600;
-    z-index: 1000;
-    animation: slideInRight 0.3s ease-out;
-    background: ${type === 'success' ? 'var(--success)' : 'var(--error)'};
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  `;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.animation = 'slideInRight 0.3s ease-out reverse';
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
-}
-
 /* ----------------------
-   Welcome Toast
+   welcome overlay
    ---------------------- */
-function showWelcome(name, picture) {
-  const toast = document.getElementById('welcomeToast');
-  const text = document.getElementById('welcomeText');
-  const avatar = document.getElementById('welcomeAvatar');
-  
-  text.textContent = `Welcome back, ${name}! 👋`;
-  avatar.src = picture || '';
-  toast.classList.add('show');
-  
-  setTimeout(() => {
-    toast.classList.remove('show');
-  }, 3000);
+function showWelcome(name, picture){
+  const ov = document.getElementById('welcomeOverlay');
+  const txt = document.getElementById('welcomeText');
+  const av = document.getElementById('welcomeAvatar');
+  txt.textContent = `Welcome, ${name}`;
+  av.src = picture || '';
+  ov.classList.add('show');
+  // hide after 2s with smooth transition
+  setTimeout(()=> ov.classList.remove('show'), 2000);
 }
 
 /* ----------------------
-   Auth
+   Update UI for signed-in user
+   ---------------------- */
+function setSignedInUI(userObj, showWelcomeFlag){
+  // top area
+  const top = document.getElementById('topUserArea');
+  top.innerHTML = ''; // clear
+  // Show user chip in header
+  const chip = document.createElement('div');
+  chip.className = 'user-chip';
+  chip.innerHTML = `<img src="${userObj.picture}" class="avatar" alt="Profile"><div style="text-align:left"><div style="font-weight:700;font-size:0.9rem">${userObj.name}</div><div style="color:var(--muted);font-size:0.8rem">${userObj.email}</div></div>`;
+  top.appendChild(chip);
+
+  // Show profile inside signin card
+  document.getElementById('signedInInfo').style.display = 'block';
+  document.getElementById('profilePic').src = userObj.picture || '';
+  document.getElementById('displayName').textContent = userObj.name || '';
+  document.getElementById('displayEmail').textContent = userObj.email || '';
+
+  // show sign out button
+  document.getElementById('signoutBtn').style.display = 'inline-block';
+
+  // hide signin button container
+  document.getElementById('g_id_signin_container').innerHTML = '';
+
+  if(showWelcomeFlag) showWelcome(userObj.name, userObj.picture);
+}
+
+/* ----------------------
+   Sign out function - FIXED
+   ---------------------- */
+function signOut(){
+  console.log('Sign out clicked'); // Debug log
+  
+  // Clear stored user data
+  localStorage.removeItem('rivava_user');
+  
+  // Hide signed-in UI elements
+  document.getElementById('signedInInfo').style.display = 'none';
+  document.getElementById('signoutBtn').style.display = 'none';
+  
+  // Clear top area user info
+  document.getElementById('topUserArea').innerHTML = '';
+  
+  // Revoke Google sign-in session
+  if(window.google && google.accounts && google.accounts.id){
+    google.accounts.id.disableAutoSelect();
+  }
+  
+  // Re-render signin button
+  setTimeout(() => {
+    renderSignIn();
+  }, 100);
+  
+  // Optional: Clear the data table as well
+  document.querySelector("#dataTable tbody").innerHTML = '';
+  updateTotalExpense();
+  
+  console.log('User signed out successfully');
+}
+
+/* ----------------------
+   Render Google Sign-in button (GSI)
+   ---------------------- */
+function renderSignIn(){
+  const container = document.getElementById('g_id_signin_container');
+  container.innerHTML = ''; // clear
+  
+  // if already initialized, render
+  if(window.google && google.accounts && google.accounts.id){
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleCredentialResponse,
+      auto_select: false,  // changed to false for better UX
+      ux_mode: 'popup'
+    });
+    google.accounts.id.renderButton(
+      container,
+      { 
+        theme: 'outline', 
+        size: 'large', 
+        type: 'standard', 
+        text: 'signin_with',
+        shape: 'rounded',
+        logo_alignment: 'left'
+      }
+    );
+  } else {
+    // library not ready yet; try again shortly
+    setTimeout(renderSignIn, 300);
+  }
+}
+
+/* ----------------------
+   Callback after sign-in
+   ---------------------- */
+function handleCredentialResponse(response){
+  const payload = parseJwt(response.credential);
+  if(!payload || !payload.email){
+    console.error('Invalid ID token payload', payload);
+    return;
+  }
+  // store minimal user info and token
+  const user = {
+    name: payload.name,
+    email: payload.email,
+    picture: payload.picture,
+    token: response.credential,
+    sub: payload.sub
+  };
+  localStorage.setItem('rivava_user', JSON.stringify(user));
+  setSignedInUI(user, true);
+}
+
+/* ----------------------
+   On load: check stored user or initialize sign-in
+   ---------------------- */
+window.addEventListener('load', ()=> {
+  // init UI components
+  setFixedDate();
+  startLiveTime();
+  
+  // restore user if exists
+  const s = localStorage.getItem('rivava_user');
+  if(s){
+    try{
+      const user = JSON.parse(s);
+      setSignedInUI(user, true);
+    }catch(e){
+      console.warn('restore user failed',e);
+      localStorage.removeUser('rivava_user');
+      renderSignIn();
+    }
+  } else {
+    renderSignIn();
+  }
+});
+
+/* ----------------------
+   Form JS (original logic preserved)
+   ---------------------- */
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+  document.getElementById(tab).classList.add('active');
+}
+
+function setFixedDate() {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const year = today.getFullYear();
+  const formatted = `${day}/${month}/${year}`;
+  document.getElementById("fixedDate").textContent = formatted;
+  return formatted;
+}
+
+function startLiveTime() {
+  const timeEl = document.getElementById("liveTime");
+  function update() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2, "0");
+    const m = now.getMinutes().toString().padStart(2, "0");
+    const s = now.getSeconds().toString().padStart(2, "0");
+    timeEl.textContent = `${h}:${m}:${s}`;
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+// Data Table and total expense logic
+const dataTableBody = document.querySelector("#dataTable tbody");
+let totalExpense = 0;
+
+function updateTotalExpense() {
+  let sum = 0;
+  dataTableBody.querySelectorAll("tr").forEach(row => {
+    const type = row.cells[0].textContent;
+    if (type === "Expense") {
+      const amt = parseFloat(row.cells[1].textContent);
+      if (!isNaN(amt)) sum += amt;
+    }
+  });
+  totalExpense = sum;
+  document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
+}
+
+function addRow(type, amount, category, payment, date, time) {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${type}</td>
+    <td>${parseFloat(amount).toFixed(2)}</td>
+    <td>${category}</td>
+    <td>${payment}</td>
+    <td>${date}</td>
+    <td>${time}</td>
+    <td><button onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>
+  `;
+  dataTableBody.appendChild(row);
+  updateTotalExpense();
+}
+
+function deleteRow(button) {
+  button.closest("tr").remove();
+  updateTotalExpense();
+}
+
+function handleCategoryChange() {
+  const categorySelect = document.getElementById("expenseCategory");
+  const customInput = document.getElementById("customCategory");
+  if (categorySelect.value === "Other") {
+    customInput.style.display = "block";
+    customInput.focus();
+  } else {
+    customInput.style.display = "none";
+    customInput.value = "";
+  }
+}
+
+function addEarning() {
+  const amountInput = document.getElementById("earningAmount");
+  const amount = amountInput.value.trim();
+  if (!amount || Number(amount) <= 0) {
+    alert("Please enter a valid earning amount.");
+    return;
+  }
+  const date = document.getElementById("fixedDate").textContent;
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  addRow("Earning", amount, "-", "-", date, time);
+  amountInput.value = "";
+}
+
+function addExpense() {
+  const amountInput = document.getElementById("expenseAmount");
+  const amount = amountInput.value.trim();
+  if (!amount || Number(amount) <= 0) {
+    alert("Please enter a valid expense amount.");
+    return;
+  }
+
+  const categorySelect = document.getElementById("expenseCategory");
+  let category = categorySelect.value;
+
+  if (category === "Other") {
+    const customCat = document.getElementById("customCategory").value.trim();
+    if (!customC
