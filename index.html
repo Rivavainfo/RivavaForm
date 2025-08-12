@@ -210,6 +210,16 @@
 </head>
 <body>
 
+<div id="login-section">
+  <div class="g-signin2" data-onsuccess="onSignIn"></div>
+</div>
+<div id="user-section" style="display:none;">
+  <img id="user-image" src="" style="width:50px;height:50px;border-radius:50%;">
+  <span id="user-name" style="color:white;"></span>
+  <button onclick="logout()">Logout</button>
+</div>
+
+
 <header>
   <div class="username" id="userDisplay">RIVAVA</div>
   <div class="signin-area">
@@ -304,7 +314,7 @@
 
 <script>
   // ---- CONFIG: replace these values ----
-  const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec";
   // ---------------------------------------
 
@@ -547,6 +557,42 @@
   setFixedDate();
   startLiveTime();
 
+</script>
+
+
+<script>
+// Check if user data exists in localStorage on page load
+window.onload = function() {
+  const storedUser = localStorage.getItem('googleUser');
+  if (storedUser) {
+    const user = JSON.parse(storedUser);
+    document.getElementById('user-name').textContent = user.name;
+    document.getElementById('user-image').src = user.image;
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('user-section').style.display = 'block';
+  }
+};
+
+function onSignIn(googleUser) {
+  var profile = googleUser.getBasicProfile();
+  var userData = {
+    name: profile.getName(),
+    image: profile.getImageUrl()
+  };
+  // Save in localStorage
+  localStorage.setItem('googleUser', JSON.stringify(userData));
+
+  document.getElementById('user-name').textContent = userData.name;
+  document.getElementById('user-image').src = userData.image;
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('user-section').style.display = 'block';
+}
+
+function logout() {
+  localStorage.removeItem('googleUser');
+  document.getElementById('login-section').style.display = 'block';
+  document.getElementById('user-section').style.display = 'none';
+}
 </script>
 
 </body>
