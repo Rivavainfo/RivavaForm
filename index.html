@@ -41,30 +41,27 @@
     top:0;
     z-index:100;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
-    will-change: padding, height;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateZ(0);
+    will-change: transform;
   }
   header.compact {
-    padding: 8px 16px;
-    height: 48px;
-    background: rgba(13, 13, 13, 0.95);
+    padding: 10px 20px;
   }
   .brand {
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:12px;
     transition: all 0.3s ease;
-    will-change: transform, gap;
   }
   .logo {
     width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bf7d0);box-shadow:0 4px 14px rgba(0,0,0,0.4);
     display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;
-    transition: all 0.3s ease;
-    will-change: width, height;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   header.compact .logo {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
   }
   .username {
@@ -75,44 +72,37 @@
     -webkit-text-fill-color:transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    will-change: font-size, opacity;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   header.compact .username {
-    font-size: 1rem;
+    font-size: 1.1rem;
     opacity: 0.9;
   }
 
   /* Mobile header improvements */
   @media(max-width:768px) {
     header {
-      padding: 14px 16px;
-      height: 56px;
-      background: rgba(13, 13, 13, 0.98);
+      padding: 12px 16px;
     }
     header.compact {
-      padding: 6px 12px;
-      height: 44px;
-      background: rgba(13, 13, 13, 0.95);
+      padding: 8px 16px;
     }
     .brand {
-      gap: 8px;
+      gap: 10px;
     }
     .logo {
       width: 36px;
       height: 36px;
     }
     header.compact .logo {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
     }
     .username {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
     }
     header.compact .username {
-      font-size: 0.85rem;
-      opacity: 0.85;
-      display: none;
+      font-size: 0.95rem;
     }
     #topUserArea {
       margin-right: 0;
@@ -137,7 +127,44 @@
       height: 26px;
     }
     header.compact .user-name {
-      display: none;
+      font-size: 0.75rem;
+    }
+  }
+
+  @media(max-width:480px) {
+    header {
+      padding: 10px 12px;
+    }
+    header.compact {
+      padding: 6px 12px;
+    }
+    .brand {
+      gap: 8px;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+    }
+    header.compact .logo {
+      width: 24px;
+      height: 24px;
+    }
+    .username {
+      font-size: 1.05rem;
+    }
+    header.compact .username {
+      font-size: 0.85rem;
+    }
+    .user-chip {
+      padding: 5px 8px;
+      gap: 6px;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+    }
+    .user-name {
+      font-size: 0.8rem;
     }
   }
 
@@ -492,7 +519,7 @@
 /* ----------------------
    CONFIG: Replace this with your Apps Script URL if using backend
    ---------------------- */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec  ";
 
 /* ----------------------
    CLIENT ID (already provided earlier)
@@ -504,12 +531,10 @@ const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.goo
    ---------------------- */
 let lastScrollTop = 0;
 const header = document.querySelector('header');
-const MOBILE_BREAKPOINT = 768;
 const SCROLL_THRESHOLD = 50;
 
 function handleScroll() {
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
   
   // Only apply compact header when scrolling down and past threshold
   if (scrollTop > lastScrollTop && scrollTop > SCROLL_THRESHOLD) {
@@ -525,27 +550,7 @@ function handleScroll() {
 
 // Initialize scroll handling
 window.addEventListener('load', () => {
-  // Initial check for mobile/desktop
-  if (window.innerWidth <= MOBILE_BREAKPOINT) {
-    header.classList.add('compact');
-    setTimeout(() => {
-      header.classList.remove('compact');
-    }, 100);
-  }
-  
-  window.addEventListener('scroll', () => {
-    requestAnimationFrame(handleScroll);
-  }, { passive: true });
-  
-  // Also handle resize events
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > MOBILE_BREAKPOINT) {
-      header.classList.remove('compact');
-    } else {
-      // Reset to normal state on mobile resize
-      header.classList.remove('compact');
-    }
-  });
+  window.addEventListener('scroll', handleScroll, { passive: true });
 });
 
 /* ----------------------
