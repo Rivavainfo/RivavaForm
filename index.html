@@ -29,6 +29,8 @@
     --accent-2:#00d9aa;
     --text:#fff;
     --muted:#888;
+    --danger:#ff4757;
+    --success:#2ed573;
   }
   *{box-sizing:border-box}
   body{
@@ -56,6 +58,11 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     transform: translateZ(0);
     will-change: auto;
+    transition: all 0.3s ease;
+  }
+  header.scrolled {
+    opacity: 0.9;
+    transform: translateY(-100%);
   }
   .brand {
     display:flex;
@@ -74,6 +81,20 @@
     -webkit-text-fill-color:transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.5px;
+  }
+
+  /* Info blocks with fade animation */
+  .info-blocks {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+    margin-bottom:18px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .info-blocks.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
   }
 
   /* Mobile header improvements */
@@ -195,12 +216,6 @@
     margin:18px auto;
     padding:18px;
   }
-  .info-blocks{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:15px;
-    margin-bottom:18px;
-  }
   .info-block{
     background:var(--card-dark);
     padding:14px;
@@ -219,6 +234,12 @@
     display:flex;
     gap:10px;
     margin-bottom:16px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .tabs.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
   }
   .tab{
     flex:1;
@@ -229,14 +250,31 @@
     cursor:pointer;
     border:1px solid #111;
     transition:all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: all 0.5s ease;
+  }
+  .tab:hover::before {
+    left: 100%;
   }
   .tab:hover{
     background:#111;
+    transform: translateY(-2px);
   }
   .tab.active{
     background:var(--accent);
     color:#000;
     font-weight:700;
+    box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
   }
   .form-section{
     display:none;
@@ -244,6 +282,11 @@
     padding:18px;
     border-radius:12px;
     border:1px solid #111;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .form-section.active{
     display:block;
@@ -263,11 +306,13 @@
     color:var(--text);
     margin-bottom:12px;
     font-size:16px;
+    transition: all 0.2s ease;
   }
   input:focus,select:focus{
     outline:none;
     border-color:var(--accent);
     box-shadow:0 0 0 2px rgba(0,255,195,0.2);
+    transform: translateY(-2px);
   }
   button.primary{
     background:linear-gradient(90deg,var(--accent),var(--accent-2));
@@ -280,11 +325,43 @@
     width:100%;
     margin-top:8px;
     font-size:1rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 255, 195, 0.2);
   }
   button.primary:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 255, 195, 0.4);
+  }
+  button.primary:active{
+    transform: translateY(-1px);
+  }
+  button.primary::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+  button.primary:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+  }
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(50, 50);
+      opacity: 0;
+    }
   }
 
   /* Table styling with horizontal scrolling */
@@ -316,7 +393,7 @@
     font-size:0.85rem;
   }
   td button{
-    background:#ff4757;
+    background:var(--danger);
     color:#fff;
     border:none;
     padding:6px 10px;
@@ -325,9 +402,29 @@
     font-size:0.8rem;
     transition: all 0.2s ease;
     min-width: 60px;
+    position: relative;
+    overflow: hidden;
   }
   td button:hover{
     background:#ff3838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 71, 87, 0.3);
+  }
+  td button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+  td button:focus:not(:active)::after {
+    animation: ripple 0.6s ease-out;
   }
 
   /* confirmation message */
@@ -339,6 +436,30 @@
     margin-top:16px;
     border:1px solid #222;
     text-align:center;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: 90%;
+    width: 400px;
+    opacity: 0;
+    transition: opacity 0.3s ease, top 0.3s ease;
+  }
+  .confirmation.show {
+    display: block;
+    opacity: 1;
+    top: 80px;
+  }
+  .confirmation.success {
+    background: linear-gradient(90deg, #18c29a, #00ffc3);
+    color: #012;
+    font-weight: 600;
+  }
+  .confirmation.error {
+    background: linear-gradient(90deg, #ff6b6b, #ff5252);
+    color: white;
   }
 
   /* welcome overlay */
@@ -379,10 +500,30 @@
     font-size: 0.9rem;
     transition: all 0.2s ease;
     min-width: 100px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
   }
   .signout-btn:hover {
     background: linear-gradient(90deg, #ff5252, #ff4444) !important;
     transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  }
+  .signout-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+  .signout-btn:focus:not(:active)::after {
+    animation: ripple 0.6s ease-out;
   }
 
   /* Mobile responsive styles */
@@ -458,6 +599,11 @@
     }
     #welcomeOverlay.show{
       transform:translateX(0) translateY(0);
+    }
+    
+    /* Always show delete button on mobile */
+    td button {
+      display: inline-block !important;
     }
   }
 
@@ -573,7 +719,7 @@
 
 <!-- form (your original form UI preserved) -->
 <main>
-  <div class="info-blocks">
+  <div class="info-blocks" id="infoBlocks">
     <div class="info-block" id="totalExpenseBlock">
       Total Expense
       <span class="value" id="totalExpense">₹0</span>
@@ -588,7 +734,7 @@
     </div>
   </div>
 
-  <div class="tabs">
+  <div class="tabs" id="tabs">
     <div class="tab active" onclick="showTab('earning')">Earning</div>
     <div class="tab" onclick="showTab('expense')">Expense</div>
   </div>
@@ -661,7 +807,7 @@
    ---------------------- */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('data:application/javascript;base64,' + btoa(`
+    navigator.serviceWorker.register('application/javascript;base64,' + btoa(`
       const CACHE_NAME = 'rivava-finance-v1';
       const urlsToCache = ['/'];
       
@@ -720,15 +866,34 @@ try {
 const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
 
 /* ----------------------
-   Scroll handling for compact header
+   Scroll handling for header and info blocks
    ---------------------- */
 let lastScrollTop = 0;
 const header = document.querySelector('header');
-const SCROLL_THRESHOLD = 50;
+const infoBlocks = document.getElementById('infoBlocks');
+const tabs = document.getElementById('tabs');
+const SCROLL_THRESHOLD = 200;
 
-// Remove scroll handling to keep header static
-window.addEventListener('load', () => {
-  // No scroll handling - header stays in place
+window.addEventListener('scroll', () => {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  
+  // Header hide/show on scroll
+  if (scrollTop > lastScrollTop && scrollTop > SCROLL_THRESHOLD) {
+    header.classList.add('scrolled');
+  } else {
+    header.classList.remove('scrolled');
+  }
+  
+  // Fade out info blocks and tabs when scrolling to form
+  if (scrollTop > 300) {
+    infoBlocks.classList.add('fade-out');
+    tabs.classList.add('fade-out');
+  } else {
+    infoBlocks.classList.remove('fade-out');
+    tabs.classList.remove('fade-out');
+  }
+  
+  lastScrollTop = scrollTop;
 });
 
 /* ----------------------
@@ -927,14 +1092,21 @@ function setFixedDate() {
   return formatted;
 }
 
+function formatTime12Hour(date) {
+  let hours = date.getHours();
+  let minutes = date.getMinutes().toString().padStart(2, "0");
+  let seconds = date.getSeconds().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  return \`\${hours}:\${minutes}:\${seconds} \${ampm}\`;
+}
+
 function startLiveTime() {
   const timeEl = document.getElementById("liveTime");
   function update() {
     const now = new Date();
-    const h = now.getHours().toString().padStart(2, "0");
-    const m = now.getMinutes().toString().padStart(2, "0");
-    const s = now.getSeconds().toString().padStart(2, "0");
-    timeEl.textContent = \`\${h}:\${m}:\${s}\`;
+    timeEl.textContent = formatTime12Hour(now);
   }
   update();
   setInterval(update, 1000);
@@ -959,13 +1131,19 @@ function updateTotalExpense() {
 
 function addRow(type, amount, category, payment, date, time) {
   const row = document.createElement("tr");
+  // Format time to 12-hour format for display
+  const timeObj = new Date();
+  const [hours, minutes, seconds] = time.split(':');
+  timeObj.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds));
+  const formattedTime = formatTime12Hour(timeObj);
+  
   row.innerHTML = \`
     <td>\${type}</td>
     <td>\${parseFloat(amount).toFixed(2)}</td>
     <td>\${category}</td>
     <td>\${payment}</td>
     <td>\${date}</td>
-    <td>\${time}</td>
+    <td>\${formattedTime}</td>
     <td><button onclick="deleteRow(this)" aria-label="Delete this \${type.toLowerCase()} entry">Delete</button></td>
   \`;
   dataTableBody.appendChild(row);
@@ -1036,19 +1214,19 @@ function addExpense() {
   }
 }
 
-// ✅ MODIFIED submitForm to use Firebase
+// ✅ MODIFIED submitForm to use Firebase with enhanced UI
 async function submitForm() {
   console.log("=== Starting submitForm (Firebase version) ===");
 
   if (dataTableBody.children.length === 0) {
-    alert("Please add some earnings or expenses before submitting.");
+    showConfirmation("Please add some earnings or expenses before submitting.", "error");
     console.warn("Submit clicked but no data in table.");
     return;
   }
 
   const stored = localStorage.getItem('rivava_user');
   if (!stored) {
-    alert("You must sign in first.");
+    showConfirmation("You must sign in first.", "error");
     console.warn("Submit clicked but user not signed in.");
     return;
   }
@@ -1086,18 +1264,8 @@ async function submitForm() {
 
     console.log("Data successfully written to Firebase with ID: ", docRef.id);
 
-    // Show success message on the page
-    const msg = document.getElementById("confirmationMessage");
-    if (msg) {
-      msg.style.display = "block";
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-      setTimeout(() => {
-        msg.style.display = "none";
-      }, 3000);
-    }
-
-    // Optional: Alert the user
-    alert("✅ Data submitted successfully to Firebase!");
+    // Show success message with animation
+    showConfirmation("✅ Data submitted successfully to Firebase!", "success");
 
     // Optional: Clear the form table after successful submission
     // dataTableBody.innerHTML = '';
@@ -1106,10 +1274,27 @@ async function submitForm() {
   } catch (error) {
     // Handle any errors that occurred during the Firestore operation
     console.error("Error submitting data to Firebase:", error);
-    alert("❌ Failed to save data to Firebase. Please check the browser console for details. Error: " + error.message);
+    showConfirmation("❌ Failed to save data to Firebase. Please check the browser console for details.", "error");
   }
 
   console.log("=== Finished submitForm (Firebase version) ===");
+}
+
+// Enhanced confirmation message with animations
+function showConfirmation(message, type) {
+  const msg = document.getElementById("confirmationMessage");
+  msg.textContent = message;
+  msg.className = \`confirmation \${type}\`;
+  
+  // Show with animation
+  setTimeout(() => {
+    msg.classList.add('show');
+  }, 10);
+  
+  // Auto hide after 3 seconds
+  setTimeout(() => {
+    msg.classList.remove('show');
+  }, 3000);
 }
 
 // Add touch events for better mobile experience
