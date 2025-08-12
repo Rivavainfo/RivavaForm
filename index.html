@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Rivava Finance Tracker</title>
 
 <!-- Fonts & Google Identity lib -->
@@ -27,7 +27,6 @@
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
     min-height:100vh;
-    overflow-x:hidden;
   }
 
   /* Header */
@@ -41,18 +40,15 @@
     position:sticky;
     top:0;
     z-index:100;
-    min-height:70px;
   }
   .brand {
     display:flex;
     align-items:center;
     gap:12px;
-    flex-shrink:0;
   }
   .logo {
     width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bf7d0);box-shadow:0 4px 14px rgba(0,0,0,0.4);
     display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;
-    flex-shrink:0;
   }
   .username {
     font-size:1.25rem;
@@ -60,29 +56,23 @@
     background:linear-gradient(90deg,var(--accent),#fff);
     -webkit-background-clip:text;
     -webkit-text-fill-color:transparent;
-    white-space:nowrap;
-  }
-
-  #topUserArea {
-    flex-shrink:0;
-    max-width:60%;
   }
 
   /* signin area - styled like a card */
   .signin-card{
-    max-width:920px;margin:20px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    max-width:920px;margin:28px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     border-radius:12px;border:1px solid #111;display:flex;align-items:center;gap:18px;
     box-shadow:0 10px 30px rgba(0,0,0,0.5);
   }
   .signin-left{flex:1;min-width:0}
-  .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;}
+  .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
   .signin-title{font-size:1.1rem;font-weight:700;margin-bottom:6px}
   .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
 
   /* user display */
-  .user-chip{display:flex;gap:10px;align-items:center;background:#0b0b0b;padding:8px 12px;border-radius:999px;border:1px solid #111;max-width:100%;}
+  .user-chip{display:flex;gap:10px;align-items:center;background:#0b0b0b;padding:8px 12px;border-radius:999px;border:1px solid #111}
   .avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0}
-  .user-name{font-weight:700;font-size:0.95rem;word-break:break-word;}
+  .user-name{font-weight:700;font-size:0.95rem}
 
   /* main form area */
   main{max-width:920px;margin:18px auto;padding:18px}
@@ -103,7 +93,7 @@
   button.primary:active{transform:translateY(0)}
 
   /* Table styling */
-  .table-container{overflow-x:auto;margin-top:16px;border-radius:8px;background:var(--card-dark);border:1px solid #111;}
+  .table-container{overflow-x:auto;margin-top:16px}
   table{width:100%;border-collapse:collapse;min-width:700px}
   th,td{padding:12px 8px;border-bottom:1px solid #222;text-align:left}
   th{color:var(--accent);font-weight:700;font-size:0.9rem;white-space:nowrap}
@@ -118,7 +108,6 @@
   #welcomeOverlay{
     position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;
     transition:opacity .45s ease, transform .45s ease;
-    max-width:90vw;
   }
   #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
 
@@ -142,36 +131,27 @@
 
   /* Mobile responsive styles */
   @media(max-width:768px){
-    body {
-      font-size: 14px;
-    }
-    
     .signin-card{
       flex-direction:column;
       align-items:stretch;
-      margin:16px 12px;
+      margin:16px;
       padding:16px;
-      gap:16px;
     }
     .signin-right{
       width:100%;
-      flex-direction:column;
-      align-items:stretch;
+      flex-direction:row;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
       gap:12px;
     }
-    
     header{
       padding:12px 16px;
-      flex-wrap:nowrap;
+      flex-wrap:wrap;
       gap:12px;
-      min-height:60px;
     }
     .logo{width:36px;height:36px}
     .username{font-size:1.1rem}
-    
-    #topUserArea {
-      max-width:50%;
-    }
     
     main{
       margin:12px;
@@ -181,16 +161,6 @@
     .info-blocks{
       grid-template-columns:1fr;
       gap:12px;
-      margin-bottom:16px;
-    }
-    
-    .info-block{
-      padding:12px;
-    }
-    
-    .info-block .value{
-      font-size:1.4rem;
-      margin-top:6px;
     }
     
     .tabs{
@@ -209,25 +179,11 @@
     input,select{
       padding:14px;
       font-size:16px;
-      margin-bottom:16px;
     }
     
     button.primary{
-      padding:16px;
+      padding:14px;
       font-size:1.1rem;
-      margin-top:12px;
-    }
-    
-    .table-container{
-      margin-left:-12px;
-      margin-right:-12px;
-      border-radius:0;
-      border-left:none;
-      border-right:none;
-    }
-    
-    table{
-      min-width:650px;
     }
     
     th,td{
@@ -236,33 +192,25 @@
     }
     
     .user-chip{
-      flex-direction:row;
-      text-align:left;
-      padding:8px 10px;
+      flex-direction:column;
+      text-align:center;
+      padding:10px;
       gap:8px;
-      font-size:0.85rem;
     }
     
     .avatar{
-      width:32px;
-      height:32px;
-    }
-    
-    .user-name{
-      font-size:0.85rem;
-      line-height:1.2;
+      width:36px;
+      height:36px;
     }
     
     .signin-title{
       font-size:1.2rem;
       text-align:center;
-      margin-bottom:8px;
     }
     
     .signin-sub{
       text-align:center;
       font-size:0.9rem;
-      margin-bottom:16px;
     }
     
     #welcomeOverlay{
@@ -274,21 +222,17 @@
     #welcomeOverlay.show{
       transform:translateX(0) translateY(0);
     }
-    
-    .signout-btn{
-      padding:12px;
-      font-size:1rem;
-    }
   }
 
   @media(max-width:480px){
     .signin-card{
-      margin:12px 8px;
+      margin:12px;
       padding:12px;
     }
     
-    header{
-      padding:10px 12px;
+    .signin-right{
+      flex-direction:column;
+      align-items:stretch;
     }
     
     main{
@@ -296,120 +240,26 @@
       padding:8px;
     }
     
-    .info-blocks{
-      gap:10px;
-    }
-    
-    .info-block{
-      padding:10px;
-    }
-    
     .info-block .value{
-      font-size:1.3rem;
-    }
-    
-    .form-section{
-      padding:12px;
-    }
-    
-    .table-container{
-      margin-left:-8px;
-      margin-right:-8px;
+      font-size:1.4rem;
     }
     
     table{
       min-width:600px;
     }
     
-    th,td{
-      padding:8px 4px;
-      font-size:0.75rem;
-    }
-    
     .user-chip{
-      padding:6px 8px;
-      font-size:0.8rem;
-    }
-    
-    .avatar{
-      width:28px;
-      height:28px;
-    }
-    
-    .user-name{
-      font-size:0.8rem;
+      padding:8px;
     }
     
     #welcomeOverlay{
       padding:12px 16px;
       font-size:0.9rem;
-      left:8px;
-      right:8px;
-      max-width:calc(100% - 16px);
     }
     
-    .username{
-      font-size:1rem;
-    }
-    
-    .logo{
-      width:32px;
-      height:32px;
-      font-size:0.9rem;
-    }
-  }
-
-  @media(max-width:360px){
-    .signin-card{
-      margin:8px 6px;
-      padding:10px;
-    }
-    
-    header{
-      padding:8px 10px;
-    }
-    
-    main{
-      margin:6px;
-      padding:6px;
-    }
-    
-    .brand{
-      gap:8px;
-    }
-    
-    .username{
-      font-size:0.95rem;
-    }
-    
-    .logo{
-      width:30px;
-      height:30px;
-      font-size:0.8rem;
-    }
-    
-    .user-chip{
-      padding:6px;
-      gap:6px;
-    }
-    
-    .avatar{
-      width:24px;
-      height:24px;
-    }
-    
-    .user-name{
-      font-size:0.75rem;
-    }
-    
-    th,td{
-      padding:6px 3px;
-      font-size:0.7rem;
-    }
-    
-    td button{
-      padding:4px 6px;
-      font-size:0.7rem;
+    .signout-btn{
+      width:100%;
+      margin-top:8px;
     }
   }
 
@@ -418,21 +268,6 @@
   ::-webkit-scrollbar-track{background:#111}
   ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
   ::-webkit-scrollbar-thumb:hover{background:#444}
-
-  /* Prevent zoom on input focus for iOS */
-  @supports (-webkit-touch-callout: none) {
-    input, select {
-      font-size: 16px !important;
-    }
-  }
-
-  /* Better touch targets */
-  .tab, button, .user-chip {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 </style>
 </head>
 <body>
@@ -725,7 +560,7 @@ window.addEventListener('load', ()=> {
       setSignedInUI(user, true);
     }catch(e){
       console.warn('restore user failed',e);
-      localStorage.removeUser('rivava_user');
+      localStorage.removeItem('rivava_user');
       renderSignIn();
     }
   } else {
@@ -841,4 +676,75 @@ function addExpense() {
 
   if (category === "Other") {
     const customCat = document.getElementById("customCategory").value.trim();
-    if (!customC
+    if (!customCat) {
+      alert("Please enter a custom category.");
+      return;
+    }
+    category = customCat;
+  }
+
+  const payment = document.getElementById("paymentMethod").value;
+  const date = document.getElementById("fixedDate").textContent;
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  addRow("Expense", amount, category, payment, date, time);
+  amountInput.value = "";
+
+  // Reset the custom input & select if needed
+  if (categorySelect.value === "Other") {
+    document.getElementById("customCategory").value = "";
+    document.getElementById("customCategory").style.display = "none";
+    categorySelect.value = "Personal"; // Reset to first option
+  }
+}
+
+async function submitForm() {
+  if (dataTableBody.children.length === 0) {
+    alert("Please add some earnings or expenses before submitting.");
+    return;
+  }
+  const msg = document.getElementById("confirmationMessage");
+  msg.style.display = "block";
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  setTimeout(() => {
+    msg.style.display = "none";
+  }, 3000);
+
+  // Optional: send to Apps Script if configured and user signed in
+  const stored = localStorage.getItem('rivava_user');
+  if (stored && APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_DEPLOY_ID')) {
+    const user = JSON.parse(stored);
+    const rows = [];
+    dataTableBody.querySelectorAll('tr').forEach(r => {
+      rows.push({
+        type: r.cells[0].textContent,
+        amount: r.cells[1].textContent,
+        category: r.cells[2].textContent,
+        payment: r.cells[3].textContent,
+        date: r.cells[4].textContent,
+        time: r.cells[5].textContent
+      });
+    });
+
+    const payload = {
+      userEmail: user.email,
+      userName: user.name,
+      transactions: rows,
+      id_token: user.token
+    };
+
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const text = await res.text();
+      console.log('Server response', res.status, text);
+    }catch(e){
+      console.warn('Send failed', e);
+    }
+  }
+}
+
+// Add touch events for better mobile experience
+document.addEventListener('touchstart', function() {}, {passive: true});
+</script>
+
+</body>
+</html>
