@@ -26,6 +26,7 @@
     color:var(--text);
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
   }
 
   /* Header */
@@ -36,6 +37,9 @@
     padding:16px 20px;
     background:var(--card-dark);
     border-bottom:1px solid #111;
+    position:sticky;
+    top:0;
+    z-index:100;
   }
   .brand {
     display:flex;
@@ -63,29 +67,39 @@
   .signin-left{flex:1;min-width:0}
   .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
   .signin-title{font-size:1.1rem;font-weight:700;margin-bottom:6px}
-  .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px}
+  .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
 
   /* user display */
   .user-chip{display:flex;gap:10px;align-items:center;background:#0b0b0b;padding:8px 12px;border-radius:999px;border:1px solid #111}
   .avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0}
   .user-name{font-weight:700;font-size:0.95rem}
 
-  /* main form area (kept original look) */
+  /* main form area */
   main{max-width:920px;margin:18px auto;padding:18px}
-  .info-blocks{display:flex;gap:15px;margin-bottom:18px;flex-wrap:wrap}
-  .info-block{flex:1 1 30%;background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #111}
-  .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent)}
+  .info-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:18px}
+  .info-block{background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #111}
+  .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent);font-weight:600}
   .tabs{display:flex;gap:10px;margin-bottom:16px}
-  .tab{flex:1;background:var(--card-dark);padding:10px;border-radius:10px;text-align:center;cursor:pointer}
+  .tab{flex:1;background:var(--card-dark);padding:12px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid #111;transition:all 0.3s ease}
+  .tab:hover{background:#111}
   .tab.active{background:var(--accent);color:#000;font-weight:700}
   .form-section{display:none;background:var(--card-dark);padding:18px;border-radius:12px;border:1px solid #111}
   .form-section.active{display:block}
-  label{display:block;margin-bottom:6px;font-weight:600}
-  input,select{width:100%;padding:10px;border-radius:8px;background:#111;border:1px solid #222;color:var(--text);margin-bottom:12px}
-  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:10px;border-radius:8px;color:#000;font-weight:700;cursor:pointer}
-  table{width:100%;border-collapse:collapse;margin-top:16px}
-  th,td{padding:10px;border-bottom:1px solid #222;text-align:left}
-  th{color:var(--accent);font-weight:700}
+  label{display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem}
+  input,select{width:100%;padding:12px;border-radius:8px;background:#111;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2)}
+  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:12px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:8px;font-size:1rem;transition:transform 0.2s ease}
+  button.primary:hover{transform:translateY(-2px)}
+  button.primary:active{transform:translateY(0)}
+
+  /* Table styling */
+  .table-container{overflow-x:auto;margin-top:16px}
+  table{width:100%;border-collapse:collapse;min-width:700px}
+  th,td{padding:12px 8px;border-bottom:1px solid #222;text-align:left}
+  th{color:var(--accent);font-weight:700;font-size:0.9rem;white-space:nowrap}
+  td{font-size:0.85rem}
+  td button{background:#ff4757;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem}
+  td button:hover{background:#ff3838}
 
   /* confirmation message */
   .confirmation{display:none;background:var(--card-dark);padding:14px;border-radius:12px;margin-top:16px;border:1px solid #222;text-align:center}
@@ -97,13 +111,163 @@
   }
   #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
 
-  /* responsive */
-  @media(max-width:720px){
-    .signin-card{flex-direction:column;align-items:flex-start}
-    .signin-right{width:100%;flex-direction:row;justify-content:space-between}
-    header{padding:12px}
-    .logo{width:36px;height:36px}
+  /* Sign out button styling */
+  .signout-btn {
+    background: linear-gradient(90deg, #ff6b6b, #ff5252) !important;
+    color: white !important;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    min-width: 100px;
   }
+  .signout-btn:hover {
+    background: linear-gradient(90deg, #ff5252, #ff4444) !important;
+    transform: translateY(-1px);
+  }
+
+  /* Mobile responsive styles */
+  @media(max-width:768px){
+    .signin-card{
+      flex-direction:column;
+      align-items:stretch;
+      margin:16px;
+      padding:16px;
+    }
+    .signin-right{
+      width:100%;
+      flex-direction:row;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+    header{
+      padding:12px 16px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+    .logo{width:36px;height:36px}
+    .username{font-size:1.1rem}
+    
+    main{
+      margin:12px;
+      padding:12px;
+    }
+    
+    .info-blocks{
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    
+    .tabs{
+      flex-direction:column;
+      gap:8px;
+    }
+    .tab{
+      padding:14px;
+      font-size:1rem;
+    }
+    
+    .form-section{
+      padding:16px;
+    }
+    
+    input,select{
+      padding:14px;
+      font-size:16px;
+    }
+    
+    button.primary{
+      padding:14px;
+      font-size:1.1rem;
+    }
+    
+    th,td{
+      padding:10px 6px;
+      font-size:0.8rem;
+    }
+    
+    .user-chip{
+      flex-direction:column;
+      text-align:center;
+      padding:10px;
+      gap:8px;
+    }
+    
+    .avatar{
+      width:36px;
+      height:36px;
+    }
+    
+    .signin-title{
+      font-size:1.2rem;
+      text-align:center;
+    }
+    
+    .signin-sub{
+      text-align:center;
+      font-size:0.9rem;
+    }
+    
+    #welcomeOverlay{
+      left:10px;
+      right:10px;
+      transform:translateX(0) translateY(-10px);
+      max-width:calc(100% - 20px);
+    }
+    #welcomeOverlay.show{
+      transform:translateX(0) translateY(0);
+    }
+  }
+
+  @media(max-width:480px){
+    .signin-card{
+      margin:12px;
+      padding:12px;
+    }
+    
+    .signin-right{
+      flex-direction:column;
+      align-items:stretch;
+    }
+    
+    main{
+      margin:8px;
+      padding:8px;
+    }
+    
+    .info-block .value{
+      font-size:1.4rem;
+    }
+    
+    table{
+      min-width:600px;
+    }
+    
+    .user-chip{
+      padding:8px;
+    }
+    
+    #welcomeOverlay{
+      padding:12px 16px;
+      font-size:0.9rem;
+    }
+    
+    .signout-btn{
+      width:100%;
+      margin-top:8px;
+    }
+  }
+
+  /* Dark scrollbar */
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:#111}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#444}
 </style>
 </head>
 <body>
@@ -139,7 +303,7 @@
 
   <div class="signin-right">
     <div id="g_id_signin_container"></div>
-    <button id="signoutBtn" class="primary" style="display:none;background:#ffb4b4;color:#000">Sign out</button>
+    <button id="signoutBtn" class="signout-btn" style="display:none;" onclick="signOut()">Sign out</button>
   </div>
 </section>
 
@@ -183,7 +347,7 @@
       <option>Other</option>
     </select>
 
-    <input type="text" id="customCategory" placeholder="Enter data" style="display:none;margin-top:8px;padding:10px;border-radius:8px;border:1px solid #222;background:#111;color:var(--text);" />
+    <input type="text" id="customCategory" placeholder="Enter data" style="display:none;margin-top:8px;padding:12px;border-radius:8px;border:1px solid #222;background:#111;color:var(--text);font-size:16px;" />
 
     <label>Amount</label>
     <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
@@ -199,20 +363,22 @@
     <button class="primary" onclick="addExpense()">Add Expense</button>
   </div>
 
-  <table id="dataTable" aria-label="Transactions table">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Category/Note</th>
-        <th>Payment</th>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="table-container">
+    <table id="dataTable" aria-label="Transactions table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Category/Note</th>
+          <th>Payment</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <button id="submitBtn" class="primary" onclick="submitForm()">Submit</button>
 
@@ -260,8 +426,8 @@ function showWelcome(name, picture){
   txt.textContent = `Welcome, ${name}`;
   av.src = picture || '';
   ov.classList.add('show');
-  // hide after 0.5s (500ms) with smooth transition
-  setTimeout(()=> ov.classList.remove('show'), 500);
+  // hide after 2s with smooth transition
+  setTimeout(()=> ov.classList.remove('show'), 2000);
 }
 
 /* ----------------------
@@ -274,9 +440,7 @@ function setSignedInUI(userObj, showWelcomeFlag){
   // Show user chip in header
   const chip = document.createElement('div');
   chip.className = 'user-chip';
-  chip.style.background = '#0b0b0b';
-  chip.style.padding = '6px 10px';
-  chip.innerHTML = `<img src="${userObj.picture}" class="avatar"><div style="text-align:left"><div style="font-weight:700">${userObj.name}</div><div style="color:var(--muted);font-size:0.85rem">${userObj.email}</div></div>`;
+  chip.innerHTML = `<img src="${userObj.picture}" class="avatar" alt="Profile"><div style="text-align:left"><div style="font-weight:700;font-size:0.9rem">${userObj.name}</div><div style="color:var(--muted);font-size:0.8rem">${userObj.email}</div></div>`;
   top.appendChild(chip);
 
   // Show profile inside signin card
@@ -288,46 +452,71 @@ function setSignedInUI(userObj, showWelcomeFlag){
   // show sign out button
   document.getElementById('signoutBtn').style.display = 'inline-block';
 
+  // hide signin button container
+  document.getElementById('g_id_signin_container').innerHTML = '';
+
   if(showWelcomeFlag) showWelcome(userObj.name, userObj.picture);
 }
 
 /* ----------------------
-   Sign out
+   Sign out function - FIXED
    ---------------------- */
 function signOut(){
-  // ask Google to disable auto select (recommended)
+  console.log('Sign out clicked'); // Debug log
+  
+  // Clear stored user data
+  localStorage.removeItem('rivava_user');
+  
+  // Hide signed-in UI elements
+  document.getElementById('signedInInfo').style.display = 'none';
+  document.getElementById('signoutBtn').style.display = 'none';
+  
+  // Clear top area user info
+  document.getElementById('topUserArea').innerHTML = '';
+  
+  // Revoke Google sign-in session
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.disableAutoSelect();
   }
-  localStorage.removeItem('rivava_user');   // remove stored user
-  // hide UI bits
-  document.getElementById('signedInInfo').style.display = 'none';
-  document.getElementById('signoutBtn').style.display = 'none';
-  // clear top area
-  document.getElementById('topUserArea').innerHTML = '';
-  // re-render signin button
-  renderSignIn();
+  
+  // Re-render signin button
+  setTimeout(() => {
+    renderSignIn();
+  }, 100);
+  
+  // Optional: Clear the data table as well
+  document.querySelector("#dataTable tbody").innerHTML = '';
+  updateTotalExpense();
+  
+  console.log('User signed out successfully');
 }
 
 /* ----------------------
    Render Google Sign-in button (GSI)
    ---------------------- */
 function renderSignIn(){
-  document.getElementById('g_id_signin_container').innerHTML = ''; // clear
+  const container = document.getElementById('g_id_signin_container');
+  container.innerHTML = ''; // clear
+  
   // if already initialized, render
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
-      auto_select: true,  // try to sign-in automatically if user previously granted
+      auto_select: false,  // changed to false for better UX
       ux_mode: 'popup'
     });
     google.accounts.id.renderButton(
-      document.getElementById('g_id_signin_container'),
-      { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with' }
+      container,
+      { 
+        theme: 'outline', 
+        size: 'large', 
+        type: 'standard', 
+        text: 'signin_with',
+        shape: 'rounded',
+        logo_alignment: 'left'
+      }
     );
-    // prompt will show zero-interaction prompt if eligible -- keep it but harmless
-    // google.accounts.id.prompt();
   } else {
     // library not ready yet; try again shortly
     setTimeout(renderSignIn, 300);
@@ -362,23 +551,20 @@ window.addEventListener('load', ()=> {
   // init UI components
   setFixedDate();
   startLiveTime();
-  renderSignIn();
-
+  
   // restore user if exists
   const s = localStorage.getItem('rivava_user');
   if(s){
     try{
       const user = JSON.parse(s);
-      // optionally we could verify token validity with tokeninfo endpoint via backend,
-      // but for a smooth client-only experience we trust token until sign-out (common pattern).
       setSignedInUI(user, true);
-      // disable the visible sign-in button since user is restored
-      document.getElementById('g_id_signin_container').innerHTML = '';
     }catch(e){
       console.warn('restore user failed',e);
       localStorage.removeItem('rivava_user');
       renderSignIn();
     }
+  } else {
+    renderSignIn();
   }
 });
 
@@ -507,7 +693,7 @@ function addExpense() {
   if (categorySelect.value === "Other") {
     document.getElementById("customCategory").value = "";
     document.getElementById("customCategory").style.display = "none";
-    categorySelect.value = "";
+    categorySelect.value = "Personal"; // Reset to first option
   }
 }
 
@@ -553,10 +739,11 @@ async function submitForm() {
     }catch(e){
       console.warn('Send failed', e);
     }
-  } else {
-    // no backend configured or user not signed in
   }
 }
+
+// Add touch events for better mobile experience
+document.addEventListener('touchstart', function() {}, {passive: true});
 </script>
 
 </body>
