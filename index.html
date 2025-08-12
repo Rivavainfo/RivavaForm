@@ -1,17 +1,9 @@
-html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Rivava Finance Tracker</title>
-
-<!-- PWA Meta Tags -->
-<meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Rivava">
-<link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlJpdmF2YSBGaW5hbmNlIFRyYWNrZXIiLAogICJzaG9ydF9uYW1lIjogIlJpdmF2YSIsCiAgImRlc2NyaXB0aW9uIjogIlRyYWNrIGVhcm5pbmdzICYgZXhwZW5zZXMgcXVpY2tseSB3aXRoIHNlY3VyZSBHb29nbGUgc2lnbi1pbiIsCiAgInN0YXJ0X3VybCI6ICIvIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDAwMDAwIiwKICAidGhlbWVfY29sb3IiOiAiIzAwMDAwMCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBQzBBQUFBdENBUUFBQUFqNlJHMElKU0FBQUFBRWxGVGtFdlZsQlBTa1ZPSFE9IiwKICAgICAgInNpemVzIjogIjE5MngxOTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
 
 <!-- Fonts & Google Identity lib -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
@@ -57,10 +49,6 @@ html
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     transform: translateZ(0);
     will-change: auto;
-    transition: all 0.3s ease;
-  }
-  header.hidden {
-    transform: translateY(-100%);
   }
   .brand {
     display:flex;
@@ -205,11 +193,6 @@ html
     grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
     gap:15px;
     margin-bottom:18px;
-    transition: opacity 0.3s ease;
-  }
-  .info-blocks.hidden {
-    opacity: 0;
-    pointer-events: none;
   }
   .info-block{
     background:var(--card-dark);
@@ -229,11 +212,6 @@ html
     display:flex;
     gap:10px;
     margin-bottom:16px;
-    transition: opacity 0.3s ease;
-  }
-  .tabs.hidden {
-    opacity: 0;
-    pointer-events: none;
   }
   .tab{
     flex:1;
@@ -345,38 +323,15 @@ html
     background:#ff3838;
   }
 
-  /* Enhanced confirmation message */
+  /* confirmation message */
   .confirmation{
     display:none;
-    background:linear-gradient(90deg, #18c29a, #00ffc3);
-    color: #012;
-    font-weight: 600;
+    background:var(--card-dark);
     padding:14px;
     border-radius:12px;
     margin-top:16px;
     border:1px solid #222;
     text-align:center;
-    animation: slideDown 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
-    position: fixed;
-    top: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    max-width: 90%;
-    width: 400px;
-  }
-  @keyframes slideDown {
-    from { top: -100px; }
-    to { top: 20px; }
-  }
-  @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-  .confirmation.error {
-    background: linear-gradient(90deg, #ff6b6b, #ff5252);
-    color: white;
   }
 
   /* welcome overlay */
@@ -497,11 +452,6 @@ html
     #welcomeOverlay.show{
       transform:translateX(0) translateY(0);
     }
-    
-    /* Always show delete button on mobile */
-    td button {
-      display: inline-block !important;
-    }
   }
 
   @media(max-width:480px){
@@ -616,10 +566,10 @@ html
 
 <!-- form (your original form UI preserved) -->
 <main>
-  <div class="info-blocks" id="infoBlocks">
+  <div class="info-blocks">
     <div class="info-block" id="totalExpenseBlock">
       Total Expense
-      <span class="value" id="totalExpense">₹0</span>
+      <span class="value" id="totalExpense">?0</span>
     </div>
     <div class="info-block" id="timeBlock">
       Time
@@ -631,7 +581,7 @@ html
     </div>
   </div>
 
-  <div class="tabs" id="tabs">
+  <div class="tabs">
     <div class="tab active" onclick="showTab('earning')">Earning</div>
     <div class="tab" onclick="showTab('expense')">Expense</div>
   </div>
@@ -689,7 +639,7 @@ html
 
   <button id="submitBtn" class="primary" onclick="submitForm()">Submit</button>
 
-  <div id="confirmationMessage" class="confirmation">✅ Thank you, your response has been submitted.</div>
+  <div id="confirmationMessage" class="confirmation">? Thank you, your response has been submitted.</div>
 </main>
 
 <!-- Welcome overlay -->
@@ -699,34 +649,6 @@ html
 </div>
 
 <script>
-/* ----------------------
-   PWA Service Worker Registration
-   ---------------------- */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('application/javascript;base64,' + btoa(`
-      const CACHE_NAME = 'rivava-finance-v1';
-      const urlsToCache = ['/'];
-      
-      self.addEventListener('install', event => {
-        event.waitUntil(
-          caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-        );
-      });
-      
-      self.addEventListener('fetch', event => {
-        event.respondWith(
-          caches.match(event.request)
-            .then(response => response || fetch(event.request))
-        );
-      });
-    `)).catch(function(err) {
-      console.log('SW registration failed: ', err);
-    });
-  });
-}
-
 /* ----------------------
    CONFIG: Firebase Configuration (REPLACED APPS_SCRIPT_URL)
    ---------------------- */
@@ -763,34 +685,15 @@ try {
 const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
 
 /* ----------------------
-   Scroll handling for header and info blocks
+   Scroll handling for compact header
    ---------------------- */
 let lastScrollTop = 0;
 const header = document.querySelector('header');
-const infoBlocks = document.getElementById('infoBlocks');
-const tabs = document.getElementById('tabs');
-const SCROLL_THRESHOLD = 200;
+const SCROLL_THRESHOLD = 50;
 
-window.addEventListener('scroll', () => {
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  
-  // Header hide/show on scroll
-  if (scrollTop > lastScrollTop && scrollTop > SCROLL_THRESHOLD) {
-    header.classList.add('hidden');
-  } else {
-    header.classList.remove('hidden');
-  }
-  
-  // Hide info blocks and tabs when scrolling to form
-  if (scrollTop > 300) {
-    infoBlocks.classList.add('hidden');
-    tabs.classList.add('hidden');
-  } else {
-    infoBlocks.classList.remove('hidden');
-    tabs.classList.remove('hidden');
-  }
-  
-  lastScrollTop = scrollTop;
+// Remove scroll handling to keep header static
+window.addEventListener('load', () => {
+  // No scroll handling - header stays in place
 });
 
 /* ----------------------
@@ -814,7 +717,7 @@ function showWelcome(name, picture){
   const ov = document.getElementById('welcomeOverlay');
   const txt = document.getElementById('welcomeText');
   const av = document.getElementById('welcomeAvatar');
-  txt.textContent = \`Welcome, \${name}\`;
+  txt.textContent = `Welcome, ${name}`;
   av.src = picture || '';
   ov.classList.add('show');
   // hide after 2s with smooth transition
@@ -835,13 +738,13 @@ function setSignedInUI(userObj, showWelcomeFlag){
   // Show user chip in header
   const chip = document.createElement('div');
   chip.className = 'user-chip';
-  chip.innerHTML = \`
-    <img src="\${userObj.picture}" class="avatar" alt="Profile">
+  chip.innerHTML = `
+    <img src="${userObj.picture}" class="avatar" alt="Profile">
     <div class="user-info">
-      <div class="user-name">\${firstName}</div>
-      <div class="user-email">\${userObj.email}</div>
+      <div class="user-name">${firstName}</div>
+      <div class="user-email">${userObj.email}</div>
     </div>
-  \`;
+  `;
   top.appendChild(chip);
 
   // Show profile inside signin card
@@ -975,7 +878,7 @@ window.addEventListener('load', ()=> {
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
-  document.querySelector(\`.tab[onclick="showTab('\${tab}')"]\`).classList.add('active');
+  document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
   document.getElementById(tab).classList.add('active');
 }
 
@@ -984,26 +887,19 @@ function setFixedDate() {
   const day = String(today.getDate()).padStart(2, "0");
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const year = today.getFullYear();
-  const formatted = \`\${day}/\${month}/\${year}\`;
+  const formatted = `${day}/${month}/${year}`;
   document.getElementById("fixedDate").textContent = formatted;
   return formatted;
-}
-
-function formatTime12Hour(date) {
-  let hours = date.getHours();
-  let minutes = date.getMinutes().toString().padStart(2, "0");
-  let seconds = date.getSeconds().toString().padStart(2, "0");
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12; // the hour '0' should be '12'
-  return \`\${hours}:\${minutes}:\${seconds} \${ampm}\`;
 }
 
 function startLiveTime() {
   const timeEl = document.getElementById("liveTime");
   function update() {
     const now = new Date();
-    timeEl.textContent = formatTime12Hour(now);
+    const h = now.getHours().toString().padStart(2, "0");
+    const m = now.getMinutes().toString().padStart(2, "0");
+    const s = now.getSeconds().toString().padStart(2, "0");
+    timeEl.textContent = `${h}:${m}:${s}`;
   }
   update();
   setInterval(update, 1000);
@@ -1023,26 +919,20 @@ function updateTotalExpense() {
     }
   });
   totalExpense = sum;
-  document.getElementById("totalExpense").textContent = \`₹\${totalExpense.toFixed(2)}\`;
+  document.getElementById("totalExpense").textContent = `?${totalExpense.toFixed(2)}`;
 }
 
 function addRow(type, amount, category, payment, date, time) {
   const row = document.createElement("tr");
-  // Format time to 12-hour format for display
-  const timeObj = new Date();
-  const [hours, minutes, seconds] = time.split(':');
-  timeObj.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds));
-  const formattedTime = formatTime12Hour(timeObj);
-  
-  row.innerHTML = \`
-    <td>\${type}</td>
-    <td>\${parseFloat(amount).toFixed(2)}</td>
-    <td>\${category}</td>
-    <td>\${payment}</td>
-    <td>\${date}</td>
-    <td>\${formattedTime}</td>
-    <td><button onclick="deleteRow(this)" aria-label="Delete this \${type.toLowerCase()} entry">Delete</button></td>
-  \`;
+  row.innerHTML = `
+    <td>${type}</td>
+    <td>${parseFloat(amount).toFixed(2)}</td>
+    <td>${category}</td>
+    <td>${payment}</td>
+    <td>${date}</td>
+    <td>${time}</td>
+    <td><button onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>
+  `;
   dataTableBody.appendChild(row);
   updateTotalExpense();
 }
@@ -1111,19 +1001,19 @@ function addExpense() {
   }
 }
 
-// ✅ MODIFIED submitForm to use Firebase with enhanced UI
+// ? MODIFIED submitForm to use Firebase
 async function submitForm() {
   console.log("=== Starting submitForm (Firebase version) ===");
 
   if (dataTableBody.children.length === 0) {
-    showConfirmation("Please add some earnings or expenses before submitting.", true);
+    alert("Please add some earnings or expenses before submitting.");
     console.warn("Submit clicked but no data in table.");
     return;
   }
 
   const stored = localStorage.getItem('rivava_user');
   if (!stored) {
-    showConfirmation("You must sign in first.", true);
+    alert("You must sign in first.");
     console.warn("Submit clicked but user not signed in.");
     return;
   }
@@ -1161,8 +1051,18 @@ async function submitForm() {
 
     console.log("Data successfully written to Firebase with ID: ", docRef.id);
 
-    // Show success message with animation
-    showConfirmation("✅ Data submitted successfully to Firebase!", false);
+    // Show success message on the page
+    const msg = document.getElementById("confirmationMessage");
+    if (msg) {
+      msg.style.display = "block";
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      setTimeout(() => {
+        msg.style.display = "none";
+      }, 3000);
+    }
+
+    // Optional: Alert the user
+    alert("? Data submitted successfully to Firebase!");
 
     // Optional: Clear the form table after successful submission
     // dataTableBody.innerHTML = '';
@@ -1171,32 +1071,10 @@ async function submitForm() {
   } catch (error) {
     // Handle any errors that occurred during the Firestore operation
     console.error("Error submitting data to Firebase:", error);
-    showConfirmation("❌ Failed to save data to Firebase. Please check the browser console for details.", true);
+    alert("? Failed to save data to Firebase. Please check the browser console for details. Error: " + error.message);
   }
 
   console.log("=== Finished submitForm (Firebase version) ===");
-}
-
-// Enhanced confirmation message with animations
-function showConfirmation(message, isError) {
-  const msg = document.getElementById("confirmationMessage");
-  msg.textContent = message;
-  msg.className = "confirmation";
-  if (isError) {
-    msg.classList.add("error");
-  }
-  
-  // Show with animation
-  setTimeout(() => {
-    msg.style.display = "block";
-    // Scroll to top to see message
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, 10);
-  
-  // Auto hide after 3 seconds
-  setTimeout(() => {
-    msg.style.display = "none";
-  }, 3000);
 }
 
 // Add touch events for better mobile experience
