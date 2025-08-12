@@ -1,4 +1,3 @@
-,
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +7,12 @@
 
 <!-- Fonts & Google Identity lib -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+<!-- Load Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- Load Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
   :root{
@@ -287,7 +291,7 @@
   table{
     width:100%;
     border-collapse:collapse;
-    min-width:800px;
+    min-width:800px; /* Ensures horizontal scroll on small screens */
   }
   th,td{
     padding:12px 8px;
@@ -525,9 +529,6 @@
 </head>
 <body>
 
-<!-- Hidden iframe to handle Google Sign-In popup close -->
-<iframe name="closeFrame" style="display:none;"></iframe>
-
 <header>
   <div class="brand">
     <div class="logo">R</div>
@@ -649,15 +650,51 @@
 
 <script>
 /* ----------------------
-   CONFIG: Replace this with your Apps Script URL
+   CONFIG: Firebase Configuration (REPLACED APPS_SCRIPT_URL)
    ---------------------- */
-// ✅ FIXED: Removed trailing spaces from the URL
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQfsUHfwBUO-ufxMQM1RKrUsZ9dempwB8ORbCFE83P2IXnQT5WPHffMzwwKXquIGkUNA/exec";
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU",
+  authDomain: "rivava-finance-tracker.firebaseapp.com",
+  projectId: "rivava-finance-tracker",
+  storageBucket: "rivava-finance-tracker.firebasestorage.app",
+  messagingSenderId: "615077199032",
+  appId: "1:615077199032:web:fb2007f8a603fa8abcc84d",
+  measurementId: "G-NF4BZPWR2E"
+};
+
+// Initialize Firebase
+let db; // Variable to hold the Firestore instance
+try {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase initialized successfully.");
+  } else {
+    console.log("Firebase app already initialized.");
+  }
+  db = firebase.firestore(); // Get Firestore instance
+  console.log("Firestore instance ready.");
+} catch (error) {
+  console.error("Error initializing Firebase:", error);
+  alert("Failed to initialize Firebase. Please check the console for details.");
+}
 
 /* ----------------------
-   CLIENT ID
+   CLIENT ID (already provided earlier)
    ---------------------- */
 const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
+
+/* ----------------------
+   Scroll handling for compact header
+   ---------------------- */
+let lastScrollTop = 0;
+const header = document.querySelector('header');
+const SCROLL_THRESHOLD = 50;
+
+// Remove scroll handling to keep header static
+window.addEventListener('load', () => {
+  // No scroll handling - header stays in place
+});
 
 /* ----------------------
    helpers
@@ -683,6 +720,7 @@ function showWelcome(name, picture){
   txt.textContent = `Welcome, ${name}`;
   av.src = picture || '';
   ov.classList.add('show');
+  // hide after 2s with smooth transition
   setTimeout(()=> ov.classList.remove('show'), 2000);
 }
 
@@ -690,11 +728,14 @@ function showWelcome(name, picture){
    Update UI for signed-in user
    ---------------------- */
 function setSignedInUI(userObj, showWelcomeFlag){
+  // top area
   const top = document.getElementById('topUserArea');
-  top.innerHTML = '';
+  top.innerHTML = ''; // clear
 
+  // Extract first name only
   const firstName = userObj.name.split(' ')[0];
 
+  // Show user chip in header
   const chip = document.createElement('div');
   chip.className = 'user-chip';
   chip.innerHTML = `
@@ -706,55 +747,68 @@ function setSignedInUI(userObj, showWelcomeFlag){
   `;
   top.appendChild(chip);
 
+  // Show profile inside signin card
   document.getElementById('signedInInfo').style.display = 'block';
   document.getElementById('profilePic').src = userObj.picture || '';
   document.getElementById('displayName').textContent = firstName || '';
   document.getElementById('displayEmail').textContent = userObj.email || '';
 
+  // show sign out button
   document.getElementById('signoutBtn').style.display = 'inline-block';
+
+  // hide signin button container
   document.getElementById('g_id_signin_container').innerHTML = '';
 
   if(showWelcomeFlag) showWelcome(firstName, userObj.picture);
 }
 
 /* ----------------------
-   Sign out function
+   Sign out function - FIXED
    ---------------------- */
 function signOut(){
-  console.log('Sign out clicked');
+  console.log('Sign out clicked'); // Debug log
+
+  // Clear stored user data
   localStorage.removeItem('rivava_user');
+
+  // Hide signed-in UI elements
   document.getElementById('signedInInfo').style.display = 'none';
   document.getElementById('signoutBtn').style.display = 'none';
+
+  // Clear top area user info
   document.getElementById('topUserArea').innerHTML = '';
 
+  // Revoke Google sign-in session
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.disableAutoSelect();
   }
 
+  // Re-render signin button
   setTimeout(() => {
     renderSignIn();
   }, 100);
 
+  // Optional: Clear the data table as well
   document.querySelector("#dataTable tbody").innerHTML = '';
   updateTotalExpense();
+
   console.log('User signed out successfully');
 }
 
 /* ----------------------
-   Render Google Sign-in button
+   Render Google Sign-in button (GSI)
    ---------------------- */
 function renderSignIn(){
   const container = document.getElementById('g_id_signin_container');
-  container.innerHTML = '';
+  container.innerHTML = ''; // clear
 
+  // if already initialized, render
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
-      auto_select: false,
-      ux_mode: 'popup',
-      login_uri: window.location.origin,
-      context: 'signin'
+      auto_select: false,  // changed to false for better UX
+      ux_mode: 'popup'
     });
     google.accounts.id.renderButton(
       container,
@@ -768,6 +822,7 @@ function renderSignIn(){
       }
     );
   } else {
+    // library not ready yet; try again shortly
     setTimeout(renderSignIn, 300);
   }
 }
@@ -781,6 +836,7 @@ function handleCredentialResponse(response){
     console.error('Invalid ID token payload', payload);
     return;
   }
+  // store minimal user info and token
   const user = {
     name: payload.name,
     email: payload.email,
@@ -793,12 +849,14 @@ function handleCredentialResponse(response){
 }
 
 /* ----------------------
-   On load
+   On load: check stored user or initialize sign-in
    ---------------------- */
 window.addEventListener('load', ()=> {
+  // init UI components
   setFixedDate();
   startLiveTime();
 
+  // restore user if exists
   const s = localStorage.getItem('rivava_user');
   if(s){
     try{
@@ -815,7 +873,7 @@ window.addEventListener('load', ()=> {
 });
 
 /* ----------------------
-   Form JS
+   Form JS (original logic preserved)
    ---------------------- */
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -847,6 +905,7 @@ function startLiveTime() {
   setInterval(update, 1000);
 }
 
+// Data Table and total expense logic
 const dataTableBody = document.querySelector("#dataTable tbody");
 let totalExpense = 0;
 
@@ -934,16 +993,18 @@ function addExpense() {
   addRow("Expense", amount, category, payment, date, time);
   amountInput.value = "";
 
+  // Reset the custom input & select if needed
   if (categorySelect.value === "Other") {
     document.getElementById("customCategory").value = "";
     document.getElementById("customCategory").style.display = "none";
-    categorySelect.value = "Personal";
+    categorySelect.value = "Personal"; // Reset to first option
   }
 }
 
-// ✅ FIXED and improved submitForm
+// ✅ MODIFIED submitForm to use Firebase
 async function submitForm() {
-  console.log("=== Starting submitForm ===");
+  console.log("=== Starting submitForm (Firebase version) ===");
+
   if (dataTableBody.children.length === 0) {
     alert("Please add some earnings or expenses before submitting.");
     console.warn("Submit clicked but no data in table.");
@@ -962,10 +1023,9 @@ async function submitForm() {
 
   const rows = [];
   dataTableBody.querySelectorAll('tr').forEach(r => {
-    // ✅ Ensure amount is parsed as a float
     rows.push({
       type: r.cells[0].textContent.trim(),
-      amount: parseFloat(r.cells[1].textContent.trim()), // Parse to number
+      amount: parseFloat(r.cells[1].textContent.trim()),
       category: r.cells[2].textContent.trim(),
       payment: r.cells[3].textContent.trim(),
       date: r.cells[4].textContent.trim(),
@@ -973,55 +1033,53 @@ async function submitForm() {
     });
   });
 
-  // Prepare the data payload exactly as the script expects
+  // Prepare the data payload exactly as before
   const payload = {
     userEmail: user.email,
-    transactions: rows
+    userName: user.name, // Optional
+    transactions: rows,
+    submittedAt: firebase.firestore.FieldValue.serverTimestamp() // Add server timestamp
   };
 
-  console.log("Prepared payload to send:");
+  console.log("Prepared payload to send to Firebase:");
   console.log(JSON.stringify(payload, null, 2)); // Log the payload for debugging
 
   try {
-    console.log("Attempting to send data to:", APPS_SCRIPT_URL);
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json' // Crucial for Apps Script
-      },
-      body: JSON.stringify(payload) // Crucial for sending the data
-    });
+    console.log("Attempting to send data to Firebase Firestore...");
+    // Use Firebase Firestore to add the data
+    const docRef = await db.collection('submissions').add(payload);
 
-    console.log("Fetch request sent. Awaiting response...");
-    // Always read the response text, even for errors
-    const responseText = await res.text();
-    console.log("Server response received. Status:", res.status, "Text:", responseText);
+    console.log("Data successfully written to Firebase with ID: ", docRef.id);
 
-    if (res.ok) {
-      console.log("Server reported success.");
-      const msg = document.getElementById("confirmationMessage");
+    // Show success message on the page
+    const msg = document.getElementById("confirmationMessage");
+    if (msg) {
       msg.style.display = "block";
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-      setTimeout(() => { msg.style.display = "none"; }, 3000);
-
-      // Optional: Clear the form after successful submission
-      // dataTableBody.innerHTML = '';
-      // updateTotalExpense();
-    } else {
-      // Server responded with an error status (e.g., 400, 500)
-      console.error("Server returned an error status:", res.status);
-      alert(`Server Error (${res.status}): ${responseText}`);
+      setTimeout(() => {
+        msg.style.display = "none";
+      }, 3000);
     }
-  } catch (e) {
-    // This catches network errors (offline, CORS, unreachable URL)
-    console.error("Network error occurred:", e);
-    alert("Could not connect to the server. Please check your internet connection and ensure the Apps Script URL is correct. Error details: " + e.message);
+
+    // Optional: Alert the user
+    alert("✅ Data submitted successfully to Firebase!");
+
+    // Optional: Clear the form table after successful submission
+    // dataTableBody.innerHTML = '';
+    // updateTotalExpense();
+
+  } catch (error) {
+    // Handle any errors that occurred during the Firestore operation
+    console.error("Error submitting data to Firebase:", error);
+    alert("❌ Failed to save data to Firebase. Please check the browser console for details. Error: " + error.message);
   }
-  console.log("=== Finished submitForm ===");
+
+  console.log("=== Finished submitForm (Firebase version) ===");
 }
 
-// Passive touch listener
-document.addEventListener('touchstart', function(){}, {passive: true});
+// Add touch events for better mobile experience
+document.addEventListener('touchstart', function() {}, {passive: true});
 </script>
+
 </body>
 </html>
