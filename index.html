@@ -286,7 +286,7 @@
   table{
     width:100%;
     border-collapse:collapse;
-    min-width:800px; /* Ensures horizontal scroll on small screens */
+    min-width:800px;
   }
   th,td{
     padding:12px 8px;
@@ -524,6 +524,9 @@
 </head>
 <body>
 
+<!-- Hidden iframe to handle Google Sign-In popup close -->
+<iframe name="closeFrame" style="display:none;"></iframe>
+
 <header>
   <div class="brand">
     <div class="logo">R</div>
@@ -645,26 +648,14 @@
 
 <script>
 /* ----------------------
-   CONFIG: Replace this with your Apps Script URL if using backend
+   CONFIG: Replace this with your Apps Script URL
    ---------------------- */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec  ";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQfsUHfwBUO-ufxMQM1RKrUsZ9dempwB8ORbCFE83P2IXnQT5WPHffMzwwKXquIGkUNA/exec";
 
 /* ----------------------
-   CLIENT ID (already provided earlier)
+   CLIENT ID
    ---------------------- */
 const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
-
-/* ----------------------
-   Scroll handling for compact header
-   ---------------------- */
-let lastScrollTop = 0;
-const header = document.querySelector('header');
-const SCROLL_THRESHOLD = 50;
-
-// Remove scroll handling to keep header static
-window.addEventListener('load', () => {
-  // No scroll handling - header stays in place
-});
 
 /* ----------------------
    helpers
@@ -690,7 +681,6 @@ function showWelcome(name, picture){
   txt.textContent = `Welcome, ${name}`;
   av.src = picture || '';
   ov.classList.add('show');
-  // hide after 2s with smooth transition
   setTimeout(()=> ov.classList.remove('show'), 2000);
 }
 
@@ -698,14 +688,11 @@ function showWelcome(name, picture){
    Update UI for signed-in user
    ---------------------- */
 function setSignedInUI(userObj, showWelcomeFlag){
-  // top area
   const top = document.getElementById('topUserArea');
-  top.innerHTML = ''; // clear
+  top.innerHTML = '';
   
-  // Extract first name only
   const firstName = userObj.name.split(' ')[0];
   
-  // Show user chip in header
   const chip = document.createElement('div');
   chip.className = 'user-chip';
   chip.innerHTML = `
@@ -717,68 +704,56 @@ function setSignedInUI(userObj, showWelcomeFlag){
   `;
   top.appendChild(chip);
 
-  // Show profile inside signin card
   document.getElementById('signedInInfo').style.display = 'block';
   document.getElementById('profilePic').src = userObj.picture || '';
   document.getElementById('displayName').textContent = firstName || '';
   document.getElementById('displayEmail').textContent = userObj.email || '';
 
-  // show sign out button
   document.getElementById('signoutBtn').style.display = 'inline-block';
-
-  // hide signin button container
   document.getElementById('g_id_signin_container').innerHTML = '';
 
   if(showWelcomeFlag) showWelcome(firstName, userObj.picture);
 }
 
 /* ----------------------
-   Sign out function - FIXED
+   Sign out function
    ---------------------- */
 function signOut(){
-  console.log('Sign out clicked'); // Debug log
-  
-  // Clear stored user data
+  console.log('Sign out clicked');
   localStorage.removeItem('rivava_user');
-  
-  // Hide signed-in UI elements
   document.getElementById('signedInInfo').style.display = 'none';
   document.getElementById('signoutBtn').style.display = 'none';
-  
-  // Clear top area user info
   document.getElementById('topUserArea').innerHTML = '';
   
-  // Revoke Google sign-in session
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.disableAutoSelect();
   }
   
-  // Re-render signin button
   setTimeout(() => {
     renderSignIn();
   }, 100);
   
-  // Optional: Clear the data table as well
   document.querySelector("#dataTable tbody").innerHTML = '';
   updateTotalExpense();
-  
   console.log('User signed out successfully');
 }
 
 /* ----------------------
-   Render Google Sign-in button (GSI)
+   Render Google Sign-in button
    ---------------------- */
 function renderSignIn(){
   const container = document.getElementById('g_id_signin_container');
-  container.innerHTML = ''; // clear
+  container.innerHTML = '';
   
-  // if already initialized, render
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
-      auto_select: false,  // changed to false for better UX
-      ux_mode: 'popup'
+      auto_select: false,
+      ux_mode: 'popup',
+      // This makes popup close itself after login
+      login_uri: window.location.origin,
+      context: 'signin'
     });
     google.accounts.id.renderButton(
       container,
@@ -792,7 +767,6 @@ function renderSignIn(){
       }
     );
   } else {
-    // library not ready yet; try again shortly
     setTimeout(renderSignIn, 300);
   }
 }
@@ -806,7 +780,6 @@ function handleCredentialResponse(response){
     console.error('Invalid ID token payload', payload);
     return;
   }
-  // store minimal user info and token
   const user = {
     name: payload.name,
     email: payload.email,
@@ -819,14 +792,12 @@ function handleCredentialResponse(response){
 }
 
 /* ----------------------
-   On load: check stored user or initialize sign-in
+   On load
    ---------------------- */
 window.addEventListener('load', ()=> {
-  // init UI components
   setFixedDate();
   startLiveTime();
   
-  // restore user if exists
   const s = localStorage.getItem('rivava_user');
   if(s){
     try{
@@ -843,7 +814,7 @@ window.addEventListener('load', ()=> {
 });
 
 /* ----------------------
-   Form JS (original logic preserved)
+   Form JS
    ---------------------- */
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -875,7 +846,6 @@ function startLiveTime() {
   setInterval(update, 1000);
 }
 
-// Data Table and total expense logic
 const dataTableBody = document.querySelector("#dataTable tbody");
 let totalExpense = 0;
 
@@ -963,62 +933,70 @@ function addExpense() {
   addRow("Expense", amount, category, payment, date, time);
   amountInput.value = "";
 
-  // Reset the custom input & select if needed
   if (categorySelect.value === "Other") {
     document.getElementById("customCategory").value = "";
     document.getElementById("customCategory").style.display = "none";
-    categorySelect.value = "Personal"; // Reset to first option
+    categorySelect.value = "Personal";
   }
 }
 
+// ✅ Fixed and improved submitForm
 async function submitForm() {
   if (dataTableBody.children.length === 0) {
     alert("Please add some earnings or expenses before submitting.");
     return;
   }
+
   const msg = document.getElementById("confirmationMessage");
   msg.style.display = "block";
   window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-  setTimeout(() => {
-    msg.style.display = "none";
-  }, 3000);
+  setTimeout(() => { msg.style.display = "none"; }, 3000);
 
-  // Optional: send to Apps Script if configured and user signed in
   const stored = localStorage.getItem('rivava_user');
-  if (stored && APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_DEPLOY_ID')) {
-    const user = JSON.parse(stored);
-    const rows = [];
-    dataTableBody.querySelectorAll('tr').forEach(r => {
-      rows.push({
-        type: r.cells[0].textContent,
-        amount: r.cells[1].textContent,
-        category: r.cells[2].textContent,
-        payment: r.cells[3].textContent,
-        date: r.cells[4].textContent,
-        time: r.cells[5].textContent
-      });
+  if (!stored) {
+    alert("You must sign in first.");
+    return;
+  }
+
+  const user = JSON.parse(stored);
+  const rows = [];
+  dataTableBody.querySelectorAll('tr').forEach(r => {
+    rows.push({
+      type: r.cells[0].textContent,
+      amount: r.cells[1].textContent,
+      category: r.cells[2].textContent,
+      payment: r.cells[3].textContent,
+      date: r.cells[4].textContent,
+      time: r.cells[5].textContent
+    });
+  });
+
+  const payload = { userEmail: user.email, transactions: rows };
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    const payload = {
-      userEmail: user.email,
-      userName: user.name,
-      transactions: rows,
-      id_token: user.token
-    };
-
-    try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    if (res.ok) {
+      // Optional: clear form
+      // dataTableBody.innerHTML = '';
+      // updateTotalExpense();
+    } else {
       const text = await res.text();
-      console.log('Server response', res.status, text);
-    }catch(e){
-      console.warn('Send failed', e);
+      console.error("Save failed:", res.status, text);
+      alert("Failed to save data. Please try again.");
     }
+  } catch (e) {
+    console.warn("Network error:", e);
+    alert("Could not connect to server.");
   }
 }
 
-// Add touch events for better mobile experience
-document.addEventListener('touchstart', function() {}, {passive: true});
+// Passive touch listener
+document.addEventListener('touchstart', function(){}, {passive: true});
 </script>
-
 </body>
 </html>
