@@ -1,99 +1,562 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Google Auth Persistent Login</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        background: #f5f5f5;
-        padding: 20px;
-    }
-    #welcome {
-        display: none;
-        background: #4CAF50;
-        color: white;
-        padding: 10px;
-        margin-top: 20px;
-        border-radius: 5px;
-        animation: fadeIn 0.5s ease-in-out;
-    }
-    @keyframes fadeIn {
-        from {opacity: 0; transform: translateY(-10px);}
-        to {opacity: 1; transform: translateY(0);}
-    }
-    img {
-        border-radius: 50%;
-        margin-top: 10px;
-    }
-</style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rivava Finance Tracker</title>
+
+<!-- Fonts & Google Identity lib -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+  :root{
+    --bg-dark:#000;
+    --card-dark:#0d0d0d;
+    --accent:#00ffc3;
+    --accent-2:#00d9aa;
+    --text:#fff;
+    --muted:#888;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--bg-dark);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* Header */
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 20px;
+    background:var(--card-dark);
+    border-bottom:1px solid #111;
+  }
+  .brand {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .logo {
+    width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bf7d0);box-shadow:0 4px 14px rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;
+  }
+  .username {
+    font-size:1.25rem;
+    font-weight:700;
+    background:linear-gradient(90deg,var(--accent),#fff);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+
+  /* signin area - styled like a card */
+  .signin-card{
+    max-width:920px;margin:28px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;border:1px solid #111;display:flex;align-items:center;gap:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  }
+  .signin-left{flex:1;min-width:0}
+  .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .signin-title{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+  .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px}
+
+  /* user display */
+  .user-chip{display:flex;gap:10px;align-items:center;background:#0b0b0b;padding:8px 12px;border-radius:999px;border:1px solid #111}
+  .avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0}
+  .user-name{font-weight:700;font-size:0.95rem}
+
+  /* main form area (kept original look) */
+  main{max-width:920px;margin:18px auto;padding:18px}
+  .info-blocks{display:flex;gap:15px;margin-bottom:18px;flex-wrap:wrap}
+  .info-block{flex:1 1 30%;background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #111}
+  .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent)}
+  .tabs{display:flex;gap:10px;margin-bottom:16px}
+  .tab{flex:1;background:var(--card-dark);padding:10px;border-radius:10px;text-align:center;cursor:pointer}
+  .tab.active{background:var(--accent);color:#000;font-weight:700}
+  .form-section{display:none;background:var(--card-dark);padding:18px;border-radius:12px;border:1px solid #111}
+  .form-section.active{display:block}
+  label{display:block;margin-bottom:6px;font-weight:600}
+  input,select{width:100%;padding:10px;border-radius:8px;background:#111;border:1px solid #222;color:var(--text);margin-bottom:12px}
+  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:10px;border-radius:8px;color:#000;font-weight:700;cursor:pointer}
+  table{width:100%;border-collapse:collapse;margin-top:16px}
+  th,td{padding:10px;border-bottom:1px solid #222;text-align:left}
+  th{color:var(--accent);font-weight:700}
+
+  /* confirmation message */
+  .confirmation{display:none;background:var(--card-dark);padding:14px;border-radius:12px;margin-top:16px;border:1px solid #222;text-align:center}
+
+  /* welcome overlay */
+  #welcomeOverlay{
+    position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;
+    transition:opacity .45s ease, transform .45s ease;
+  }
+  #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+
+  /* responsive */
+  @media(max-width:720px){
+    .signin-card{flex-direction:column;align-items:flex-start}
+    .signin-right{width:100%;flex-direction:row;justify-content:space-between}
+    header{padding:12px}
+    .logo{width:36px;height:36px}
+  }
+</style>
 </head>
 <body>
 
-<h2>Google Sign-In Demo (Persistent Login)</h2>
+<header>
+  <div class="brand">
+    <div class="logo">R</div>
+    <div class="username">RIVAVA</div>
+  </div>
 
-<div id="g_id_onload"
-    data-client_id="151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com"
-    data-callback="handleCredentialResponse"
-    data-auto_prompt="true">
+  <!-- top-right: user area (shows signin button or user) -->
+  <div id="topUserArea" style="margin-right:14px;">
+    <!-- will be filled by JS -->
+  </div>
+</header>
+
+<!-- Sign-in card (designer style) -->
+<section class="signin-card" id="signinCard">
+  <div class="signin-left">
+    <div class="signin-title">Welcome to Rivava Finance</div>
+    <div class="signin-sub">Track earnings & expenses quickly — secure sign in required to save your data privately.</div>
+
+    <div id="signedInInfo" style="display:none;">
+      <div class="user-chip">
+        <img id="profilePic" class="avatar" src="" alt="avatar">
+        <div>
+          <div class="user-name" id="displayName"></div>
+          <div style="color:var(--muted);font-size:0.85rem" id="displayEmail"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="signin-right">
+    <div id="g_id_signin_container"></div>
+    <button id="signoutBtn" class="primary" style="display:none;background:#ffb4b4;color:#000">Sign out</button>
+  </div>
+</section>
+
+<!-- form (your original form UI preserved) -->
+<main>
+  <div class="info-blocks">
+    <div class="info-block" id="totalExpenseBlock">
+      Total Expense
+      <span class="value" id="totalExpense">₹0</span>
+    </div>
+    <div class="info-block" id="timeBlock">
+      Time
+      <span class="value" id="liveTime">--:--:--</span>
+    </div>
+    <div class="info-block" id="dateBlock">
+      Date
+      <span class="value" id="fixedDate">--/--/----</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('earning')">Earning</div>
+    <div class="tab" onclick="showTab('expense')">Expense</div>
+  </div>
+
+  <div id="earning" class="form-section active">
+    <label>Amount</label>
+    <input type="number" id="earningAmount" placeholder="Enter earning amount" min="0" step="0.01" />
+    <button class="primary" onclick="addEarning()">Add Earning</button>
+  </div>
+
+  <div id="expense" class="form-section">
+    <label>Category</label>
+    <select id="expenseCategory" onchange="handleCategoryChange()">
+      <option>Personal</option>
+      <option>Food</option>
+      <option>Transport</option>
+      <option>Shopping</option>
+      <option>Recharge and Bills</option>
+      <option>Entertainment</option>
+      <option>Other</option>
+    </select>
+
+    <input type="text" id="customCategory" placeholder="Enter data" style="display:none;margin-top:8px;padding:10px;border-radius:8px;border:1px solid #222;background:#111;color:var(--text);" />
+
+    <label>Amount</label>
+    <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
+
+    <label>Payment Method</label>
+    <select id="paymentMethod">
+      <option>UPI</option>
+      <option>Cash</option>
+      <option>Credit Card</option>
+      <option>Bank Transfer</option>
+    </select>
+
+    <button class="primary" onclick="addExpense()">Add Expense</button>
+  </div>
+
+  <table id="dataTable" aria-label="Transactions table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Category/Note</th>
+        <th>Payment</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button id="submitBtn" class="primary" onclick="submitForm()">Submit</button>
+
+  <div id="confirmationMessage" class="confirmation">✅ Thank you, your response has been submitted.</div>
+</main>
+
+<!-- Welcome overlay -->
+<div id="welcomeOverlay" role="status" aria-live="polite">
+  <img id="welcomeAvatar" src="" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+  <div id="welcomeText" style="font-weight:800;color:#012"></div>
 </div>
-
-<div class="g_id_signin" data-type="standard"></div>
-
-<div id="userInfo" style="display:none;">
-    <h3 id="userName"></h3>
-    <img id="userPic" width="80">
-    <br>
-    <button onclick="signOut()">Sign Out</button>
-</div>
-
-<div id="welcome">🎉 Welcome Back!</div>
 
 <script>
-    function handleCredentialResponse(response) {
-        const data = parseJwt(response.credential);
-        localStorage.setItem("user", JSON.stringify(data));
-        showUser(data, true);
-    }
+/* ----------------------
+   CONFIG: Replace this with your Apps Script URL if using backend
+   ---------------------- */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec";
 
-    function parseJwt(token) {
-        let base64Url = token.split('.')[1];
-        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-    }
+/* ----------------------
+   CLIENT ID (already provided earlier)
+   ---------------------- */
+const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
 
-    function showUser(user, showWelcome) {
-        document.getElementById("userInfo").style.display = "block";
-        document.getElementById("userName").innerText = "Hello, " + user.name;
-        document.getElementById("userPic").src = user.picture;
-        
-        if (showWelcome) {
-            let welcomeDiv = document.getElementById("welcome");
-            welcomeDiv.style.display = "block";
-            setTimeout(() => {
-                welcomeDiv.style.display = "none";
-            }, 1500);
-        }
-    }
+/* ----------------------
+   helpers
+   ---------------------- */
+function parseJwt(token){
+  try{
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c=>'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    return JSON.parse(jsonPayload);
+  }catch(e){
+    return null;
+  }
+}
 
-    function signOut() {
-        localStorage.removeItem("user");
-        window.location.reload();
-    }
+/* ----------------------
+   welcome overlay
+   ---------------------- */
+function showWelcome(name, picture){
+  const ov = document.getElementById('welcomeOverlay');
+  const txt = document.getElementById('welcomeText');
+  const av = document.getElementById('welcomeAvatar');
+  txt.textContent = `Welcome, ${name}`;
+  av.src = picture || '';
+  ov.classList.add('show');
+  // hide after 0.5s (500ms) with smooth transition
+  setTimeout(()=> ov.classList.remove('show'), 500);
+}
 
-    // On page load check if user exists
-    window.onload = function() {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            showUser(JSON.parse(storedUser), false);
-        }
+/* ----------------------
+   Update UI for signed-in user
+   ---------------------- */
+function setSignedInUI(userObj, showWelcomeFlag){
+  // top area
+  const top = document.getElementById('topUserArea');
+  top.innerHTML = ''; // clear
+  // Show user chip in header
+  const chip = document.createElement('div');
+  chip.className = 'user-chip';
+  chip.style.background = '#0b0b0b';
+  chip.style.padding = '6px 10px';
+  chip.innerHTML = `<img src="${userObj.picture}" class="avatar"><div style="text-align:left"><div style="font-weight:700">${userObj.name}</div><div style="color:var(--muted);font-size:0.85rem">${userObj.email}</div></div>`;
+  top.appendChild(chip);
+
+  // Show profile inside signin card
+  document.getElementById('signedInInfo').style.display = 'block';
+  document.getElementById('profilePic').src = userObj.picture || '';
+  document.getElementById('displayName').textContent = userObj.name || '';
+  document.getElementById('displayEmail').textContent = userObj.email || '';
+
+  // show sign out button
+  document.getElementById('signoutBtn').style.display = 'inline-block';
+
+  if(showWelcomeFlag) showWelcome(userObj.name, userObj.picture);
+}
+
+/* ----------------------
+   Sign out
+   ---------------------- */
+function signOut(){
+  // ask Google to disable auto select (recommended)
+  if(window.google && google.accounts && google.accounts.id){
+    google.accounts.id.disableAutoSelect();
+  }
+  localStorage.removeItem('rivava_user');   // remove stored user
+  // hide UI bits
+  document.getElementById('signedInInfo').style.display = 'none';
+  document.getElementById('signoutBtn').style.display = 'none';
+  // clear top area
+  document.getElementById('topUserArea').innerHTML = '';
+  // re-render signin button
+  renderSignIn();
+}
+
+/* ----------------------
+   Render Google Sign-in button (GSI)
+   ---------------------- */
+function renderSignIn(){
+  document.getElementById('g_id_signin_container').innerHTML = ''; // clear
+  // if already initialized, render
+  if(window.google && google.accounts && google.accounts.id){
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleCredentialResponse,
+      auto_select: true,  // try to sign-in automatically if user previously granted
+      ux_mode: 'popup'
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('g_id_signin_container'),
+      { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with' }
+    );
+    // prompt will show zero-interaction prompt if eligible -- keep it but harmless
+    // google.accounts.id.prompt();
+  } else {
+    // library not ready yet; try again shortly
+    setTimeout(renderSignIn, 300);
+  }
+}
+
+/* ----------------------
+   Callback after sign-in
+   ---------------------- */
+function handleCredentialResponse(response){
+  const payload = parseJwt(response.credential);
+  if(!payload || !payload.email){
+    console.error('Invalid ID token payload', payload);
+    return;
+  }
+  // store minimal user info and token
+  const user = {
+    name: payload.name,
+    email: payload.email,
+    picture: payload.picture,
+    token: response.credential,
+    sub: payload.sub
+  };
+  localStorage.setItem('rivava_user', JSON.stringify(user));
+  setSignedInUI(user, true);
+}
+
+/* ----------------------
+   On load: check stored user or initialize sign-in
+   ---------------------- */
+window.addEventListener('load', ()=> {
+  // init UI components
+  setFixedDate();
+  startLiveTime();
+  renderSignIn();
+
+  // restore user if exists
+  const s = localStorage.getItem('rivava_user');
+  if(s){
+    try{
+      const user = JSON.parse(s);
+      // optionally we could verify token validity with tokeninfo endpoint via backend,
+      // but for a smooth client-only experience we trust token until sign-out (common pattern).
+      setSignedInUI(user, true);
+      // disable the visible sign-in button since user is restored
+      document.getElementById('g_id_signin_container').innerHTML = '';
+    }catch(e){
+      console.warn('restore user failed',e);
+      localStorage.removeItem('rivava_user');
+      renderSignIn();
     }
+  }
+});
+
+/* ----------------------
+   Form JS (original logic preserved)
+   ---------------------- */
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+  document.getElementById(tab).classList.add('active');
+}
+
+function setFixedDate() {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const year = today.getFullYear();
+  const formatted = `${day}/${month}/${year}`;
+  document.getElementById("fixedDate").textContent = formatted;
+  return formatted;
+}
+
+function startLiveTime() {
+  const timeEl = document.getElementById("liveTime");
+  function update() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2, "0");
+    const m = now.getMinutes().toString().padStart(2, "0");
+    const s = now.getSeconds().toString().padStart(2, "0");
+    timeEl.textContent = `${h}:${m}:${s}`;
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+// Data Table and total expense logic
+const dataTableBody = document.querySelector("#dataTable tbody");
+let totalExpense = 0;
+
+function updateTotalExpense() {
+  let sum = 0;
+  dataTableBody.querySelectorAll("tr").forEach(row => {
+    const type = row.cells[0].textContent;
+    if (type === "Expense") {
+      const amt = parseFloat(row.cells[1].textContent);
+      if (!isNaN(amt)) sum += amt;
+    }
+  });
+  totalExpense = sum;
+  document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
+}
+
+function addRow(type, amount, category, payment, date, time) {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${type}</td>
+    <td>${parseFloat(amount).toFixed(2)}</td>
+    <td>${category}</td>
+    <td>${payment}</td>
+    <td>${date}</td>
+    <td>${time}</td>
+    <td><button onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>
+  `;
+  dataTableBody.appendChild(row);
+  updateTotalExpense();
+}
+
+function deleteRow(button) {
+  button.closest("tr").remove();
+  updateTotalExpense();
+}
+
+function handleCategoryChange() {
+  const categorySelect = document.getElementById("expenseCategory");
+  const customInput = document.getElementById("customCategory");
+  if (categorySelect.value === "Other") {
+    customInput.style.display = "block";
+    customInput.focus();
+  } else {
+    customInput.style.display = "none";
+    customInput.value = "";
+  }
+}
+
+function addEarning() {
+  const amountInput = document.getElementById("earningAmount");
+  const amount = amountInput.value.trim();
+  if (!amount || Number(amount) <= 0) {
+    alert("Please enter a valid earning amount.");
+    return;
+  }
+  const date = document.getElementById("fixedDate").textContent;
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  addRow("Earning", amount, "-", "-", date, time);
+  amountInput.value = "";
+}
+
+function addExpense() {
+  const amountInput = document.getElementById("expenseAmount");
+  const amount = amountInput.value.trim();
+  if (!amount || Number(amount) <= 0) {
+    alert("Please enter a valid expense amount.");
+    return;
+  }
+
+  const categorySelect = document.getElementById("expenseCategory");
+  let category = categorySelect.value;
+
+  if (category === "Other") {
+    const customCat = document.getElementById("customCategory").value.trim();
+    if (!customCat) {
+      alert("Please enter a custom category.");
+      return;
+    }
+    category = customCat;
+  }
+
+  const payment = document.getElementById("paymentMethod").value;
+  const date = document.getElementById("fixedDate").textContent;
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  addRow("Expense", amount, category, payment, date, time);
+  amountInput.value = "";
+
+  // Reset the custom input & select if needed
+  if (categorySelect.value === "Other") {
+    document.getElementById("customCategory").value = "";
+    document.getElementById("customCategory").style.display = "none";
+    categorySelect.value = "";
+  }
+}
+
+async function submitForm() {
+  if (dataTableBody.children.length === 0) {
+    alert("Please add some earnings or expenses before submitting.");
+    return;
+  }
+  const msg = document.getElementById("confirmationMessage");
+  msg.style.display = "block";
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  setTimeout(() => {
+    msg.style.display = "none";
+  }, 3000);
+
+  // Optional: send to Apps Script if configured and user signed in
+  const stored = localStorage.getItem('rivava_user');
+  if (stored && APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_DEPLOY_ID')) {
+    const user = JSON.parse(stored);
+    const rows = [];
+    dataTableBody.querySelectorAll('tr').forEach(r => {
+      rows.push({
+        type: r.cells[0].textContent,
+        amount: r.cells[1].textContent,
+        category: r.cells[2].textContent,
+        payment: r.cells[3].textContent,
+        date: r.cells[4].textContent,
+        time: r.cells[5].textContent
+      });
+    });
+
+    const payload = {
+      userEmail: user.email,
+      userName: user.name,
+      transactions: rows,
+      id_token: user.token
+    };
+
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const text = await res.text();
+      console.log('Server response', res.status, text);
+    }catch(e){
+      console.warn('Send failed', e);
+    }
+  } else {
+    // no backend configured or user not signed in
+  }
+}
 </script>
 
 </body>
