@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Rivava Finance Tracker</title>
 
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Rivava">
+<link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlJpdmF2YSBGaW5hbmNlIFRyYWNrZXIiLAogICJzaG9ydF9uYW1lIjogIlJpdmF2YSIsCiAgImRlc2NyaXB0aW9uIjogIlRyYWNrIGVhcm5pbmdzICYgZXhwZW5zZXMgcXVpY2tseSB3aXRoIHNlY3VyZSBHb29nbGUgc2lnbi1pbiIsCiAgInN0YXJ0X3VybCI6ICIvIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDAwMDAwIiwKICAidGhlbWVfY29sb3IiOiAiIzAwMDAwMCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBQzBBQUFBdENBUUFBQUFqNlJHMElKU0FBQUFBRWxGVGtFdlZsQlBTa1ZPSFE9IiwKICAgICAgInNpemVzIjogIjE5MngxOTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
+
 <!-- Fonts & Google Identity lib -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 <!-- Load Google Identity Services -->
@@ -650,6 +657,34 @@
 
 <script>
 /* ----------------------
+   PWA Service Worker Registration
+   ---------------------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('data:application/javascript;base64,' + btoa(`
+      const CACHE_NAME = 'rivava-finance-v1';
+      const urlsToCache = ['/'];
+      
+      self.addEventListener('install', event => {
+        event.waitUntil(
+          caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(urlsToCache))
+        );
+      });
+      
+      self.addEventListener('fetch', event => {
+        event.respondWith(
+          caches.match(event.request)
+            .then(response => response || fetch(event.request))
+        );
+      });
+    `)).catch(function(err) {
+      console.log('SW registration failed: ', err);
+    });
+  });
+}
+
+/* ----------------------
    CONFIG: Firebase Configuration (REPLACED APPS_SCRIPT_URL)
    ---------------------- */
 // Your web app's Firebase configuration
@@ -717,7 +752,7 @@ function showWelcome(name, picture){
   const ov = document.getElementById('welcomeOverlay');
   const txt = document.getElementById('welcomeText');
   const av = document.getElementById('welcomeAvatar');
-  txt.textContent = `Welcome, ${name}`;
+  txt.textContent = \`Welcome, \${name}\`;
   av.src = picture || '';
   ov.classList.add('show');
   // hide after 2s with smooth transition
@@ -738,13 +773,13 @@ function setSignedInUI(userObj, showWelcomeFlag){
   // Show user chip in header
   const chip = document.createElement('div');
   chip.className = 'user-chip';
-  chip.innerHTML = `
-    <img src="${userObj.picture}" class="avatar" alt="Profile">
+  chip.innerHTML = \`
+    <img src="\${userObj.picture}" class="avatar" alt="Profile">
     <div class="user-info">
-      <div class="user-name">${firstName}</div>
-      <div class="user-email">${userObj.email}</div>
+      <div class="user-name">\${firstName}</div>
+      <div class="user-email">\${userObj.email}</div>
     </div>
-  `;
+  \`;
   top.appendChild(chip);
 
   // Show profile inside signin card
@@ -878,7 +913,7 @@ window.addEventListener('load', ()=> {
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
-  document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+  document.querySelector(\`.tab[onclick="showTab('\${tab}')"]\`).classList.add('active');
   document.getElementById(tab).classList.add('active');
 }
 
@@ -887,7 +922,7 @@ function setFixedDate() {
   const day = String(today.getDate()).padStart(2, "0");
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const year = today.getFullYear();
-  const formatted = `${day}/${month}/${year}`;
+  const formatted = \`\${day}/\${month}/\${year}\`;
   document.getElementById("fixedDate").textContent = formatted;
   return formatted;
 }
@@ -899,7 +934,7 @@ function startLiveTime() {
     const h = now.getHours().toString().padStart(2, "0");
     const m = now.getMinutes().toString().padStart(2, "0");
     const s = now.getSeconds().toString().padStart(2, "0");
-    timeEl.textContent = `${h}:${m}:${s}`;
+    timeEl.textContent = \`\${h}:\${m}:\${s}\`;
   }
   update();
   setInterval(update, 1000);
@@ -919,20 +954,20 @@ function updateTotalExpense() {
     }
   });
   totalExpense = sum;
-  document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
+  document.getElementById("totalExpense").textContent = \`₹\${totalExpense.toFixed(2)}\`;
 }
 
 function addRow(type, amount, category, payment, date, time) {
   const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${type}</td>
-    <td>${parseFloat(amount).toFixed(2)}</td>
-    <td>${category}</td>
-    <td>${payment}</td>
-    <td>${date}</td>
-    <td>${time}</td>
-    <td><button onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>
-  `;
+  row.innerHTML = \`
+    <td>\${type}</td>
+    <td>\${parseFloat(amount).toFixed(2)}</td>
+    <td>\${category}</td>
+    <td>\${payment}</td>
+    <td>\${date}</td>
+    <td>\${time}</td>
+    <td><button onclick="deleteRow(this)" aria-label="Delete this \${type.toLowerCase()} entry">Delete</button></td>
+  \`;
   dataTableBody.appendChild(row);
   updateTotalExpense();
 }
