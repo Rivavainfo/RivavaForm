@@ -5,9 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Rivava Finance Tracker</title>
 
-<!-- Favicon and App Icons -->
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
+<!-- Favicon and App Icons (OPTIMIZED FOR HOME SCREEN) -->
+<link rel="icon" type="image/png" sizes="32x32" href="logo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="logo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+<link rel="apple-touch-icon" sizes="152x152" href="logo.png">
+<link rel="apple-touch-icon" sizes="120x120" href="logo.png">
+<meta name="apple-mobile-web-app-title" content="Rivava Finance">
+<meta name="application-name" content="Rivava Finance">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
@@ -142,7 +147,15 @@
     grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
     gap:15px;
     margin-bottom:18px;
+    transition: grid-template-columns 0.4s ease; /* Smooth transition for layout change */
   }
+  /* NEW: Rule to adapt grid when time block is hidden on larger screens */
+  @media (min-width: 650px) { /* Corresponds to when 3 columns are possible */
+    .info-blocks.time-hidden {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
   .info-block{
     background:var(--card-dark);
     padding:14px;
@@ -151,7 +164,7 @@
     border:1px solid #111;
     transition: opacity 0.4s ease, transform 0.4s ease; /* Added for fade animation */
   }
-  /* NEW: Class for fading out the time block */
+  /* Class for fading out the time block */
   .info-block.fade-out {
     opacity: 0;
     transform: translateY(-10px);
@@ -323,7 +336,7 @@
     transform: translateY(-1px);
   }
 
-  /* NEW: Professional Success Modal Styles */
+  /* Professional Success Modal Styles */
   .modal-overlay {
       position: fixed;
       top: 0;
@@ -569,23 +582,17 @@
 
 <header>
   <div class="brand">
-    <!-- MODIFIED: Replaced div with img tag for the logo -->
     <img src="logo.png" alt="Rivava Logo" class="logo-img">
     <div class="username">RIVAVA</div>
   </div>
-
-  <!-- top-right: user area (shows signin button or user) -->
   <div id="topUserArea" style="margin-right:14px;">
-    <!-- will be filled by JS -->
   </div>
 </header>
 
-<!-- Sign-in card (designer style) -->
 <section class="signin-card" id="signinCard">
   <div class="signin-left">
     <div class="signin-title">Welcome to Rivava Finance</div>
     <div class="signin-sub">Track earnings & expenses quickly — secure sign in required to save your data privately.</div>
-
     <div id="signedInInfo" style="display:none;">
       <div class="user-chip">
         <img id="profilePic" class="avatar" src="" alt="avatar">
@@ -596,16 +603,13 @@
       </div>
     </div>
   </div>
-
   <div class="signin-right">
     <div id="g_id_signin_container"></div>
     <button id="signoutBtn" class="signout-btn" style="display:none;" onclick="signOut()">Sign out</button>
   </div>
 </section>
 
-<!-- form -->
 <main>
-  <!-- MODIFIED: Rearranged info blocks -->
   <div class="info-blocks">
     <div class="info-block" id="timeBlock">
       Time
@@ -626,7 +630,6 @@
     <div class="tab" onclick="showTab('expense')">Expense</div>
   </div>
 
-  <!-- MODIFIED: Added categories to Earning tab -->
   <div id="earning" class="form-section active">
     <label>Category</label>
     <select id="earningCategory" onchange="handleEarningCategoryChange()">
@@ -652,12 +655,9 @@
       <option>Entertainment</option>
       <option>Other</option>
     </select>
-
     <input type="text" id="customCategory" placeholder="Enter data" style="display:none;margin-top:8px;padding:12px;border-radius:8px;border:1px solid #222;background:#111;color:var(--text);font-size:16px;" />
-
     <label>Amount</label>
     <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
-
     <label>Payment Method</label>
     <select id="paymentMethod">
       <option>UPI</option>
@@ -665,7 +665,6 @@
       <option>Credit Card</option>
       <option>Bank Transfer</option>
     </select>
-
     <button class="primary" onclick="addExpense()">Add Expense</button>
   </div>
 
@@ -685,18 +684,14 @@
       <tbody></tbody>
     </table>
   </div>
-
   <button id="submitBtn" class="primary" onclick="submitForm()">Submit</button>
-
 </main>
 
-<!-- Welcome overlay -->
 <div id="welcomeOverlay" role="status" aria-live="polite">
   <img id="welcomeAvatar" src="" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
   <div id="welcomeText" style="font-weight:800;color:#012"></div>
 </div>
 
-<!-- NEW: Professional Success Modal -->
 <div id="successModal" class="modal-overlay">
     <div class="modal-content">
         <img src="logo.png" alt="Success" class="modal-logo">
@@ -733,8 +728,6 @@ try {
   console.log("Firestore instance ready.");
 } catch (error) {
   console.error("Error initializing Firebase:", error);
-  // Using a custom modal for alerts would be better, but sticking to existing patterns
-  // alert("Failed to initialize Firebase. Please check the console for details.");
 }
 
 /* ----------------------
@@ -890,14 +883,17 @@ window.addEventListener('load', ()=> {
 });
 
 /* ----------------------
-  NEW: Scroll handling for time block fade animation
+  MODIFIED: Scroll handling for time block fade and layout adaptation
   ---------------------- */
 const timeBlock = document.getElementById('timeBlock');
+const infoBlocksContainer = document.querySelector('.info-blocks'); // Get the parent container
 window.addEventListener('scroll', () => {
     if (window.scrollY > 50) { // Fades out after scrolling 50px
         timeBlock.classList.add('fade-out');
+        infoBlocksContainer.classList.add('time-hidden'); // Add class to parent
     } else {
         timeBlock.classList.remove('fade-out');
+        infoBlocksContainer.classList.remove('time-hidden'); // Remove class from parent
     }
 }, { passive: true });
 
@@ -922,7 +918,6 @@ function setFixedDate() {
   return formatted;
 }
 
-// MODIFIED: Clock format changed to 12-hour
 function startLiveTime() {
   const timeEl = document.getElementById("liveTime");
   function update() {
@@ -976,7 +971,6 @@ function deleteRow(button) {
   updateTotalExpense();
 }
 
-// MODIFIED: Added handler for Earning category
 function handleEarningCategoryChange() {
     const categorySelect = document.getElementById("earningCategory");
     const customInput = document.getElementById("customEarningCategory");
@@ -1001,12 +995,10 @@ function handleCategoryChange() {
   }
 }
 
-// MODIFIED: addEarning now includes category
 function addEarning() {
   const amountInput = document.getElementById("earningAmount");
   const amount = amountInput.value.trim();
   if (!amount || Number(amount) <= 0) {
-    // alert("Please enter a valid earning amount.");
     return;
   }
   
@@ -1015,7 +1007,6 @@ function addEarning() {
   if (category === "Other") {
       const customCat = document.getElementById("customEarningCategory").value.trim();
       if (!customCat) {
-          // alert("Please enter a custom earning source.");
           return;
       }
       category = customCat;
@@ -1023,7 +1014,7 @@ function addEarning() {
 
   const date = document.getElementById("fixedDate").textContent;
   const time = document.getElementById("liveTime").textContent;
-  addRow("Earning", amount, category, "-", date, time); // Payment is '-' for earning
+  addRow("Earning", amount, category, "-", date, time);
   
   amountInput.value = "";
   if (categorySelect.value === "Other") {
@@ -1037,7 +1028,6 @@ function addExpense() {
   const amountInput = document.getElementById("expenseAmount");
   const amount = amountInput.value.trim();
   if (!amount || Number(amount) <= 0) {
-    // alert("Please enter a valid expense amount.");
     return;
   }
 
@@ -1047,7 +1037,6 @@ function addExpense() {
   if (category === "Other") {
     const customCat = document.getElementById("customCategory").value.trim();
     if (!customCat) {
-      // alert("Please enter a custom category.");
       return;
     }
     category = customCat;
@@ -1066,16 +1055,13 @@ function addExpense() {
   }
 }
 
-// MODIFIED: submitForm to use the new professional modal
 async function submitForm() {
   if (dataTableBody.children.length === 0) {
-    // alert("Please add some earnings or expenses before submitting.");
     return;
   }
 
   const stored = localStorage.getItem('rivava_user');
   if (!stored) {
-    // alert("You must sign in first.");
     return;
   }
 
@@ -1103,21 +1089,12 @@ async function submitForm() {
   try {
     const docRef = await db.collection('submissions').add(payload);
     console.log("Data successfully written to Firebase with ID: ", docRef.id);
-
-    // Show the new success modal
     showSuccessModal();
-
-    // Optional: Clear the form table after successful submission
-    // dataTableBody.innerHTML = '';
-    // updateTotalExpense();
-
   } catch (error) {
     console.error("Error submitting data to Firebase:", error);
-    // alert("❌ Failed to save data. Please check the console. Error: " + error.message);
   }
 }
 
-// NEW: Functions to control the success modal
 function showSuccessModal() {
     const modal = document.getElementById('successModal');
     if (modal) {
@@ -1132,8 +1109,6 @@ function closeSuccessModal() {
     }
 }
 
-
-// Add touch events for better mobile experience
 document.addEventListener('touchstart', function() {}, {passive: true});
 </script>
 
