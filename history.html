@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>History | Rivava Finance</title>
+<title>Dashboard | Rivava Finance</title>
 
-<!-- App Icons (uses your folder: icon_folder) -->
+<!-- App Icons (uses your folder: icons_folder) -->
 <link rel="icon" type="image/png" sizes="32x32" href="./icons_folder/icon-32x32.png">
 <link rel="apple-touch-icon" href="./icons_folder/icon-180x180.png">
 
-<!-- Fonts & Google Identity lib -->
+<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
-<!-- Load Firebase SDKs -->
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
   :root{
@@ -23,8 +26,6 @@
     --accent:#00ffc3;
     --text:#fff;
     --muted:#888;
-    --expense-bg: #2c3e50;
-    --earning-bg: #16a085;
   }
   *{box-sizing:border-box}
   body{
@@ -59,58 +60,60 @@
   
   /* Main Content */
   .history-content { padding: 16px; max-width: 920px; margin: 0 auto; }
-  .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-  .filters select {
-      flex: 1;
-      min-width: 150px;
-      padding:12px;
-      border-radius:8px;
-      background:#050505;
-      border:1px solid #222;
-      color:var(--text);
-      font-size:16px;
-      font-family:'Poppins',sans-serif;
-  }
-  .filters select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2);}
-
-  #transactionChatList {
+  
+  .filter-pills {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 10px;
   }
-  .date-divider {
-      text-align: center;
-      margin: 16px 0;
-  }
-  .date-divider span {
-      background-color: #222;
+  .filter-pills button {
+      background: #222;
+      border: 1px solid #333;
       color: var(--muted);
-      padding: 4px 12px;
+      padding: 8px 16px;
       border-radius: 99px;
-      font-size: 0.8rem;
       font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
   }
-  .chat-bubble {
-      padding: 12px 16px;
-      border-radius: 16px;
-      max-width: 70%;
-      width: fit-content;
-      animation: bubblePopIn 0.3s ease-out;
+  .filter-pills button.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
   }
-  @keyframes bubblePopIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-  .chat-bubble.expense {
-      background-color: var(--expense-bg);
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
+  
+  .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
   }
-  .chat-bubble.earning {
-      background-color: var(--earning-bg);
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
+  .summary-card {
+      background: var(--card-dark);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #1a1a1a;
   }
-  .chat-bubble .category { font-weight: 700; font-size: 1rem; }
-  .chat-bubble .amount { font-size: 1.2rem; margin: 4px 0; }
-  .chat-bubble .details { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+  .summary-card .title {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+  }
+  .summary-card .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+  }
+
+  .chart-container {
+      background: var(--card-dark);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #1a1a1a;
+  }
   #historyLoader, #noHistoryMessage { text-align: center; padding: 40px; color: var(--muted); font-size: 1.1rem; }
 </style>
 </head>
@@ -120,24 +123,36 @@
     <button class="back-btn" onclick="goBack()" aria-label="Go Back">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
-    <h2>Transaction History</h2>
+    <h2>Dashboard</h2>
 </header>
 <div class="history-content">
-    <div class="filters">
-        <select id="historyCategoryFilter"><option value="all">All Categories</option></select>
-        <select id="historyTypeFilter"><option value="all">All Types</option><option value="Earning">Earning</option><option value="Expense">Expense</option></select>
+    <div class="filter-pills" id="filterPills">
+        <button class="active" data-filter="today">Today</button>
+        <button data-filter="week">This Week</button>
+        <button data-filter="month">This Month</button>
+        <button data-filter="all">All Time</button>
     </div>
-    <div id="historyLoader">Loading your history...</div>
-    <div id="noHistoryMessage" style="display: none;">You have no transactions yet.</div>
-    <div id="transactionChatList"></div>
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="title" id="spentTitle">Spent Today</div>
+            <div class="value" id="totalSpent">₹0.00</div>
+        </div>
+        <div class="summary-card">
+            <div class="title" id="earnedTitle">Earned Today</div>
+            <div class="value" id="totalEarned">₹0.00</div>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="expenseChart"></canvas>
+    </div>
+    <div id="historyLoader">Loading your dashboard...</div>
+    <div id="noHistoryMessage" style="display: none;">You have no transactions for this period.</div>
 </div>
 
 <script>
-let allTransactions = []; // Store all fetched transactions globally
+let allTransactions = [];
+let expenseChart = null;
 
-/* ----------------------
-  CONFIG & INITIALIZATION
-  ---------------------- */
 const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
 let db;
 try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch (error) { console.error("Firebase Init Error:", error); }
@@ -146,17 +161,12 @@ function goBack() {
     window.location.href = './index.html';
 }
 
-/* ----------------------
-  HISTORY PAGE LOGIC
-  ---------------------- */
-async function fetchAndDisplayTransactions() {
+async function fetchTransactions() {
     const loader = document.getElementById('historyLoader');
     const noHistoryMessage = document.getElementById('noHistoryMessage');
-    const chatList = document.getElementById('transactionChatList');
     
     loader.style.display = 'block';
     noHistoryMessage.style.display = 'none';
-    chatList.innerHTML = '';
 
     const user = JSON.parse(localStorage.getItem('rivava_user'));
     if (!user || !user.email) {
@@ -174,31 +184,20 @@ async function fetchAndDisplayTransactions() {
             transactions = transactions.concat(doc.data().transactions);
         });
 
-        transactions.sort((a, b) => {
-            const dateA = new Date(a.date.split('/').reverse().join('-') + ' ' + a.time.replace(/(\d{2}:\d{2}:\d{2}) (AM|PM)/, (match, time, period) => {
+        allTransactions = transactions.map(t => {
+            const [day, month, year] = t.date.split('/');
+            const timeStr = t.time.replace(/(\d{2}:\d{2}:\d{2}) (AM|PM)/, (match, time, period) => {
                 let [h, m, s] = time.split(':');
                 if (period === 'PM' && h !== '12') h = +h + 12;
                 if (period === 'AM' && h === '12') h = '00';
                 return `${h}:${m}:${s}`;
-            }));
-            const dateB = new Date(b.date.split('/').reverse().join('-') + ' ' + b.time.replace(/(\d{2}:\d{2}:\d{2}) (AM|PM)/, (match, time, period) => {
-                let [h, m, s] = time.split(':');
-                if (period === 'PM' && h !== '12') h = +h + 12;
-                if (period === 'AM' && h === '12') h = '00';
-                return `${h}:${m}:${s}`;
-            }));
-            return dateB - dateA;
+            });
+            t.jsDate = new Date(`${year}-${month}-${day}T${timeStr}`);
+            return t;
         });
         
-        allTransactions = transactions;
+        updateDashboard('today');
 
-        if (allTransactions.length === 0) {
-            noHistoryMessage.textContent = 'You have no transactions yet.';
-            noHistoryMessage.style.display = 'block';
-        } else {
-            populateCategoryFilter(allTransactions);
-            renderTransactions(allTransactions);
-        }
     } catch (error) {
         console.error("Error fetching history:", error);
         noHistoryMessage.textContent = 'Could not load your history.';
@@ -208,69 +207,113 @@ async function fetchAndDisplayTransactions() {
     }
 }
 
-function populateCategoryFilter(transactions) {
-    const categoryFilter = document.getElementById('historyCategoryFilter');
-    const categories = [...new Set(transactions.map(t => t.category))].sort();
-    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
-    categories.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat;
-        option.textContent = cat;
-        categoryFilter.appendChild(option);
-    });
-}
+function updateDashboard(filter) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let startDate;
 
-function renderTransactions(transactions) {
-    const chatList = document.getElementById('transactionChatList');
-    chatList.innerHTML = '';
-    let lastDate = null;
-
-    if (transactions.length === 0) {
-        chatList.innerHTML = `<div id="noHistoryMessage" style="text-align: center; padding: 40px; color: var(--muted);">No transactions match your filters.</div>`;
-        return;
+    switch(filter) {
+        case 'week':
+            startDate = new Date(today);
+            startDate.setDate(today.getDate() - today.getDay());
+            break;
+        case 'month':
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+        case 'all':
+            startDate = new Date(0); // The beginning of time
+            break;
+        case 'today':
+        default:
+            startDate = today;
+            break;
     }
 
-    transactions.forEach(t => {
-        if (t.date !== lastDate) {
-            const dateDivider = document.createElement('div');
-            dateDivider.className = 'date-divider';
-            dateDivider.innerHTML = `<span>${t.date}</span>`;
-            chatList.appendChild(dateDivider);
-            lastDate = t.date;
+    const filteredTransactions = allTransactions.filter(t => t.jsDate >= startDate);
+
+    // Update Summary Cards
+    let totalSpent = 0;
+    let totalEarned = 0;
+    filteredTransactions.forEach(t => {
+        if (t.type === 'Expense') totalSpent += t.amount;
+        if (t.type === 'Earning') totalEarned += t.amount;
+    });
+    
+    const periodText = filter.charAt(0).toUpperCase() + filter.slice(1);
+    document.getElementById('spentTitle').textContent = `Spent ${periodText}`;
+    document.getElementById('earnedTitle').textContent = `Earned ${periodText}`;
+    document.getElementById('totalSpent').textContent = `₹${totalSpent.toFixed(2)}`;
+    document.getElementById('totalEarned').textContent = `₹${totalEarned.toFixed(2)}`;
+
+    // Update Chart
+    const expenseData = filteredTransactions
+        .filter(t => t.type === 'Expense')
+        .reduce((acc, t) => {
+            acc[t.category] = (acc[t.category] || 0) + t.amount;
+            return acc;
+        }, {});
+
+    const chartLabels = Object.keys(expenseData);
+    const chartValues = Object.values(expenseData);
+
+    document.getElementById('noHistoryMessage').style.display = filteredTransactions.length === 0 ? 'block' : 'none';
+    
+    renderChart(chartLabels, chartValues);
+}
+
+function renderChart(labels, data) {
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    if (expenseChart) {
+        expenseChart.destroy();
+    }
+    
+    if(labels.length === 0) {
+        return; // Don't render an empty chart
+    }
+
+    expenseChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Expenses',
+                data: data,
+                backgroundColor: [
+                    '#00ffc3', '#ff6b6b', '#4d94ff', '#feca57', 
+                    '#ff9ff3', '#54a0ff', '#5f27cd', '#c8d6e5'
+                ],
+                borderColor: '#0d0d0d',
+                borderWidth: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#fff',
+                        font: {
+                            family: "'Poppins', sans-serif",
+                            size: 14
+                        }
+                    }
+                }
+            }
         }
-
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${t.type.toLowerCase()}`;
-        bubble.innerHTML = `
-            <div class="category">${t.category}</div>
-            <div class="amount">₹${t.amount.toFixed(2)}</div>
-            <div class="details">${t.payment === '-' ? t.time : `${t.payment} · ${t.time}`}</div>
-        `;
-        chatList.appendChild(bubble);
     });
 }
 
-document.getElementById('historyCategoryFilter').addEventListener('change', applyFilters);
-document.getElementById('historyTypeFilter').addEventListener('change', applyFilters);
-
-function applyFilters() {
-    const category = document.getElementById('historyCategoryFilter').value;
-    const type = document.getElementById('historyTypeFilter').value;
-
-    let filtered = allTransactions;
-
-    if (type !== 'all') {
-        filtered = filtered.filter(t => t.type === type);
+document.getElementById('filterPills').addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+        document.querySelectorAll('#filterPills button').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        updateDashboard(e.target.dataset.filter);
     }
-    if (category !== 'all') {
-        filtered = filtered.filter(t => t.category === category);
-    }
+});
 
-    renderTransactions(filtered);
-}
-
-window.addEventListener('load', fetchAndDisplayTransactions);
-
+window.addEventListener('load', fetchTransactions);
 </script>
 
 </body>
