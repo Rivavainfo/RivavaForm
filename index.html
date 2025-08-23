@@ -5,12 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Rivava Finance Tracker</title>
 
-<!-- Favicon and App Icons (OPTIMIZED FOR HOME SCREEN) -->
-<link rel="icon" type="image/png" sizes="32x32" href="logo.png">
-<link rel="icon" type="image/png" sizes="16x16" href="logo.png">
-<link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-<link rel="apple-touch-icon" sizes="152x152" href="logo.png">
-<link rel="apple-touch-icon" sizes="120x120" href="logo.png">
+<!-- Favicon and App Icons -->
+<link rel="icon" type="image/png" sizes="32x32" href="https://placehold.co/32x32/00ffc3/000000?text=R">
+<link rel="icon" type="image/png" sizes="16x16" href="https://placehold.co/16x16/00ffc3/000000?text=R">
+<link rel="apple-touch-icon" href="https://placehold.co/180x180/00ffc3/000000?text=R">
 <meta name="apple-mobile-web-app-title" content="Rivava Finance">
 <meta name="application-name" content="Rivava Finance">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,7 +17,6 @@
 
 <!-- Fonts & Google Identity lib -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-<!-- Load Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- Load Firebase SDKs -->
@@ -34,6 +31,8 @@
     --accent-2:#00d9aa;
     --text:#fff;
     --muted:#888;
+    --danger: #ff5252;
+    --danger-hover: #ff4444;
   }
   *{box-sizing:border-box}
   body{
@@ -54,25 +53,22 @@
     justify-content:space-between;
     padding:16px 20px;
     background:var(--card-dark);
-    border-bottom:1px solid #111;
+    border-bottom:1px solid #1a1a1a;
     position:sticky;
     top:0;
     z-index:100;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transform: translateZ(0);
-    will-change: auto;
   }
   .brand {
     display:flex;
     align-items:center;
     gap:12px;
   }
-  .logo-img { /* Changed from .logo to style the image */
+  .logo-img {
     width:40px;
     height:40px;
     border-radius:8px;
     object-fit:cover;
-    box-shadow:0 4px 14px rgba(0,0,0,0.4);
   }
   .username {
     font-size:1.25rem;
@@ -83,13 +79,86 @@
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.5px;
   }
+  
+  /* Profile Dropdown Styles */
+  .profile-container {
+    position: relative;
+    display: inline-block;
+  }
+  .profile-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #333;
+    transition: border-color 0.2s ease;
+  }
+  .profile-avatar:hover {
+    border-color: var(--accent);
+  }
+  .profile-dropdown {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: #111;
+    min-width: 220px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    z-index: 101;
+    border: 1px solid #222;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .profile-dropdown.show {
+    display: block;
+  }
+  .dropdown-header {
+    padding: 16px;
+    border-bottom: 1px solid #222;
+  }
+  .dropdown-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dropdown-email {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 4px 0 0;
+  }
+  .dropdown-signout {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    color: var(--danger);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+  }
+  .dropdown-signout:hover {
+    background-color: rgba(255, 82, 82, 0.1);
+  }
+
 
   /* signin area - styled like a card */
   .signin-card{
     max-width:920px;margin:28px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:12px;border:1px solid #111;display:flex;align-items:center;gap:18px;
+    border-radius:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:18px;
     box-shadow:0 10px 30px rgba(0,0,0,0.5);
     backdrop-filter: blur(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
   .signin-left{flex:1;min-width:0}
   .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -107,34 +176,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
     overflow: hidden;
   }
-  .g_id_signin iframe {
-    border-radius: 10px !important;
-  }
-
-  /* user display */
-  .user-chip{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    background:#0b0b0b;
-    padding:8px 12px;
-    border-radius:999px;
-    border:1px solid #111;
-  }
-  .avatar{
-    width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;
-  }
-  .user-info {
-    text-align: left;
-  }
-  .user-name{
-    font-weight:700;
-    font-size:0.95rem;
-  }
-  .user-email {
-    color:var(--muted);
-    font-size:0.8rem;
-  }
 
   /* main form area */
   main{
@@ -147,10 +188,8 @@
     grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
     gap:15px;
     margin-bottom:18px;
-    transition: grid-template-columns 0.4s ease; /* Smooth transition for layout change */
   }
-  /* NEW: Rule to adapt grid when time block is hidden on larger screens */
-  @media (min-width: 650px) { /* Corresponds to when 3 columns are possible */
+  @media (min-width: 650px) {
     .info-blocks.time-hidden {
       grid-template-columns: 1fr 1fr;
     }
@@ -161,10 +200,9 @@
     padding:14px;
     border-radius:12px;
     text-align:center;
-    border:1px solid #111;
-    transition: opacity 0.4s ease, transform 0.4s ease; /* Added for fade animation */
+    border:1px solid #1a1a1a;
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
-  /* Class for fading out the time block */
   .info-block.fade-out {
     opacity: 0;
     transform: translateY(-10px);
@@ -189,7 +227,7 @@
     border-radius:10px;
     text-align:center;
     cursor:pointer;
-    border:1px solid #111;
+    border:1px solid #1a1a1a;
     transition:all 0.2s ease;
   }
   .tab:hover{
@@ -205,7 +243,7 @@
     background:var(--card-dark);
     padding:18px;
     border-radius:12px;
-    border:1px solid #111;
+    border:1px solid #1a1a1a;
   }
   .form-section.active{
     display:block;
@@ -220,11 +258,12 @@
     width:100%;
     padding:12px;
     border-radius:8px;
-    background:#111;
+    background:#050505;
     border:1px solid #222;
     color:var(--text);
     margin-bottom:12px;
     font-size:16px;
+    font-family:'Poppins',sans-serif;
   }
   input:focus,select:focus{
     outline:none;
@@ -249,18 +288,18 @@
     box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
   }
 
-  /* Table styling with horizontal scrolling */
+  /* Table styling */
   .table-container{
     overflow-x:auto;
     margin-top:16px;
     border-radius:12px;
-    overflow:hidden;
+    border: 1px solid #1a1a1a;
     -webkit-overflow-scrolling: touch;
   }
   table{
     width:100%;
     border-collapse:collapse;
-    min-width:800px; /* Ensures horizontal scroll on small screens */
+    min-width:800px;
   }
   th,td{
     padding:12px 8px;
@@ -278,7 +317,7 @@
     font-size:0.85rem;
   }
   td button{
-    background:#ff4757;
+    background:var(--danger);
     color:#fff;
     border:none;
     padding:6px 10px;
@@ -289,7 +328,7 @@
     min-width: 60px;
   }
   td button:hover{
-    background:#ff3838;
+    background:var(--danger-hover);
   }
 
   /* welcome overlay */
@@ -315,28 +354,9 @@
   #welcomeOverlay.show{
     opacity:1;
     transform:translateX(-50%) translateY(0);
-    pointer-events:auto;
   }
 
-  /* Sign out button styling */
-  .signout-btn {
-    background: linear-gradient(90deg, #ff6b6b, #ff5252) !important;
-    color: white !important;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    min-width: 100px;
-  }
-  .signout-btn:hover {
-    background: linear-gradient(90deg, #ff5252, #ff4444) !important;
-    transform: translateY(-1px);
-  }
-
-  /* Professional Success Modal Styles */
+  /* Success Modal */
   .modal-overlay {
       position: fixed;
       top: 0;
@@ -410,17 +430,13 @@
       box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
   }
 
-
   /* Mobile responsive styles */
   @media(max-width:768px){
     header { padding: 12px 16px; }
-    .brand { gap: 10px; }
     .logo-img { width: 36px; height: 36px; }
     .username { font-size: 1.15rem; }
-    #topUserArea { margin-right: 0; }
-    .user-chip { padding: 6px 10px; gap: 8px; }
-    .avatar { width: 32px; height: 32px; }
-    .user-name { font-size: 0.85rem; }
+    .profile-avatar { width: 40px; height: 40px; }
+    .profile-dropdown { top: 55px; }
 
     .signin-card{
       flex-direction:column;
@@ -430,11 +446,6 @@
     }
     .signin-right{
       width:100%;
-      flex-direction:row;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:12px;
     }
 
     main{
@@ -451,38 +462,32 @@
       flex-direction:column;
       gap:8px;
     }
-    .tab{
-      padding:14px;
-      font-size:1rem;
+    
+    table{
+      min-width:700px;
+    }
+  }
+
+  @media(max-width:480px){
+    header { padding: 10px 12px; }
+    .logo-img { width: 32px; height: 32px; }
+    .username { font-size: 1.05rem; }
+    .profile-avatar { width: 36px; height: 36px; }
+    .profile-dropdown { min-width: 200px; }
+    
+    .signin-card{
+      margin:12px;
+      padding:12px;
+    }
+    
+    main{
+      margin:8px;
+      padding:8px;
     }
 
-    .form-section{
-      padding:16px;
-    }
-
-    input,select{
-      padding:14px;
-      font-size:16px;
-    }
-
-    button.primary{
-      padding:14px;
-      font-size:1.1rem;
-    }
-
-    th,td{
-      padding:10px 6px;
-      font-size:0.8rem;
-    }
-
-    .signin-title{
-      font-size:1.2rem;
-      text-align:center;
-    }
-
-    .signin-sub{
-      text-align:center;
-      font-size:0.9rem;
+    /* Mobile table optimization */
+    table {
+      min-width: 600px;
     }
 
     #welcomeOverlay{
@@ -493,81 +498,6 @@
     }
     #welcomeOverlay.show{
       transform:translateX(0) translateY(0);
-    }
-  }
-
-  @media(max-width:480px){
-    header { padding: 10px 12px; }
-    .brand { gap: 8px; }
-    .logo-img { width: 32px; height: 32px; }
-    .username { font-size: 1.05rem; }
-    .user-chip { padding: 5px 8px; gap: 6px; }
-    .avatar { width: 28px; height: 28px; }
-    .user-name { font-size: 0.8rem; }
-    .user-email { display: none; }
-
-    .signin-card{
-      margin:12px;
-      padding:12px;
-    }
-
-    .signin-right{
-      flex-direction:column;
-      align-items:stretch;
-    }
-
-    main{
-      margin:8px;
-      padding:8px;
-    }
-
-    .info-block .value{
-      font-size:1.4rem;
-    }
-
-    table{
-      min-width:700px;
-    }
-
-    #welcomeOverlay{
-      padding:12px 16px;
-      font-size:0.9rem;
-    }
-
-    .signout-btn{
-      width:100%;
-      margin-top:8px;
-    }
-
-    .user-info {
-      max-width: 150px;
-      overflow: hidden;
-    }
-    .user-name {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Mobile table optimization */
-    table {
-      font-size: 0.75rem;
-    }
-    th, td {
-      padding: 8px 4px;
-    }
-    th {
-      font-size: 0.7rem;
-    }
-    td {
-      font-size: 0.7rem;
-    }
-
-    /* Ensure action button is visible */
-    td button {
-      min-width: 50px;
-      padding: 4px 8px;
-      font-size: 0.7rem;
     }
   }
 
@@ -582,10 +512,11 @@
 
 <header>
   <div class="brand">
-    <img src="logo.png" alt="Rivava Logo" class="logo-img">
+    <img src="https://placehold.co/64x64/00ffc3/000000?text=R" alt="Rivava Logo" class="logo-img" onerror="this.onerror=null;this.src='https://placehold.co/64x64/00ffc3/000000?text=R';">
     <div class="username">RIVAVA</div>
   </div>
-  <div id="topUserArea" style="margin-right:14px;">
+  <div id="topUserArea">
+    <!-- User profile will be injected here by JavaScript -->
   </div>
 </header>
 
@@ -593,19 +524,9 @@
   <div class="signin-left">
     <div class="signin-title">Welcome to Rivava Finance</div>
     <div class="signin-sub">Track earnings & expenses quickly — secure sign in required to save your data privately.</div>
-    <div id="signedInInfo" style="display:none;">
-      <div class="user-chip">
-        <img id="profilePic" class="avatar" src="" alt="avatar">
-        <div class="user-info">
-          <div class="user-name" id="displayName"></div>
-          <div class="user-email" id="displayEmail"></div>
-        </div>
-      </div>
-    </div>
   </div>
   <div class="signin-right">
     <div id="g_id_signin_container"></div>
-    <button id="signoutBtn" class="signout-btn" style="display:none;" onclick="signOut()">Sign out</button>
   </div>
 </section>
 
@@ -631,21 +552,21 @@
   </div>
 
   <div id="earning" class="form-section active">
-    <label>Category</label>
+    <label for="earningCategory">Category</label>
     <select id="earningCategory" onchange="handleEarningCategoryChange()">
       <option>Salary</option>
       <option>Daily Earning</option>
       <option>Other</option>
     </select>
-    <input type="text" id="customEarningCategory" placeholder="Enter custom earning source" style="display:none;margin-top:8px;padding:12px;border-radius:8px;border:1px solid #222;background:#111;color:var(--text);font-size:16px;" />
+    <input type="text" id="customEarningCategory" placeholder="Enter custom earning source" style="display:none;" />
     
-    <label>Amount</label>
+    <label for="earningAmount">Amount</label>
     <input type="number" id="earningAmount" placeholder="Enter earning amount" min="0" step="0.01" />
     <button class="primary" onclick="addEarning()">Add Earning</button>
   </div>
 
   <div id="expense" class="form-section">
-    <label>Category</label>
+    <label for="expenseCategory">Category</label>
     <select id="expenseCategory" onchange="handleCategoryChange()">
       <option>Personal</option>
       <option>Food</option>
@@ -655,10 +576,10 @@
       <option>Entertainment</option>
       <option>Other</option>
     </select>
-    <input type="text" id="customCategory" placeholder="Enter data" style="display:none;margin-top:8px;padding:12px;border-radius:8px;border:1px solid #222;background:#111;color:var(--text);font-size:16px;" />
-    <label>Amount</label>
+    <input type="text" id="customCategory" placeholder="Enter custom category" style="display:none;" />
+    <label for="expenseAmount">Amount</label>
     <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
-    <label>Payment Method</label>
+    <label for="paymentMethod">Payment Method</label>
     <select id="paymentMethod">
       <option>UPI</option>
       <option>Cash</option>
@@ -694,7 +615,7 @@
 
 <div id="successModal" class="modal-overlay">
     <div class="modal-content">
-        <img src="logo.png" alt="Success" class="modal-logo">
+        <img src="https://placehold.co/70x70/00ffc3/000000?text=R" alt="Success" class="modal-logo" onerror="this.onerror=null;this.src='https://placehold.co/70x70/00ffc3/000000?text=R';">
         <h2>Success!</h2>
         <p>Your transactions have been saved securely.</p>
         <button onclick="closeSuccessModal()">Done</button>
@@ -703,26 +624,24 @@
 
 <script>
 /* ----------------------
-  CONFIG: Firebase Configuration
+  CONFIG: Firebase & Google Client
   ---------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU",
   authDomain: "rivava-finance-tracker.firebaseapp.com",
   projectId: "rivava-finance-tracker",
-  storageBucket: "rivava-finance-tracker.firebasestorage.app",
+  storageBucket: "rivava-finance-tracker.appspot.com",
   messagingSenderId: "615077199032",
   appId: "1:615077199032:web:fb2007f8a603fa8abcc84d",
   measurementId: "G-NF4BZPWR2E"
 };
+const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
 
 // Initialize Firebase
 let db;
 try {
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
-    console.log("Firebase initialized successfully.");
-  } else {
-    console.log("Firebase app already initialized.");
   }
   db = firebase.firestore();
   console.log("Firestore instance ready.");
@@ -731,13 +650,7 @@ try {
 }
 
 /* ----------------------
-  CLIENT ID
-  ---------------------- */
-const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
-
-
-/* ----------------------
-  helpers
+  HELPERS & UI
   ---------------------- */
 function parseJwt(token){
   try{
@@ -745,14 +658,9 @@ function parseJwt(token){
     const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
     const jsonPayload = decodeURIComponent(atob(base64).split('').map(c=>'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
     return JSON.parse(jsonPayload);
-  }catch(e){
-    return null;
-  }
+  }catch(e){ return null; }
 }
 
-/* ----------------------
-  welcome overlay
-  ---------------------- */
 function showWelcome(name, picture){
   const ov = document.getElementById('welcomeOverlay');
   const txt = document.getElementById('welcomeText');
@@ -760,62 +668,84 @@ function showWelcome(name, picture){
   txt.textContent = `Welcome, ${name}`;
   av.src = picture || '';
   ov.classList.add('show');
-  setTimeout(()=> ov.classList.remove('show'), 2000);
+  setTimeout(()=> ov.classList.remove('show'), 2500);
 }
 
-/* ----------------------
-  Update UI for signed-in user
-  ---------------------- */
+// *** MODIFIED: This is the core UI update function ***
 function setSignedInUI(userObj, showWelcomeFlag){
-  const top = document.getElementById('topUserArea');
-  top.innerHTML = ''; // clear
-  const firstName = userObj.name.split(' ')[0];
+  const topUserArea = document.getElementById('topUserArea');
+  topUserArea.innerHTML = ''; // Clear previous content
 
-  const chip = document.createElement('div');
-  chip.className = 'user-chip';
-  chip.innerHTML = `
-    <img src="${userObj.picture}" class="avatar" alt="Profile">
-    <div class="user-info">
-      <div class="user-name">${firstName}</div>
-      <div class="user-email">${userObj.email}</div>
+  // Hide the sign-in card
+  document.getElementById('signinCard').style.display = 'none';
+
+  // Create profile container
+  const profileContainer = document.createElement('div');
+  profileContainer.className = 'profile-container';
+
+  // Create avatar image
+  const avatar = document.createElement('img');
+  avatar.src = userObj.picture;
+  avatar.alt = "Profile";
+  avatar.className = 'profile-avatar';
+  avatar.onclick = () => {
+    document.getElementById('profileDropdown').classList.toggle('show');
+  };
+
+  // Create dropdown menu
+  const dropdown = document.createElement('div');
+  dropdown.id = 'profileDropdown';
+  dropdown.className = 'profile-dropdown';
+  dropdown.innerHTML = `
+    <div class="dropdown-header">
+      <div class="dropdown-name">${userObj.name}</div>
+      <div class="dropdown-email">${userObj.email}</div>
     </div>
+    <button class="dropdown-signout" onclick="signOut()">Sign out</button>
   `;
-  top.appendChild(chip);
+  
+  profileContainer.appendChild(avatar);
+  profileContainer.appendChild(dropdown);
+  topUserArea.appendChild(profileContainer);
 
-  document.getElementById('signedInInfo').style.display = 'block';
-  document.getElementById('profilePic').src = userObj.picture || '';
-  document.getElementById('displayName').textContent = firstName || '';
-  document.getElementById('displayEmail').textContent = userObj.email || '';
-  document.getElementById('signoutBtn').style.display = 'inline-block';
+  // Clear the Google button container
   document.getElementById('g_id_signin_container').innerHTML = '';
 
-  if(showWelcomeFlag) showWelcome(firstName, userObj.picture);
+  if(showWelcomeFlag) {
+    const firstName = userObj.name.split(' ')[0];
+    showWelcome(firstName, userObj.picture);
+  }
 }
 
-/* ----------------------
-  Sign out function
-  ---------------------- */
+// *** MODIFIED: Sign out function to restore UI ***
 function signOut(){
   localStorage.removeItem('rivava_user');
-  document.getElementById('signedInInfo').style.display = 'none';
-  document.getElementById('signoutBtn').style.display = 'none';
+  
+  // Clear user profile from header
   document.getElementById('topUserArea').innerHTML = '';
-
+  
+  // Show the sign-in card again
+  const signinCard = document.getElementById('signinCard');
+  signinCard.style.display = 'flex';
+  
+  // Disable Google's auto sign-in for the next page load
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.disableAutoSelect();
   }
 
+  // Re-render the sign-in button after a short delay
   setTimeout(() => {
     renderSignIn();
   }, 100);
 
+  // Clear the data table
   document.querySelector("#dataTable tbody").innerHTML = '';
   updateTotalExpense();
   console.log('User signed out successfully');
 }
 
 /* ----------------------
-  Render Google Sign-in button (GSI)
+  GOOGLE SIGN-IN (GSI)
   ---------------------- */
 function renderSignIn(){
   const container = document.getElementById('g_id_signin_container');
@@ -830,19 +760,14 @@ function renderSignIn(){
     });
     google.accounts.id.renderButton(
       container,
-      {
-        theme: 'outline', size: 'large', type: 'standard',
-        text: 'signin_with', shape: 'rounded', logo_alignment: 'left'
-      }
+      { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rounded', logo_alignment: 'left' }
     );
   } else {
+    // Retry if GSI script hasn't loaded yet
     setTimeout(renderSignIn, 300);
   }
 }
 
-/* ----------------------
-  Callback after sign-in
-  ---------------------- */
 function handleCredentialResponse(response){
   const payload = parseJwt(response.credential);
   if(!payload || !payload.email){
@@ -854,26 +779,26 @@ function handleCredentialResponse(response){
     email: payload.email,
     picture: payload.picture,
     token: response.credential,
-    sub: payload.sub
+    sub: payload.sub // User's unique Google ID
   };
   localStorage.setItem('rivava_user', JSON.stringify(user));
   setSignedInUI(user, true);
 }
 
 /* ----------------------
-  On load: check stored user or initialize sign-in
+  INITIALIZATION & EVENT LISTENERS
   ---------------------- */
 window.addEventListener('load', ()=> {
   setFixedDate();
   startLiveTime();
 
-  const s = localStorage.getItem('rivava_user');
-  if(s){
+  const storedUser = localStorage.getItem('rivava_user');
+  if(storedUser){
     try{
-      const user = JSON.parse(s);
-      setSignedInUI(user, true);
+      const user = JSON.parse(storedUser);
+      setSignedInUI(user, true); 
     }catch(e){
-      console.warn('restore user failed',e);
+      console.warn('Failed to restore user session', e);
       localStorage.removeItem('rivava_user');
       renderSignIn();
     }
@@ -882,24 +807,33 @@ window.addEventListener('load', ()=> {
   }
 });
 
-/* ----------------------
-  MODIFIED: Scroll handling for time block fade and layout adaptation
-  ---------------------- */
+// Close dropdown if clicked outside
+window.addEventListener('click', function(event) {
+    const profileContainer = document.querySelector('.profile-container');
+    if (profileContainer && !profileContainer.contains(event.target)) {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        }
+    }
+});
+
+// Scroll handling for time block fade
 const timeBlock = document.getElementById('timeBlock');
-const infoBlocksContainer = document.querySelector('.info-blocks'); // Get the parent container
+const infoBlocksContainer = document.querySelector('.info-blocks');
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) { // Fades out after scrolling 50px
+    if (window.scrollY > 50) {
         timeBlock.classList.add('fade-out');
-        infoBlocksContainer.classList.add('time-hidden'); // Add class to parent
+        infoBlocksContainer.classList.add('time-hidden');
     } else {
         timeBlock.classList.remove('fade-out');
-        infoBlocksContainer.classList.remove('time-hidden'); // Remove class from parent
+        infoBlocksContainer.classList.remove('time-hidden');
     }
 }, { passive: true });
 
 
 /* ----------------------
-  Form JS
+  CORE APP LOGIC (Unchanged)
   ---------------------- */
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -913,9 +847,7 @@ function setFixedDate() {
   const day = String(today.getDate()).padStart(2, "0");
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const year = today.getFullYear();
-  const formatted = `${day}/${month}/${year}`;
-  document.getElementById("fixedDate").textContent = formatted;
-  return formatted;
+  document.getElementById("fixedDate").textContent = `${day}/${month}/${year}`;
 }
 
 function startLiveTime() {
@@ -927,28 +859,24 @@ function startLiveTime() {
     const s = now.getSeconds().toString().padStart(2, "0");
     const ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12;
-    h = h ? h : 12; // the hour '0' should be '12'
-    const hStr = h.toString().padStart(2, "0");
-    timeEl.textContent = `${hStr}:${m}:${s} ${ampm}`;
+    h = h ? h : 12;
+    timeEl.textContent = `${h.toString().padStart(2, "0")}:${m}:${s} ${ampm}`;
   }
   update();
   setInterval(update, 1000);
 }
 
 const dataTableBody = document.querySelector("#dataTable tbody");
-let totalExpense = 0;
 
 function updateTotalExpense() {
   let sum = 0;
   dataTableBody.querySelectorAll("tr").forEach(row => {
-    const type = row.cells[0].textContent;
-    if (type === "Expense") {
+    if (row.cells[0].textContent === "Expense") {
       const amt = parseFloat(row.cells[1].textContent);
       if (!isNaN(amt)) sum += amt;
     }
   });
-  totalExpense = sum;
-  document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
+  document.getElementById("totalExpense").textContent = `₹${sum.toFixed(2)}`;
 }
 
 function addRow(type, amount, category, payment, date, time) {
@@ -998,17 +926,13 @@ function handleCategoryChange() {
 function addEarning() {
   const amountInput = document.getElementById("earningAmount");
   const amount = amountInput.value.trim();
-  if (!amount || Number(amount) <= 0) {
-    return;
-  }
+  if (!amount || Number(amount) <= 0) return;
   
   const categorySelect = document.getElementById("earningCategory");
   let category = categorySelect.value;
   if (category === "Other") {
       const customCat = document.getElementById("customEarningCategory").value.trim();
-      if (!customCat) {
-          return;
-      }
+      if (!customCat) return;
       category = customCat;
   }
 
@@ -1019,7 +943,7 @@ function addEarning() {
   amountInput.value = "";
   if (categorySelect.value === "Other") {
       document.getElementById("customEarningCategory").value = "";
-      document.getElementById("customEarningCategory").style.display = "none";
+      handleEarningCategoryChange();
       categorySelect.value = "Salary";
   }
 }
@@ -1027,18 +951,13 @@ function addEarning() {
 function addExpense() {
   const amountInput = document.getElementById("expenseAmount");
   const amount = amountInput.value.trim();
-  if (!amount || Number(amount) <= 0) {
-    return;
-  }
+  if (!amount || Number(amount) <= 0) return;
 
   const categorySelect = document.getElementById("expenseCategory");
   let category = categorySelect.value;
-
   if (category === "Other") {
     const customCat = document.getElementById("customCategory").value.trim();
-    if (!customCat) {
-      return;
-    }
+    if (!customCat) return;
     category = customCat;
   }
 
@@ -1046,38 +965,29 @@ function addExpense() {
   const date = document.getElementById("fixedDate").textContent;
   const time = document.getElementById("liveTime").textContent;
   addRow("Expense", amount, category, payment, date, time);
+  
   amountInput.value = "";
-
   if (categorySelect.value === "Other") {
     document.getElementById("customCategory").value = "";
-    document.getElementById("customCategory").style.display = "none";
+    handleCategoryChange();
     categorySelect.value = "Personal";
   }
 }
 
 async function submitForm() {
-  if (dataTableBody.children.length === 0) {
-    return;
-  }
-
+  if (dataTableBody.children.length === 0) return;
   const stored = localStorage.getItem('rivava_user');
-  if (!stored) {
-    return;
-  }
+  if (!stored) return;
 
   const user = JSON.parse(stored);
-
-  const rows = [];
-  dataTableBody.querySelectorAll('tr').forEach(r => {
-    rows.push({
-      type: r.cells[0].textContent.trim(),
-      amount: parseFloat(r.cells[1].textContent.trim()),
-      category: r.cells[2].textContent.trim(),
-      payment: r.cells[3].textContent.trim(),
-      date: r.cells[4].textContent.trim(),
-      time: r.cells[5].textContent.trim()
-    });
-  });
+  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({
+    type: r.cells[0].textContent.trim(),
+    amount: parseFloat(r.cells[1].textContent.trim()),
+    category: r.cells[2].textContent.trim(),
+    payment: r.cells[3].textContent.trim(),
+    date: r.cells[4].textContent.trim(),
+    time: r.cells[5].textContent.trim()
+  }));
 
   const payload = {
     userEmail: user.email,
@@ -1090,26 +1000,22 @@ async function submitForm() {
     const docRef = await db.collection('submissions').add(payload);
     console.log("Data successfully written to Firebase with ID: ", docRef.id);
     showSuccessModal();
+    // Clear table after successful submission
+    dataTableBody.innerHTML = '';
+    updateTotalExpense();
   } catch (error) {
     console.error("Error submitting data to Firebase:", error);
+    // You could show an error message to the user here
   }
 }
 
 function showSuccessModal() {
-    const modal = document.getElementById('successModal');
-    if (modal) {
-        modal.classList.add('show');
-    }
+    document.getElementById('successModal').classList.add('show');
 }
 
 function closeSuccessModal() {
-    const modal = document.getElementById('successModal');
-    if (modal) {
-        modal.classList.remove('show');
-    }
+    document.getElementById('successModal').classList.remove('show');
 }
-
-document.addEventListener('touchstart', function() {}, {passive: true});
 </script>
 
 </body>
