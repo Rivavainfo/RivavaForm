@@ -1,5 +1,5 @@
 // Define a name for the cache
-const CACHE_NAME = 'rivava-finance-v3'; // Updated version name
+const CACHE_NAME = 'rivava-finance-v4'; // Updated version name
 
 // List of essential files to cache for the app to work offline
 const urlsToCache = [
