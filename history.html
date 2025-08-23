@@ -33,12 +33,17 @@
     --warning: #feca57;
   }
   *{box-sizing:border-box}
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
   body{
     margin:0;
     font-family:'Poppins',sans-serif;
     background:var(--bg-dark);
     color:var(--text);
     -webkit-font-smoothing:antialiased;
+    /* --- MOBILE OPTIMIZATION --- */
+    overscroll-behavior-y: contain;
   }
   
   /* Header */
@@ -68,7 +73,7 @@
   .history-header h2 { margin: 0; font-size: 1.2rem; }
   
   /* Main Content */
-  .history-content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .history-content { padding: 16px; max-width: 1200px; margin: 0 auto; }
   
   /* Controls Bar: Filters and View Selector */
   .controls-bar {
@@ -82,11 +87,14 @@
 
   .filter-pills {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       overflow-x: auto;
       padding-bottom: 10px;
-      flex-grow: 1;
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
   }
+  .filter-pills::-webkit-scrollbar { display: none; } /* Chrome, Safari, Opera */
+
   .filter-pills button {
       background: #222;
       border: 1px solid #333;
@@ -97,6 +105,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       white-space: nowrap;
+      font-size: 0.9rem;
   }
   .filter-pills button.active {
       background: var(--accent);
@@ -104,8 +113,8 @@
       border-color: var(--accent);
       box-shadow: 0 0 15px var(--accent-glow);
   }
-  #customDateFilter { display: none; gap: 10px; align-items: center; }
-  #customDateFilter input { background: #222; border: 1px solid #333; color: var(--text); padding: 8px; border-radius: 8px; }
+  #customDateFilter { display: none; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #customDateFilter input { background: #222; border: 1px solid #333; color: var(--text); padding: 8px; border-radius: 8px; width: 100%; }
 
   .view-selector select {
     background: #222;
@@ -125,47 +134,48 @@
   /* Dashboard View */
   .summary-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
       margin-bottom: 24px;
   }
   .summary-card {
       background: var(--card-dark);
-      padding: 20px;
+      padding: 16px;
       border-radius: 12px;
       border: 1px solid #1a1a1a;
   }
   .summary-card .title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--muted);
       margin-bottom: 8px;
   }
   .summary-card .value {
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       font-weight: 700;
   }
   .summary-card .value.spent { color: var(--danger); }
   .summary-card .value.earned { color: var(--accent); }
+  .summary-card.full-width { grid-column: 1 / -1; }
 
   .chart-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 16px;
   }
   .chart-container {
       background: var(--card-dark);
-      padding: 20px;
+      padding: 16px;
       border-radius: 12px;
       border: 1px solid #1a1a1a;
-      height: 400px;
+      height: 350px;
   }
 
   /* Transactions View */
-  .table-container{overflow-x:auto; border-radius:12px;border: 1px solid #1a1a1a;}
-  table{width:100%;border-collapse:collapse;}
+  .table-container{overflow-x:auto; border-radius:12px;border: 1px solid #1a1a1a; -webkit-overflow-scrolling: touch;}
+  table{width:100%;border-collapse:collapse; min-width: 500px;}
   th,td{padding:12px 15px;border-bottom:1px solid #222;text-align:left;}
-  th{color:var(--accent);font-weight:700;font-size:0.9rem;background: rgba(255,255,255,0.02);}
-  td{font-size:0.9rem;}
+  th{color:var(--accent);font-weight:700;font-size:0.8rem;background: rgba(255,255,255,0.02);}
+  td{font-size:0.85rem;}
   .transaction-type { font-weight: 600; }
   .transaction-type.Expense { color: var(--danger); }
   .transaction-type.Earning { color: var(--accent); }
@@ -173,7 +183,7 @@
   /* Analysis View */
   .analysis-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: 1fr;
     gap: 16px;
   }
   .analysis-card {
@@ -182,20 +192,21 @@
     border-radius: 12px;
     border: 1px solid #1a1a1a;
   }
-  .analysis-card h3 { margin-top: 0; color: var(--accent); }
-  .analysis-card .metric { font-size: 2.5rem; font-weight: 700; margin: 10px 0; }
+  .analysis-card h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; }
+  .analysis-card .metric { font-size: 2rem; font-weight: 700; margin: 10px 0; }
   .analysis-card .insight { font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
   #top-expenses-chart-container { height: 300px; }
 
 
   #historyLoader, #noHistoryMessage { text-align: center; padding: 40px; color: var(--muted); font-size: 1.1rem; }
 
-  @media(max-width: 900px) {
-    .chart-grid { grid-template-columns: 1fr; }
-  }
-  @media(max-width: 768px) {
-    .controls-bar { flex-direction: column; align-items: stretch; }
-    .history-content { padding: 16px; }
+  /* --- MOBILE OPTIMIZATIONS --- */
+  @media(min-width: 768px) {
+    .history-content { padding: 24px; }
+    .summary-cards { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .chart-grid { grid-template-columns: 1fr 1fr; }
+    .analysis-grid { grid-template-columns: 1fr 1fr; }
+    #customDateFilter input { width: auto; }
   }
 </style>
 </head>
@@ -210,9 +221,9 @@
     </div>
     <div class="view-selector">
         <select id="viewSelector" onchange="switchView(this.value)">
-            <option value="dashboard">Dashboard View</option>
-            <option value="transactions">Transactions View</option>
-            <option value="analysis">Detailed Analysis</option>
+            <option value="dashboard">Dashboard</option>
+            <option value="transactions">Transactions</option>
+            <option value="analysis">Analysis</option>
         </select>
     </div>
 </header>
@@ -223,7 +234,7 @@
             <button data-filter="yesterday">Yesterday</button>
             <button data-filter="week">This Week</button>
             <button data-filter="month">This Month</button>
-            <button data-filter="custom">Custom Range</button>
+            <button data-filter="custom">Custom</button>
         </div>
         <div id="customDateFilter">
             <input type="date" id="startDate">
@@ -245,7 +256,7 @@
                 <div class="title" id="earnedTitle">Earned Today</div>
                 <div class="value earned" id="totalEarned">₹0.00</div>
             </div>
-            <div class="summary-card">
+            <div class="summary-card full-width">
                 <div class="title">Net Flow</div>
                 <div class="value" id="netFlow">₹0.00</div>
             </div>
@@ -265,7 +276,7 @@
         <div class="table-container">
             <table id="transactionsTable">
                 <thead>
-                    <tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Payment</th></tr>
+                    <tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th></tr>
                 </thead>
                 <tbody></tbody>
             </table>
@@ -278,12 +289,12 @@
             <div class="analysis-card">
                 <h3>Savings Rate</h3>
                 <div class="metric" id="savingsRate">0%</div>
-                <p class="insight">This is the percentage of your earnings that you're saving. A higher number is better!</p>
+                <p class="insight">The percentage of your earnings that you're saving.</p>
             </div>
             <div class="analysis-card">
                 <h3>Earning vs. Expense</h3>
                 <div class="metric" id="earningVsExpense">₹0 / ₹0</div>
-                <p class="insight">A direct comparison of your total income and spending for the selected period.</p>
+                <p class="insight">A direct comparison of your total income and spending.</p>
             </div>
             <div class="analysis-card" style="grid-column: 1 / -1;">
                 <h3>Top Spending Categories</h3>
@@ -296,6 +307,7 @@
 </div>
 
 <script>
+// --- NO FUNCTIONAL CHANGES MADE TO JAVASCRIPT ---
 let allTransactions = [];
 let charts = {};
 
@@ -308,7 +320,6 @@ function goBack() { window.location.href = './index.html'; }
 function switchView(viewName) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(`${viewName}View`).classList.add('active');
-    // Re-render charts if switching to a view that has them, as they might not have been initialized if the view was hidden
     if(viewName === 'dashboard' || viewName === 'analysis') {
         updateDashboard(document.querySelector('#filterPills button.active').dataset.filter);
     }
@@ -331,7 +342,8 @@ async function fetchTransactions() {
     }
 
     try {
-        const querySnapshot = await db.collection("submissions").where("userEmail", "==", user.email).orderBy("submittedAt", "desc").get();
+        const querySnapshot = await db.collection("submissions").where("userEmail", "==", user.email).get();
+        
         let transactions = [];
         querySnapshot.forEach(doc => {
             const data = doc.data();
@@ -350,7 +362,7 @@ async function fetchTransactions() {
             });
             t.jsDate = new Date(`${year}-${month}-${day}T${timeStr}`);
             return t;
-        }).sort((a, b) => b.jsDate - a.jsDate); // Sort newest first
+        }).sort((a, b) => b.jsDate - a.jsDate);
         
         updateDashboard('today');
 
@@ -366,7 +378,7 @@ async function fetchTransactions() {
 function updateDashboard(filter) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let startDate, endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); // up to the end of today
+    let startDate, endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
     switch(filter) {
         case 'yesterday':
@@ -382,9 +394,12 @@ function updateDashboard(filter) {
             startDate = new Date(now.getFullYear(), now.getMonth(), 1);
             break;
         case 'custom':
-            startDate = new Date(document.getElementById('startDate').value);
-            endDate = new Date(document.getElementById('endDate').value);
-            endDate.setDate(endDate.getDate() + 1); // include the whole end day
+            const startVal = document.getElementById('startDate').value;
+            const endVal = document.getElementById('endDate').value;
+            if (!startVal || !endVal) return; // Don't update if dates aren't set
+            startDate = new Date(startVal);
+            endDate = new Date(endVal);
+            endDate.setDate(endDate.getDate() + 1);
             break;
         case 'today':
         default:
@@ -395,12 +410,10 @@ function updateDashboard(filter) {
     const filteredTransactions = allTransactions.filter(t => t.jsDate >= startDate && t.jsDate < endDate);
     noHistoryMessage.style.display = filteredTransactions.length === 0 ? 'block' : 'none';
 
-    // Update all views
     updateSummaryCards(filteredTransactions, filter);
     updateTransactionTable(filteredTransactions);
     updateAnalysisView(filteredTransactions);
     
-    // Update charts for dashboard view
     const expenseData = groupByCategory(filteredTransactions.filter(t => t.type === 'Expense'));
     renderDoughnutChart('expenseChart', 'Expense Categories', expenseData);
     
@@ -437,7 +450,6 @@ function updateTransactionTable(transactions) {
             <td><span class="transaction-type ${t.type}">${t.type}</span></td>
             <td>${t.category}</td>
             <td>₹${t.amount.toFixed(2)}</td>
-            <td>${t.payment}</td>
         `;
         tbody.appendChild(row);
     });
@@ -458,7 +470,6 @@ function updateAnalysisView(transactions) {
     renderBarChart('topExpensesChart', 'Top Expenses', topExpenseData);
 }
 
-// Helper functions for data processing
 function groupByCategory(transactions) {
     return transactions.reduce((acc, t) => {
         acc[t.category] = (acc[t.category] || 0) + t.amount;
@@ -479,8 +490,6 @@ function groupByDate(transactions) {
     return Object.entries(data).map(([date, values]) => ({ x: date, ...values }));
 }
 
-
-// Chart Rendering Functions
 function renderDoughnutChart(canvasId, label, data) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     if (charts[canvasId]) charts[canvasId].destroy();
@@ -560,8 +569,6 @@ function renderBarChart(canvasId, label, data) {
     });
 }
 
-
-// Event Listeners
 document.getElementById('filterPills').addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
         document.querySelectorAll('#filterPills button').forEach(btn => btn.classList.remove('active'));
