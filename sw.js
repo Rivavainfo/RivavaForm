@@ -1,54 +1,39 @@
-// Define a name for the cache
-const CACHE_NAME = 'rivava-finance-v4'; // Updated version name
-
-// List of essential files to cache for the app to work offline
+const CACHE_NAME = "pwa-cache-v1";
 const urlsToCache = [
-  './', // Caches the root URL
-  './index.html',
-  './logo.png'
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icons_folder/icon-192x192.png",
+  "./icons_folder/icon-512x512.png"
 ];
 
-// Install event: opens the cache and adds the core files
-self.addEventListener('install', function(event) {
+// Install event
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(function(cache) {
-        console.log('Opened cache and caching essential files');
-        return cache.addAll(urlsToCache);
-      })
-  );
-  self.skipWaiting();
-});
-
-// Activate event: cleans up old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            console.log('Deleting old cache:', cache);
-            return caches.delete(cache);
-          }
-        })
-      );
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache);
     })
   );
 });
 
-
-// Fetch event: serves cached content when offline
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        // Cache hit - return response from cache
-        if (response) {
-          return response;
-        }
-        // Not in cache - fetch from network
-        return fetch(event.request);
-      }
+// Activate event
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      )
     )
+  );
+});
+
+// Fetch event
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
   );
 });
