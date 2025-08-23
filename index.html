@@ -13,11 +13,11 @@
 <meta name="apple-mobile-web-app-title" content="Rivava Finance">
 <meta name="application-name" content="Rivava Finance">
 
-<!-- Favicon and App Icons -->
-<link rel="icon" type="image/png" sizes="32x32" href="logo.png">
-<link rel="icon" type="image/png" sizes="16x16" href="logo.png">
-<!-- This is the key line for Apple devices -->
-<link rel="apple-touch-icon" href="logo.png"> 
+<!-- Favicon and App Icons (CRITICAL FOR HOME SCREEN) -->
+<link rel="icon" type="image/png" sizes="32x32" href="./logo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./logo.png">
+<link rel="apple-touch-icon" href="./logo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./logo.png">
 
 
 <!-- Fonts & Google Identity lib -->
@@ -56,7 +56,7 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:16px 20px;
+    padding: 12px 16px;
     background:var(--card-dark);
     border-bottom:1px solid #1a1a1a;
     position:sticky;
@@ -64,232 +64,101 @@
     z-index:100;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
-  .header-left {
+  .header-right {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
   }
-  .brand {
-    display:flex;
-    align-items:center;
-    gap:12px;
-  }
-  .logo-img {
-    width:40px;
-    height:40px;
-    border-radius:8px;
-    object-fit:cover;
-  }
-  .username {
-    font-size:1.25rem;
-    font-weight:700;
-    background:linear-gradient(90deg,var(--accent),#fff);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    letter-spacing: 0.5px;
-  }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .logo-img { width:40px; height:40px; border-radius:8px; object-fit:cover; }
+  .username { font-size:1.25rem; font-weight:700; background:linear-gradient(90deg,var(--accent),#fff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); letter-spacing: 0.5px; }
   
-  /* Feedback Button */
+  /* NEW: Redesigned Feedback Button */
   .feedback-btn {
-      background: #222;
+      background: linear-gradient(45deg, #222, #111);
       border: 1px solid #333;
-      color: var(--accent);
-      padding: 8px 16px;
-      border-radius: 8px;
+      color: var(--muted);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
       cursor: pointer;
-      font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
       transition: all 0.2s ease;
+      position: relative;
   }
   .feedback-btn:hover {
-      background: #333;
       border-color: var(--accent);
-      transform: translateY(-1px);
+      color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 255, 195, 0.2);
   }
   .feedback-btn svg {
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       stroke: currentColor;
+      stroke-width: 2;
   }
-
+  
   /* Profile Dropdown Styles */
-  .profile-container {
-    position: relative;
-    display: inline-block;
-  }
-  .profile-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid #333;
-    transition: border-color 0.2s ease;
-  }
-  .profile-avatar:hover {
-    border-color: var(--accent);
-  }
-  .profile-dropdown {
-    display: none;
-    position: absolute;
-    top: 60px;
-    right: 0;
-    background-color: #111;
-    min-width: 220px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-    border-radius: 12px;
-    z-index: 101;
-    border: 1px solid #222;
-    overflow: hidden;
-    animation: fadeIn 0.2s ease-out;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .profile-dropdown.show {
-    display: block;
-  }
-  .dropdown-header {
-    padding: 16px;
-    border-bottom: 1px solid #222;
-  }
-  .dropdown-name {
-    font-weight: 600;
-    font-size: 1rem;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .dropdown-email {
-    color: var(--muted);
-    font-size: 0.85rem;
-    margin: 4px 0 0;
-  }
-  .dropdown-signout {
-    display: block;
-    width: 100%;
-    padding: 12px 16px;
-    border: none;
-    background: none;
-    color: var(--danger);
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-  }
-  .dropdown-signout:hover {
-    background-color: rgba(255, 82, 82, 0.1);
-  }
+  .profile-container { position: relative; display: inline-block; }
+  .profile-avatar { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: border-color 0.2s ease; }
+  .profile-avatar:hover { border-color: var(--accent); }
+  .profile-dropdown { display: none; position: absolute; top: 60px; right: 0; background-color: #111; min-width: 220px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border-radius: 12px; z-index: 101; border: 1px solid #222; overflow: hidden; animation: fadeIn 0.2s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .profile-dropdown.show { display: block; }
+  .dropdown-header { padding: 16px; border-bottom: 1px solid #222; }
+  .dropdown-name { font-weight: 600; font-size: 1rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dropdown-email { color: var(--muted); font-size: 0.85rem; margin: 4px 0 0; }
+  .dropdown-signout { display: block; width: 100%; padding: 12px 16px; border: none; background: none; color: var(--danger); text-align: left; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: background-color 0.2s ease; }
+  .dropdown-signout:hover { background-color: rgba(255, 82, 82, 0.1); }
 
-
-  /* signin area - styled like a card */
-  .signin-card{
-    max-width:920px;margin:28px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:18px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.5);
-    backdrop-filter: blur(10px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
+  /* signin area */
+  .signin-card{ max-width:920px;margin:28px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:18px; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); transition: opacity 0.5s ease, transform 0.5s ease; }
   .signin-left{flex:1;min-width:0}
   .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
   .signin-title{font-size:1.1rem;font-weight:700;margin-bottom:6px;letter-spacing: 0.3px}
   .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
 
   /* main form area */
-  main{
-    max-width:920px;
-    margin:18px auto;
-    padding:18px;
-  }
+  main{ max-width:920px; margin:18px auto; padding:18px; }
   
   /* Button Loading Animation */
-  button.primary .spinner {
-      display: none;
-      border: 2px solid rgba(0, 0, 0, 0.3);
-      border-radius: 50%;
-      border-top-color: #000;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s ease-in-out infinite;
-  }
-  button.primary.is-loading .spinner {
-      display: block;
-  }
-  button.primary.is-loading .btn-text {
-      display: none;
-  }
-  button.primary.is-loading {
-      cursor: not-allowed;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-  }
-  @keyframes spin {
-      to { transform: rotate(360deg); }
-  }
-
+  button.primary .spinner { display: none; border: 2px solid rgba(0, 0, 0, 0.3); border-radius: 50%; border-top-color: #000; width: 20px; height: 20px; animation: spin 1s ease-in-out infinite; }
+  button.primary.is-loading .spinner { display: block; }
+  button.primary.is-loading .btn-text { display: none; }
+  button.primary.is-loading { cursor: not-allowed; display: flex; justify-content: center; align-items: center; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Modals (Success & Feedback) */
-  .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 10000; opacity: 0; pointer-events: none;
-      transition: opacity 0.3s ease;
-  }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
   .modal-overlay.show { opacity: 1; pointer-events: auto; }
-  .modal-content {
-      background: var(--card-dark); padding: 30px; border-radius: 16px;
-      border: 1px solid #222; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-      text-align: center; width: 90%; max-width: 380px;
-      transform: scale(0.9);
-      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-  }
+  .modal-content { background: var(--card-dark); padding: 30px; border-radius: 16px; border: 1px solid #222; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); text-align: center; width: 90%; max-width: 420px; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
   .modal-overlay.show .modal-content { transform: scale(1); }
-  .modal-logo {
-      width: 70px; height: 70px; margin: 0 auto 15px; border-radius: 12px;
-      animation: logo-pop 0.5s 0.2s ease-out backwards;
-  }
-  @keyframes logo-pop {
-      0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-  }
+  .modal-logo { width: 70px; height: 70px; margin: 0 auto 15px; border-radius: 12px; animation: logo-pop 0.5s 0.2s ease-out backwards; }
+  @keyframes logo-pop { 0% { transform: scale(0.5) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
   .modal-content h2 { margin: 0 0 10px; font-size: 1.8rem; color: var(--accent); font-weight: 700; }
   .modal-content p { margin: 0 0 25px; color: var(--muted); font-size: 1rem; }
-  .modal-content button {
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      border: none; padding: 12px 30px; border-radius: 8px; color: #000;
-      font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;
-  }
-  .modal-content button:hover {
-      transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
-  }
-  .modal-content textarea {
-      width: 100%; height: 120px; background: #050505; border: 1px solid #222;
-      color: var(--text); border-radius: 8px; padding: 12px; font-family: 'Poppins', sans-serif;
-      font-size: 1rem; margin-bottom: 16px; resize: vertical;
-  }
-  .modal-content textarea:focus {
-      outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,255,195,0.2);
-  }
+  .modal-content button { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border: none; padding: 12px 30px; border-radius: 8px; color: #000; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; }
+  .modal-content button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3); }
+  
+  /* NEW: Feedback Modal Specific Styles */
+  #feedback-category-selection { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .feedback-category-card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 16px; text-align: left; cursor: pointer; transition: all 0.2s ease; }
+  .feedback-category-card:hover { border-color: var(--accent); background: #1a1a1a; transform: translateY(-2px); }
+  .feedback-category-card h3 { margin: 0 0 4px; color: var(--text); font-size: 1.1rem; }
+  .feedback-category-card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  #feedback-text-input { display: none; }
+  .modal-content textarea { width: 100%; height: 120px; background: #050505; border: 1px solid #222; color: var(--text); border-radius: 8px; padding: 12px; font-family: 'Poppins', sans-serif; font-size: 1rem; margin-bottom: 16px; resize: vertical; }
+  .modal-content textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,255,195,0.2); }
   .modal-actions { display: flex; gap: 10px; justify-content: center; }
   .modal-actions button { flex: 1; }
-  .modal-actions button.secondary {
-      background: #222; color: var(--text);
-  }
-  .modal-actions button.secondary:hover {
-      background: #333; box-shadow: none;
-  }
+  .modal-actions button.secondary { background: #222; color: var(--text); }
+  .modal-actions button.secondary:hover { background: #333; box-shadow: none; }
 
-
-  /* Other styles from previous version */
+  /* Other styles */
   .info-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:18px;}
-  @media (min-width: 650px) {.info-blocks.time-hidden {grid-template-columns: 1fr 1fr;}}
   .info-block{background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #1a1a1a;transition: opacity 0.4s ease, transform 0.4s ease;}
   .info-block.fade-out {opacity: 0;transform: translateY(-10px);pointer-events: none;}
   .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent);font-weight:600;}
@@ -315,25 +184,24 @@
   #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);}
   
   @media(max-width:768px){header { padding: 12px 16px; }.logo-img { width: 36px; height: 36px; }.username { font-size: 1.15rem; }.profile-avatar { width: 40px; height: 40px; }.profile-dropdown { top: 55px; }.signin-card{flex-direction:column;align-items:stretch;margin:16px;padding:16px;}.signin-right{width:100%;}main{margin:12px;padding:12px;}.info-blocks{grid-template-columns:1fr;gap:12px;}.tabs{flex-direction:column;gap:8px;}table{min-width:700px;}}
-  @media(max-width:480px){header { padding: 10px 12px; }.logo-img { width: 32px; height: 32px; }.username { font-size: 1.05rem; }.profile-avatar { width: 36px; height: 36px; }.profile-dropdown { min-width: 200px; }.signin-card{margin:12px;padding:12px;}main{margin:8px;padding:8px;}table {min-width: 600px;}#welcomeOverlay{left:10px;right:10px;transform:translateX(0) translateY(-10px);max-width:calc(100% - 20px);}#welcomeOverlay.show{transform:translateX(0) translateY(0);}.feedback-btn span { display: none; } .feedback-btn { padding: 8px; }}
+  @media(max-width:480px){header { padding: 10px 12px; }.logo-img { width: 32px; height: 32px; }.username { font-size: 1.05rem; }.profile-avatar { width: 36px; height: 36px; }.profile-dropdown { min-width: 200px; }.signin-card{margin:12px;padding:12px;}main{margin:8px;padding:8px;}table {min-width: 600px;}#welcomeOverlay{left:10px;right:10px;transform:translateX(0) translateY(-10px);max-width:calc(100% - 20px);}#welcomeOverlay.show{transform:translateX(0) translateY(0);}}
   ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:#111} ::-webkit-scrollbar-thumb{background:#333;border-radius:4px} ::-webkit-scrollbar-thumb:hover{background:#444}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-left">
-    <div class="brand">
-      <img src="logo.png" alt="Rivava Logo" class="logo-img">
-      <div class="username">RIVAVA</div>
-    </div>
-    <button id="feedbackBtn" class="feedback-btn" onclick="openFeedbackModal()" aria-label="Open Feedback Form">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-        <span>Feedback</span>
-    </button>
+  <div class="brand">
+    <img src="logo.png" alt="Rivava Logo" class="logo-img">
+    <div class="username">RIVAVA</div>
   </div>
-  <div id="topUserArea">
-    <!-- User profile will be injected here -->
+  <div class="header-right">
+    <button id="feedbackBtn" class="feedback-btn" onclick="openFeedbackModal()" aria-label="Open Feedback Form">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 20.9l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.08L12 20.9z"></path></svg>
+    </button>
+    <div id="topUserArea">
+      <!-- User profile will be injected here -->
+    </div>
   </div>
 </header>
 
@@ -407,18 +275,39 @@
 
 <div id="feedbackModal" class="modal-overlay">
     <div class="modal-content">
-        <h2>Submit Feedback</h2>
-        <p>We'd love to hear your thoughts on how we can improve!</p>
-        <textarea id="feedbackText" placeholder="Your feedback..."></textarea>
-        <div class="modal-actions">
-            <button class="secondary" onclick="closeFeedbackModal()">Cancel</button>
-            <button class="primary" onclick="submitFeedback()">Send Feedback</button>
+        <div id="feedback-category-selection">
+            <h2>Submit Feedback</h2>
+            <p>What is your feedback about?</p>
+            <div class="feedback-category-card" onclick="selectFeedbackCategory('Bug / Issue')">
+                <h3>Report a Bug / Issue</h3>
+                <p>Let us know if something isn't working right.</p>
+            </div>
+            <div class="feedback-category-card" onclick="selectFeedbackCategory('Feature Suggestion')">
+                <h3>Suggest a Feature</h3>
+                <p>Have a great idea for a new feature?</p>
+            </div>
+            <div class="feedback-category-card" onclick="selectFeedbackCategory('Other')">
+                <h3>Other Comments</h3>
+                <p>General thoughts, questions, or praise.</p>
+            </div>
+        </div>
+        <div id="feedback-text-input">
+            <h2 id="feedback-title">Your Feedback</h2>
+            <textarea id="feedbackText" placeholder="Please provide as much detail as possible..."></textarea>
+            <div class="modal-actions">
+                <button class="secondary" onclick="openFeedbackModal()">Back</button>
+                <button class="primary" onclick="submitFeedback()">
+                    <span class="btn-text">Send Feedback</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 
 <script>
+let selectedFeedbackCategory = '';
 /* ----------------------
   CONFIG: Firebase & Google Client
   ---------------------- */
@@ -437,7 +326,6 @@ let db;
 try {
   if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
   db = firebase.firestore();
-  console.log("Firestore instance ready.");
 } catch (error) { console.error("Error initializing Firebase:", error); }
 
 /* ----------------------
@@ -447,22 +335,33 @@ function parseJwt(token){ try{ const base64Url = token.split('.')[1]; const base
 function showWelcome(name, picture){ const ov = document.getElementById('welcomeOverlay'); const txt = document.getElementById('welcomeText'); const av = document.getElementById('welcomeAvatar'); txt.textContent = `Welcome, ${name}`; av.src = picture || ''; ov.classList.add('show'); setTimeout(()=> ov.classList.remove('show'), 2500); }
 function showSuccessModal() { document.getElementById('successModal').classList.add('show'); }
 function closeSuccessModal() { document.getElementById('successModal').classList.remove('show'); }
-function openFeedbackModal() { document.getElementById('feedbackModal').classList.add('show'); }
+
+function openFeedbackModal() {
+    document.getElementById('feedback-category-selection').style.display = 'flex';
+    document.getElementById('feedback-text-input').style.display = 'none';
+    document.getElementById('feedbackModal').classList.add('show');
+}
 function closeFeedbackModal() { document.getElementById('feedbackModal').classList.remove('show'); }
+
+function selectFeedbackCategory(category) {
+    selectedFeedbackCategory = category;
+    document.getElementById('feedback-title').textContent = `Feedback: ${category}`;
+    document.getElementById('feedback-category-selection').style.display = 'none';
+    document.getElementById('feedback-text-input').style.display = 'block';
+    document.getElementById('feedbackText').focus();
+}
 
 async function submitFeedback() {
     const feedbackText = document.getElementById('feedbackText').value.trim();
-    if (!feedbackText) return;
+    if (!feedbackText || !selectedFeedbackCategory) return;
 
     const stored = localStorage.getItem('rivava_user');
-    if (!stored) {
-        alert("You must be signed in to submit feedback.");
-        return;
-    }
+    if (!stored) { alert("You must be signed in to submit feedback."); return; }
     const user = JSON.parse(stored);
 
     const payload = {
         userEmail: user.email,
+        category: selectedFeedbackCategory,
         feedback: feedbackText,
         submittedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
@@ -473,10 +372,8 @@ async function submitFeedback() {
 
     try {
         await db.collection('feedback').add(payload);
-        console.log("Feedback submitted successfully.");
         document.getElementById('feedbackText').value = '';
         closeFeedbackModal();
-        // Optionally, show a small "thank you" message
     } catch (error) {
         console.error("Error submitting feedback:", error);
         alert("Sorry, there was an error submitting your feedback.");
@@ -485,7 +382,6 @@ async function submitFeedback() {
         feedbackBtn.disabled = false;
     }
 }
-
 
 /* ----------------------
   AUTH & USER UI
@@ -524,28 +420,9 @@ function setSignedOutUI() {
     updateTotalExpense();
 }
 
-function signOut(){
-  localStorage.removeItem('rivava_user');
-  setSignedOutUI();
-  console.log('User signed out successfully');
-}
-
-function renderSignIn(){
-  const container = document.getElementById('g_id_signin_container');
-  container.innerHTML = '';
-  if(window.google && google.accounts && google.accounts.id){
-    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: false, ux_mode: 'popup' });
-    google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rounded', logo_alignment: 'left' });
-  } else { setTimeout(renderSignIn, 300); }
-}
-
-function handleCredentialResponse(response){
-  const payload = parseJwt(response.credential);
-  if(!payload || !payload.email){ console.error('Invalid ID token payload', payload); return; }
-  const user = { name: payload.name, email: payload.email, picture: payload.picture, token: response.credential, sub: payload.sub };
-  localStorage.setItem('rivava_user', JSON.stringify(user));
-  setSignedInUI(user, true);
-}
+function signOut(){ localStorage.removeItem('rivava_user'); setSignedOutUI(); }
+function renderSignIn(){ const container = document.getElementById('g_id_signin_container'); container.innerHTML = ''; if(window.google && google.accounts && google.accounts.id){ google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: false, ux_mode: 'popup' }); google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rounded', logo_alignment: 'left' }); } else { setTimeout(renderSignIn, 300); } }
+function handleCredentialResponse(response){ const payload = parseJwt(response.credential); if(!payload || !payload.email){ console.error('Invalid ID token payload', payload); return; } const user = { name: payload.name, email: payload.email, picture: payload.picture, token: response.credential, sub: payload.sub }; localStorage.setItem('rivava_user', JSON.stringify(user)); setSignedInUI(user, true); }
 
 /* ----------------------
   INITIALIZATION
@@ -553,7 +430,7 @@ function handleCredentialResponse(response){
 window.addEventListener('load', ()=> {
   setFixedDate();
   startLiveTime();
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW registered!', reg)).catch(err => console.log('SW registration failed: ', err)); }
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
   const storedUser = localStorage.getItem('rivava_user');
   if(storedUser){ try{ const user = JSON.parse(storedUser); setSignedInUI(user, false); } catch(e){ localStorage.removeItem('rivava_user'); setSignedOutUI(); } } 
   else { setSignedOutUI(); }
@@ -592,7 +469,6 @@ async function submitForm() {
 
   try {
     await db.collection('submissions').add(payload);
-    console.log("Data successfully written to Firebase.");
     showSuccessModal();
     dataTableBody.innerHTML = '';
     updateTotalExpense();
