@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,15 +5,21 @@ html
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Rivava Finance Tracker</title>
 
+<!-- PWA & Mobile App Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rivava Finance">
+<meta name="application-name" content="Rivava Finance">
+
 <!-- Favicon and App Icons -->
 <link rel="icon" type="image/png" sizes="32x32" href="logo.png">
 <link rel="icon" type="image/png" sizes="16x16" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
-<meta name="apple-mobile-web-app-title" content="Rivava Finance">
-<meta name="application-name" content="Rivava Finance">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+<link rel="apple-touch-icon" sizes="152x152" href="logo.png">
+<link rel="apple-touch-icon" sizes="120x120" href="logo.png">
+
 
 <!-- Fonts & Google Identity lib -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -672,19 +677,15 @@ function showWelcome(name, picture){
   setTimeout(()=> ov.classList.remove('show'), 2500);
 }
 
-// *** MODIFIED: This is the core UI update function ***
 function setSignedInUI(userObj, showWelcomeFlag){
   const topUserArea = document.getElementById('topUserArea');
-  topUserArea.innerHTML = ''; // Clear previous content
+  topUserArea.innerHTML = ''; 
 
-  // Hide the sign-in card
   document.getElementById('signinCard').style.display = 'none';
 
-  // Create profile container
   const profileContainer = document.createElement('div');
   profileContainer.className = 'profile-container';
 
-  // Create avatar image
   const avatar = document.createElement('img');
   avatar.src = userObj.picture;
   avatar.alt = "Profile";
@@ -693,7 +694,6 @@ function setSignedInUI(userObj, showWelcomeFlag){
     document.getElementById('profileDropdown').classList.toggle('show');
   };
 
-  // Create dropdown menu
   const dropdown = document.createElement('div');
   dropdown.id = 'profileDropdown';
   dropdown.className = 'profile-dropdown';
@@ -709,7 +709,6 @@ function setSignedInUI(userObj, showWelcomeFlag){
   profileContainer.appendChild(dropdown);
   topUserArea.appendChild(profileContainer);
 
-  // Clear the Google button container
   document.getElementById('g_id_signin_container').innerHTML = '';
 
   if(showWelcomeFlag) {
@@ -718,28 +717,22 @@ function setSignedInUI(userObj, showWelcomeFlag){
   }
 }
 
-// *** MODIFIED: Sign out function to restore UI ***
 function signOut(){
   localStorage.removeItem('rivava_user');
   
-  // Clear user profile from header
   document.getElementById('topUserArea').innerHTML = '';
   
-  // Show the sign-in card again
   const signinCard = document.getElementById('signinCard');
   signinCard.style.display = 'flex';
   
-  // Disable Google's auto sign-in for the next page load
   if(window.google && google.accounts && google.accounts.id){
     google.accounts.id.disableAutoSelect();
   }
 
-  // Re-render the sign-in button after a short delay
   setTimeout(() => {
     renderSignIn();
   }, 100);
 
-  // Clear the data table
   document.querySelector("#dataTable tbody").innerHTML = '';
   updateTotalExpense();
   console.log('User signed out successfully');
@@ -764,7 +757,6 @@ function renderSignIn(){
       { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rounded', logo_alignment: 'left' }
     );
   } else {
-    // Retry if GSI script hasn't loaded yet
     setTimeout(renderSignIn, 300);
   }
 }
@@ -780,7 +772,7 @@ function handleCredentialResponse(response){
     email: payload.email,
     picture: payload.picture,
     token: response.credential,
-    sub: payload.sub // User's unique Google ID
+    sub: payload.sub
   };
   localStorage.setItem('rivava_user', JSON.stringify(user));
   setSignedInUI(user, true);
@@ -792,6 +784,16 @@ function handleCredentialResponse(response){
 window.addEventListener('load', ()=> {
   setFixedDate();
   startLiveTime();
+
+  // PWA Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(registration) {
+        console.log('Service Worker registered with scope:', registration.scope);
+      }).catch(function(error) {
+        console.log('Service Worker registration failed:', error);
+      });
+  }
 
   const storedUser = localStorage.getItem('rivava_user');
   if(storedUser){
@@ -808,7 +810,6 @@ window.addEventListener('load', ()=> {
   }
 });
 
-// Close dropdown if clicked outside
 window.addEventListener('click', function(event) {
     const profileContainer = document.querySelector('.profile-container');
     if (profileContainer && !profileContainer.contains(event.target)) {
@@ -819,7 +820,6 @@ window.addEventListener('click', function(event) {
     }
 });
 
-// Scroll handling for time block fade
 const timeBlock = document.getElementById('timeBlock');
 const infoBlocksContainer = document.querySelector('.info-blocks');
 window.addEventListener('scroll', () => {
@@ -1001,12 +1001,10 @@ async function submitForm() {
     const docRef = await db.collection('submissions').add(payload);
     console.log("Data successfully written to Firebase with ID: ", docRef.id);
     showSuccessModal();
-    // Clear table after successful submission
     dataTableBody.innerHTML = '';
     updateTotalExpense();
   } catch (error) {
     console.error("Error submitting data to Firebase:", error);
-    // You could show an error message to the user here
   }
 }
 
