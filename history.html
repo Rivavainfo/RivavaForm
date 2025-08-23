@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>History | Rivava Finance</title>
+
+<!-- App Icons (uses your folder: icon_folder) -->
+<link rel="icon" type="image/png" sizes="32x32" href="./icons_folder/icon-32x32.png">
+<link rel="apple-touch-icon" href="./icons_folder/icon-180x180.png">
+
+<!-- Fonts & Google Identity lib -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<!-- Load Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  :root{
+    --bg-dark:#000;
+    --card-dark:#0d0d0d;
+    --accent:#00ffc3;
+    --text:#fff;
+    --muted:#888;
+    --expense-bg: #2c3e50;
+    --earning-bg: #16a085;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--bg-dark);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  
+  /* Header */
+  .history-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background-color: var(--card-dark);
+      border-bottom: 1px solid #1a1a1a;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+  }
+  .back-btn {
+      background: none; border: none; color: var(--text);
+      cursor: pointer; margin-right: 16px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+  .back-btn svg { width: 24px; height: 24px; }
+  .history-header h2 { margin: 0; font-size: 1.2rem; }
+  
+  /* Main Content */
+  .history-content { padding: 16px; max-width: 920px; margin: 0 auto; }
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .filters select {
+      flex: 1;
+      min-width: 150px;
+      padding:12px;
+      border-radius:8px;
+      background:#050505;
+      border:1px solid #222;
+      color:var(--text);
+      font-size:16px;
+      font-family:'Poppins',sans-serif;
+  }
+  .filters select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2);}
+
+  #transactionChatList {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+  }
+  .date-divider {
+      text-align: center;
+      margin: 16px 0;
+  }
+  .date-divider span {
+      background-color: #222;
+      color: var(--muted);
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 600;
+  }
+  .chat-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      max-width: 70%;
+      width: fit-content;
+      animation: bubblePopIn 0.3s ease-out;
+  }
+  @keyframes bubblePopIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  .chat-bubble.expense {
+      background-color: var(--expense-bg);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+  }
+  .chat-bubble.earning {
+      background-color: var(--earning-bg);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+  }
+  .chat-bubble .category { font-weight: 700; font-size: 1rem; }
+  .chat-bubble .amount { font-size: 1.2rem; margin: 4px 0; }
+  .chat-bubble .details { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+  #historyLoader, #noHistoryMessage { text-align: center; padding: 40px; color: var(--muted); font-size: 1.1rem; }
+</style>
+</head>
+<body>
+
+<header class="history-header">
+    <button class="back-btn" onclick="goBack()" aria-label="Go Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+    <h2>Transaction History</h2>
+</header>
+<div class="history-content">
+    <div class="filters">
+        <select id="historyCategoryFilter"><option value="all">All Categories</option></select>
+        <select id="historyTypeFilter"><option value="all">All Types</option><option value="Earning">Earning</option><option value="Expense">Expense</option></select>
+    </div>
+    <div id="historyLoader">Loading your history...</div>
+    <div id="noHistoryMessage" style="display: none;">You have no transactions yet.</div>
+    <div id="transactionChatList"></div>
+</div>
+
+<script>
+let allTransactions = []; // Store all fetched transactions globally
+
+/* ----------------------
+  CONFIG & INITIALIZATION
+  ---------------------- */
+const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
+let db;
+try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch (error) { console.error("Firebase Init Error:", error); }
+
+function goBack() {
+    window.location.href = './index.html';
+}
+
+/* ----------------------
+  HISTORY PAGE LOGIC
+  ---------------------- */
+async function fetchAndDisplayTransactions() {
+    const loader = document.getElementById('historyLoader');
+    const noHistoryMessage = document.getElementById('noHistoryMessage');
+    const chatList = document.getElementById('transactionChatList');
+    
+    loader.style.display = 'block';
+    noHistoryMessage.style.display = 'none';
+    chatList.innerHTML = '';
+
+    const user = JSON.parse(localStorage.getItem('rivava_user'));
+    if (!user || !user.email) {
+        loader.style.display = 'none';
+        noHistoryMessage.textContent = 'Please sign in to view your history.';
+        noHistoryMessage.style.display = 'block';
+        setTimeout(() => { goBack(); }, 2000);
+        return;
+    }
+
+    try {
+        const querySnapshot = await db.collection("submissions").where("userEmail", "==", user.email).get();
+        let transactions = [];
+        querySnapshot.forEach(doc => {
+            transactions = transactions.concat(doc.data().transactions);
+        });
+
+        transactions.sort((a, b) => {
+            const dateA = new Date(a.date.split('/').reverse().join('-') + ' ' + a.time.replace(/(\d{2}:\d{2}:\d{2}) (AM|PM)/, (match, time, period) => {
+                let [h, m, s] = time.split(':');
+                if (period === 'PM' && h !== '12') h = +h + 12;
+                if (period === 'AM' && h === '12') h = '00';
+                return `${h}:${m}:${s}`;
+            }));
+            const dateB = new Date(b.date.split('/').reverse().join('-') + ' ' + b.time.replace(/(\d{2}:\d{2}:\d{2}) (AM|PM)/, (match, time, period) => {
+                let [h, m, s] = time.split(':');
+                if (period === 'PM' && h !== '12') h = +h + 12;
+                if (period === 'AM' && h === '12') h = '00';
+                return `${h}:${m}:${s}`;
+            }));
+            return dateB - dateA;
+        });
+        
+        allTransactions = transactions;
+
+        if (allTransactions.length === 0) {
+            noHistoryMessage.textContent = 'You have no transactions yet.';
+            noHistoryMessage.style.display = 'block';
+        } else {
+            populateCategoryFilter(allTransactions);
+            renderTransactions(allTransactions);
+        }
+    } catch (error) {
+        console.error("Error fetching history:", error);
+        noHistoryMessage.textContent = 'Could not load your history.';
+        noHistoryMessage.style.display = 'block';
+    } finally {
+        loader.style.display = 'none';
+    }
+}
+
+function populateCategoryFilter(transactions) {
+    const categoryFilter = document.getElementById('historyCategoryFilter');
+    const categories = [...new Set(transactions.map(t => t.category))].sort();
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        categoryFilter.appendChild(option);
+    });
+}
+
+function renderTransactions(transactions) {
+    const chatList = document.getElementById('transactionChatList');
+    chatList.innerHTML = '';
+    let lastDate = null;
+
+    if (transactions.length === 0) {
+        chatList.innerHTML = `<div id="noHistoryMessage" style="text-align: center; padding: 40px; color: var(--muted);">No transactions match your filters.</div>`;
+        return;
+    }
+
+    transactions.forEach(t => {
+        if (t.date !== lastDate) {
+            const dateDivider = document.createElement('div');
+            dateDivider.className = 'date-divider';
+            dateDivider.innerHTML = `<span>${t.date}</span>`;
+            chatList.appendChild(dateDivider);
+            lastDate = t.date;
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${t.type.toLowerCase()}`;
+        bubble.innerHTML = `
+            <div class="category">${t.category}</div>
+            <div class="amount">₹${t.amount.toFixed(2)}</div>
+            <div class="details">${t.payment === '-' ? t.time : `${t.payment} · ${t.time}`}</div>
+        `;
+        chatList.appendChild(bubble);
+    });
+}
+
+document.getElementById('historyCategoryFilter').addEventListener('change', applyFilters);
+document.getElementById('historyTypeFilter').addEventListener('change', applyFilters);
+
+function applyFilters() {
+    const category = document.getElementById('historyCategoryFilter').value;
+    const type = document.getElementById('historyTypeFilter').value;
+
+    let filtered = allTransactions;
+
+    if (type !== 'all') {
+        filtered = filtered.filter(t => t.type === type);
+    }
+    if (category !== 'all') {
+        filtered = filtered.filter(t => t.category === category);
+    }
+
+    renderTransactions(filtered);
+}
+
+window.addEventListener('load', fetchAndDisplayTransactions);
+
+</script>
+
+</body>
+</html>
