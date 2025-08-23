@@ -1,5 +1,5 @@
 // Define a name for the cache
-const CACHE_NAME = 'rivava-finance-v2'; // Updated version name
+const CACHE_NAME = 'rivava-finance-v3'; // Updated version name
 
 // List of essential files to cache for the app to work offline
 const urlsToCache = [
@@ -27,6 +27,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cache => {
           if (cache !== CACHE_NAME) {
+            console.log('Deleting old cache:', cache);
             return caches.delete(cache);
           }
         })
