@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Analysis | Rivava Finance</title>
+
+<!-- App Icons -->
+<link rel="icon" type="image/png" sizes="32x32" href="./icons_folder/icon-32x32.png">
+<link rel="apple-touch-icon" href="./icons_folder/icon-180x180.png">
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<style>
+  :root{
+    --bg-dark:#050505;
+    --card-dark:#0d0d0d;
+    --accent:#00ffc3;
+    --text:#fff;
+    --muted:#888;
+    --danger: #ff5252;
+  }
+  *{box-sizing:border-box}
+  html { -webkit-tap-highlight-color: transparent; }
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--bg-dark);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  
+  /* Header */
+  .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background-color: var(--card-dark);
+      border-bottom: 1px solid #1a1a1a;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header-title { margin: 0; font-size: 1.2rem; }
+  .back-btn {
+      background: #222; border: 1px solid #333; color: var(--text);
+      padding: 8px; border-radius: 8px; text-decoration: none;
+      display: flex; align-items: center; transition: all 0.2s ease;
+  }
+  .back-btn:hover { background-color: #333; border-color: var(--accent); }
+  .back-btn svg { width: 22px; height: 22px; }
+  
+  /* Main Content */
+  .analysis-content { padding: 16px; max-width: 1200px; margin: 0 auto; }
+
+  .card {
+    background: var(--card-dark);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #1a1a1a;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* Chart Controls */
+  .chart-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .chart-type-switcher { display: flex; gap: 8px; }
+  .chart-type-switcher button {
+      background: #222; border: 1px solid #333; color: var(--muted);
+      padding: 8px 12px; border-radius: 8px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s ease;
+  }
+  .chart-type-switcher button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* Table */
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; min-width: 600px; }
+  th, td { padding: 12px 15px; border-bottom: 1px solid #222; text-align: left; }
+  th { color: var(--accent); font-weight: 700; font-size: 0.8rem; }
+  td { font-size: 0.9rem; }
+  .type-earning { color: var(--accent); font-weight: 600; }
+  .type-expense { color: var(--danger); font-weight: 600; }
+
+  #loader, #no-data { text-align: center; padding: 40px; color: var(--muted); font-size: 1.1rem; }
+
+</style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <a href="./history.html" class="back-btn" aria-label="Go Back to Dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </a>
+        <h2 class="header-title">Detailed Analysis</h2>
+    </div>
+</header>
+
+<main class="analysis-content">
+    <div id="loader">Loading analysis...</div>
+    <div id="no-data" style="display: none;">No transaction data found.</div>
+
+    <div id="analysis-body" style="display: none;">
+        <div class="card">
+            <div class="chart-controls">
+                <h3 class="card-title" style="margin-bottom: 0;">Spending Breakdown</h3>
+                <div class="chart-type-switcher" id="chart-type-switcher">
+                    <button class="active" data-chart-type="bar">Bar</button>
+                    <button data-chart-type="pie">Pie</button>
+                    <button data-chart-type="line">Trend</button>
+                </div>
+            </div>
+            <div style="height: 350px; margin-top: 16px;">
+                <canvas id="mainAnalysisChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">All Transactions</h3>
+            <div class="table-container">
+                <table id="transactionsTable">
+                    <thead>
+                        <tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+let allTransactions = [];
+let analysisChart = null;
+
+const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
+let db;
+try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch (error) { console.error("Firebase Init Error:", error); }
+
+async function fetchAndProcessData() {
+    const loader = document.getElementById('loader');
+    const noData = document.getElementById('no-data');
+    const body = document.getElementById('analysis-body');
+
+    loader.style.display = 'block';
+    noData.style.display = 'none';
+    body.style.display = 'none';
+
+    const user = JSON.parse(localStorage.getItem('rivava_user'));
+    if (!user || !user.email) {
+        loader.style.display = 'none';
+        noData.textContent = 'Please sign in to view analysis.';
+        noData.style.display = 'block';
+        return;
+    }
+
+    try {
+        const querySnapshot = await db.collection("submissions").where("userEmail", "==", user.email).get();
+        let transactions = [];
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.transactions) transactions = transactions.concat(data.transactions);
+        });
+
+        if (transactions.length === 0) {
+            loader.style.display = 'none';
+            noData.style.display = 'block';
+            return;
+        }
+
+        allTransactions = transactions.map(t => {
+            const [day, month, year] = t.date.split('/');
+            const timeStr = t.time.replace(/(\d{2}:\d{2}:\d{2}) (AM|PM)/, (match, time, period) => {
+                let [h, m, s] = time.split(':');
+                if (period === 'PM' && h !== '12') h = +h + 12;
+                if (period === 'AM' && h === '12') h = '00';
+                return `${h}:${m}:${s}`;
+            });
+            t.jsDate = new Date(`${year}-${month}-${day}T${timeStr}`);
+            return t;
+        }).sort((a, b) => a.jsDate - b.jsDate); // Sort oldest to newest for trends
+
+        populateTable(allTransactions);
+        renderChart('bar'); // Initial render
+        loader.style.display = 'none';
+        body.style.display = 'block';
+
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        loader.style.display = 'none';
+        noData.textContent = 'Could not load your analysis.';
+        noData.style.display = 'block';
+    }
+}
+
+function populateTable(transactions) {
+    const tbody = document.querySelector('#transactionsTable tbody');
+    tbody.innerHTML = '';
+    // Reverse for display, so newest is at the top of the table
+    [...transactions].reverse().forEach(t => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${t.jsDate.toLocaleDateString()}</td>
+            <td><span class="type-${t.type.toLowerCase()}">${t.type}</span></td>
+            <td>${t.category}</td>
+            <td>₹${t.amount.toLocaleString('en-IN')}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function renderChart(type) {
+    const ctx = document.getElementById('mainAnalysisChart').getContext('2d');
+    if (analysisChart) analysisChart.destroy();
+
+    const expenseData = allTransactions.filter(t => t.type === 'Expense');
+    
+    if (type === 'bar' || type === 'pie') {
+        const categoryData = expenseData.reduce((acc, t) => {
+            acc[t.category] = (acc[t.category] || 0) + t.amount;
+            return acc;
+        }, {});
+        const sortedCategories = Object.entries(categoryData).sort(([,a],[,b]) => b-a);
+        
+        analysisChart = new Chart(ctx, {
+            type: type, // bar or pie
+            data: {
+                labels: sortedCategories.map(item => item[0]),
+                datasets: [{
+                    label: 'Spent',
+                    data: sortedCategories.map(item => item[1]),
+                    backgroundColor: ['#00ffc3', '#ff6b6b', '#4d94ff', '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd'],
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: type === 'pie' ? 'bottom' : 'top', labels: { color: '#fff' } } },
+                scales: type === 'bar' ? {
+                    y: { beginAtZero: true, ticks: { color: 'var(--muted)' }, grid: { color: '#222' } },
+                    x: { ticks: { color: 'var(--muted)' }, grid: { display: false } }
+                } : {}
+            }
+        });
+    } else if (type === 'line') {
+        const trendData = expenseData.reduce((acc, t) => {
+            const date = t.jsDate.toISOString().split('T')[0];
+            acc[date] = (acc[date] || 0) + t.amount;
+            return acc;
+        }, {});
+
+        analysisChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(trendData),
+                datasets: [{
+                    label: 'Daily Spending',
+                    data: Object.values(trendData),
+                    borderColor: 'var(--accent)',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { type: 'time', time: { unit: 'day' }, ticks: { color: 'var(--muted)' }, grid: { color: '#222' } },
+                    y: { ticks: { color: 'var(--muted)' }, grid: { color: '#222' } }
+                },
+                plugins: { legend: { labels: { color: '#fff' } } }
+            }
+        });
+    }
+}
+
+document.getElementById('chart-type-switcher').addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+        document.querySelectorAll('#chart-type-switcher button').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        renderChart(e.target.dataset.chartType);
+    }
+});
+
+window.addEventListener('load', fetchAndProcessData);
+</script>
+
+</body>
+</html>
