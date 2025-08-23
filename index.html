@@ -36,6 +36,9 @@
     --danger: #ff5252;
   }
   *{box-sizing:border-box}
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
   body{
     margin:0;
     font-family:'Poppins',sans-serif;
@@ -44,6 +47,8 @@
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
     overflow-x: hidden;
+    /* --- MOBILE OPTIMIZATION --- */
+    overscroll-behavior-y: contain; /* Prevents pull-to-refresh on the whole page */
   }
 
   /* Header */
@@ -183,11 +188,10 @@
   input,select{width:100%;padding:12px;border-radius:8px;background:#050505;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px;font-family:'Poppins',sans-serif;}
   input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2);}
   
-  /* --- NEW --- Animated Add Buttons */
   button.animated-add {
     background: var(--accent);
     border: none;
-    padding: 12px 20px;
+    padding: 14px 20px; /* Increased padding for better touch target */
     border-radius: 8px;
     color: #000;
     font-weight: 700;
@@ -208,21 +212,69 @@
     box-shadow: 0 2px 8px var(--accent-glow);
   }
   
-  button.primary{background:var(--accent);border:none;padding:12px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:8px;font-size:1rem;transition: all 0.2s ease;}
+  button.primary{background:var(--accent);border:none;padding:14px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:16px;font-size:1rem;transition: all 0.2s ease;}
   button.primary:hover{transform: translateY(-2px);box-shadow: 0 4px 12px var(--accent-glow);}
 
-  .table-container{overflow-x:auto;margin-top:16px;border-radius:12px;border: 1px solid #1a1a1a;-webkit-overflow-scrolling: touch;}
-  table{width:100%;border-collapse:collapse;min-width:800px;}
-  th,td{padding:12px 8px;border-bottom:1px solid #222;text-align:left;white-space: nowrap;}
+  .table-container{overflow-x:auto;margin-top:24px;margin-bottom:16px;border-radius:12px;border: 1px solid #1a1a1a;-webkit-overflow-scrolling: touch;}
+  table{width:100%;border-collapse:collapse;min-width:600px;}
+  th,td{padding:12px 15px;border-bottom:1px solid #222;text-align:left;white-space: nowrap;}
   th{color:var(--accent);font-weight:700;font-size:0.9rem;background: rgba(255,255,255,0.02);}
-  td{font-size:0.85rem;}
+  td{font-size:0.9rem;}
   td button{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;transition: all 0.2s ease;min-width: 60px;}
   td button:hover{background:#ff3838;}
   #welcomeOverlay{position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;transition:opacity .4s ease, transform .4s ease;border: 1px solid rgba(255,255,255,0.1);}
   #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);}
   
-  @media(max-width:768px){.signin-card{flex-direction:column;align-items:stretch;margin:16px;padding:16px;}.signin-right{width:100%;}main{margin:16px;}.info-blocks{grid-template-columns:1fr;gap:12px;}.tabs{flex-direction:column;gap:8px;}table{min-width:700px;}}
-  @media(max-width:480px){.signin-card{margin:12px;padding:12px;}main{margin:12px;}table {min-width: 600px;}}
+  /* --- MOBILE OPTIMIZATIONS --- */
+  @media(max-width:768px){
+    main {
+        margin: 16px auto;
+        padding: 0 16px;
+    }
+    .signin-card{
+        flex-direction:column;
+        align-items:stretch;
+        margin: 16px;
+        padding: 24px; /* More padding on mobile */
+        text-align: center;
+    }
+    .signin-right{width:100%;}
+    .info-blocks{
+        grid-template-columns:1fr 1fr; /* Two columns on medium screens */
+        gap:12px;
+    }
+    .tabs{
+        flex-direction:row; /* Keep tabs in a row */
+        gap:8px;
+    }
+    .tab {
+        font-size: 0.9rem;
+    }
+    table{min-width:600px;}
+  }
+
+  @media(max-width:480px){
+    main {
+        padding: 0 12px;
+    }
+    .signin-card{
+        margin: 12px;
+        padding: 20px;
+    }
+    .info-blocks{
+        grid-template-columns:1fr; /* Single column on small screens */
+    }
+    .tabs{
+        flex-direction:column; /* Stack tabs on small screens */
+    }
+    .form-section {
+        padding: 16px;
+    }
+    td, th {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+  }
   ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:#111} ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
 </style>
 </head>
@@ -256,7 +308,7 @@
   <div class="info-blocks">
     <div class="info-block">Time<span class="value" id="liveTime">--:--:-- --</span></div>
     <div class="info-block">Date<span class="value" id="fixedDate">--/--/----</span></div>
-    <div class="info-block">Total Expense<span class="value" id="totalExpense">₹0</span></div>
+    <div class="info-block" style="grid-column: 1 / -1;">Total Expense<span class="value" id="totalExpense">₹0</span></div>
   </div>
 
   <div class="tabs">
@@ -270,7 +322,6 @@
     <input type="text" id="customEarningCategory" placeholder="Enter custom earning source" style="display:none;" />
     <label for="earningAmount">Amount</label>
     <input type="number" id="earningAmount" placeholder="Enter earning amount" min="0" step="0.01" />
-    <!-- Changed to new animated button class -->
     <button class="animated-add" onclick="addEarning()">Add Earning</button>
   </div>
 
@@ -282,7 +333,6 @@
     <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
     <label for="paymentMethod">Payment Method</label>
     <select id="paymentMethod"><option>UPI</option><option>Cash</option><option>Credit Card</option><option>Bank Transfer</option></select>
-    <!-- Changed to new animated button class -->
     <button class="animated-add" onclick="addExpense()">Add Expense</button>
   </div>
 
@@ -346,6 +396,7 @@
 </div>
 
 <script>
+// --- NO FUNCTIONAL CHANGES MADE TO JAVASCRIPT ---
 let selectedFeedbackCategory = '';
 let deferredInstallPrompt = null;
 const installButton = document.getElementById('installBtn');
