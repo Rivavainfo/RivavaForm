@@ -30,6 +30,7 @@
     --bg-dark:#000;
     --card-dark:#0d0d0d;
     --accent:#00ffc3;
+    --accent-glow: rgba(0, 255, 195, 0.3);
     --text:#fff;
     --muted:#888;
     --danger: #ff5252;
@@ -95,7 +96,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
   }
-  #installBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3); }
+  #installBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--accent-glow); }
 
   /* Profile Dropdown & Avatar */
   .profile-container { position: relative; display: inline-block; }
@@ -150,8 +151,8 @@
   @keyframes logo-pop { 0% { transform: scale(0.5) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
   .modal-content h2 { margin: 0 0 10px; font-size: 1.8rem; color: var(--accent); font-weight: 700; }
   .modal-content p { margin: 0 0 25px; color: var(--muted); font-size: 1rem; }
-  .modal-content button { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border: none; padding: 12px 30px; border-radius: 8px; color: #000; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; }
-  .modal-content button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3); }
+  .modal-content button { background: var(--accent); border: none; padding: 12px 30px; border-radius: 8px; color: #000; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; }
+  .modal-content button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--accent-glow); }
   
   /* Redesigned Feedback Modal */
   #feedback-category-selection { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
@@ -181,15 +182,42 @@
   label{display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem;}
   input,select{width:100%;padding:12px;border-radius:8px;background:#050505;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px;font-family:'Poppins',sans-serif;}
   input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2);}
-  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:12px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:8px;font-size:1rem;transition: all 0.2s ease;}
-  button.primary:hover{transform: translateY(-2px);box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);}
+  
+  /* --- NEW --- Animated Add Buttons */
+  button.animated-add {
+    background: var(--accent);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: #000;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  button.animated-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  button.animated-add:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+  
+  button.primary{background:var(--accent);border:none;padding:12px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:8px;font-size:1rem;transition: all 0.2s ease;}
+  button.primary:hover{transform: translateY(-2px);box-shadow: 0 4px 12px var(--accent-glow);}
+
   .table-container{overflow-x:auto;margin-top:16px;border-radius:12px;border: 1px solid #1a1a1a;-webkit-overflow-scrolling: touch;}
   table{width:100%;border-collapse:collapse;min-width:800px;}
   th,td{padding:12px 8px;border-bottom:1px solid #222;text-align:left;white-space: nowrap;}
   th{color:var(--accent);font-weight:700;font-size:0.9rem;background: rgba(255,255,255,0.02);}
   td{font-size:0.85rem;}
   td button{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;transition: all 0.2s ease;min-width: 60px;}
-  td button:hover{background:var(--danger-hover);}
+  td button:hover{background:#ff3838;}
   #welcomeOverlay{position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;transition:opacity .4s ease, transform .4s ease;border: 1px solid rgba(255,255,255,0.1);}
   #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);}
   
@@ -242,7 +270,8 @@
     <input type="text" id="customEarningCategory" placeholder="Enter custom earning source" style="display:none;" />
     <label for="earningAmount">Amount</label>
     <input type="number" id="earningAmount" placeholder="Enter earning amount" min="0" step="0.01" />
-    <button class="primary" onclick="addEarning()">Add Earning</button>
+    <!-- Changed to new animated button class -->
+    <button class="animated-add" onclick="addEarning()">Add Earning</button>
   </div>
 
   <div id="expense" class="form-section">
@@ -253,7 +282,8 @@
     <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
     <label for="paymentMethod">Payment Method</label>
     <select id="paymentMethod"><option>UPI</option><option>Cash</option><option>Credit Card</option><option>Bank Transfer</option></select>
-    <button class="primary" onclick="addExpense()">Add Expense</button>
+    <!-- Changed to new animated button class -->
+    <button class="animated-add" onclick="addExpense()">Add Expense</button>
   </div>
 
   <div class="table-container">
@@ -263,7 +293,7 @@
     </table>
   </div>
   <button id="submitBtn" class="primary" onclick="submitForm()">
-      <span class="btn-text">Submit</span>
+      <span class="btn-text">Submit All Transactions</span>
       <div class="spinner"></div>
   </button>
 </main>
@@ -425,12 +455,12 @@ function setSignedInUI(userObj, showWelcomeFlag){
       avatarHTML = `<div class="avatar-initials" style="background-color: ${color};">${initial}</div>`;
   }
 
-  profileContainer.innerHTML = `${avatarHTML}<div id="profileDropdown" class="profile-dropdown">
-    <button class="dropdown-item" onclick="viewHistory()">View History</button>
+  profileContainer.innerHTML = `<div class="profile-avatar-wrapper">${avatarHTML}</div><div id="profileDropdown" class="profile-dropdown">
     <div class="dropdown-header"><div class="dropdown-name">${userObj.name}</div><div class="dropdown-email">${userObj.email}</div></div>
+    <button class="dropdown-item" onclick="viewHistory()">View Dashboard</button>
     <button class="dropdown-item danger" onclick="signOut()">Sign out</button>
   </div>`;
-  profileContainer.querySelector('.profile-avatar, .avatar-initials').onclick = () => { document.getElementById('profileDropdown').classList.toggle('show'); };
+  profileContainer.querySelector('.profile-avatar-wrapper').onclick = () => { document.getElementById('profileDropdown').classList.toggle('show'); };
   topUserArea.appendChild(profileContainer);
   if(showWelcomeFlag) { showWelcome(userObj.name.split(' ')[0], userObj.picture); }
 }
@@ -472,8 +502,8 @@ function addRow(type, amount, category, payment, date, time) { const row = docum
 function deleteRow(button) { button.closest("tr").remove(); updateTotalExpense(); }
 function handleEarningCategoryChange() { const sel = document.getElementById("earningCategory"), inp = document.getElementById("customEarningCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
 function handleCategoryChange() { const sel = document.getElementById("expenseCategory"), inp = document.getElementById("customCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
-function addEarning() { const amountInput = document.getElementById("earningAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) return; let category = document.getElementById("earningCategory").value; if (category === "Other") { category = document.getElementById("customEarningCategory").value.trim(); if (!category) return; } addRow("Earning", amount, category, "-", document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("earningCategory").value === "Other") { document.getElementById("customEarningCategory").value = ""; handleEarningCategoryChange(); document.getElementById("earningCategory").value = "Salary"; } }
-function addExpense() { const amountInput = document.getElementById("expenseAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) return; let category = document.getElementById("expenseCategory").value; if (category === "Other") { category = document.getElementById("customCategory").value.trim(); if (!category) return; } addRow("Expense", amount, category, document.getElementById("paymentMethod").value, document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("expenseCategory").value === "Other") { document.getElementById("customCategory").value = ""; handleCategoryChange(); document.getElementById("expenseCategory").value = "Personal"; } }
+function addEarning() { const amountInput = document.getElementById("earningAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("earningCategory").value; if (category === "Other") { category = document.getElementById("customEarningCategory").value.trim(); if (!category) { document.getElementById("customEarningCategory").focus(); return; } } addRow("Earning", amount, category, "-", document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("earningCategory").value === "Other") { document.getElementById("customEarningCategory").value = ""; handleEarningCategoryChange(); document.getElementById("earningCategory").value = "Salary"; } }
+function addExpense() { const amountInput = document.getElementById("expenseAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("expenseCategory").value; if (category === "Other") { category = document.getElementById("customCategory").value.trim(); if (!category) { document.getElementById("customCategory").focus(); return; } } addRow("Expense", amount, category, document.getElementById("paymentMethod").value, document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("expenseCategory").value === "Other") { document.getElementById("customCategory").value = ""; handleCategoryChange(); document.getElementById("expenseCategory").value = "Personal"; } }
 
 async function submitForm() {
   if (dataTableBody.children.length === 0) return;
