@@ -16,9 +16,8 @@
 <!-- Favicon and App Icons -->
 <link rel="icon" type="image/png" sizes="32x32" href="logo.png">
 <link rel="icon" type="image/png" sizes="16x16" href="logo.png">
-<link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-<link rel="apple-touch-icon" sizes="152x152" href="logo.png">
-<link rel="apple-touch-icon" sizes="120x120" href="logo.png">
+<!-- This is the key line for Apple devices -->
+<link rel="apple-touch-icon" href="logo.png"> 
 
 
 <!-- Fonts & Google Identity lib -->
@@ -65,6 +64,11 @@
     z-index:100;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
+  .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+  }
   .brand {
     display:flex;
     align-items:center;
@@ -86,6 +90,31 @@
     letter-spacing: 0.5px;
   }
   
+  /* Feedback Button */
+  .feedback-btn {
+      background: #222;
+      border: 1px solid #333;
+      color: var(--accent);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+  }
+  .feedback-btn:hover {
+      background: #333;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+  }
+  .feedback-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+  }
+
   /* Profile Dropdown Styles */
   .profile-container {
     position: relative;
@@ -171,358 +200,140 @@
   .signin-title{font-size:1.1rem;font-weight:700;margin-bottom:6px;letter-spacing: 0.3px}
   .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
 
-  /* Google Sign-In button styling */
-  #g_id_signin_container {
-    width: 100%;
-    margin-bottom: 4px;
-  }
-  .g_id_signin {
-    width: 100% !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-    overflow: hidden;
-  }
-
   /* main form area */
   main{
     max-width:920px;
     margin:18px auto;
     padding:18px;
   }
-  .info-blocks{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:15px;
-    margin-bottom:18px;
+  
+  /* Button Loading Animation */
+  button.primary .spinner {
+      display: none;
+      border: 2px solid rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      border-top-color: #000;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s ease-in-out infinite;
   }
-  @media (min-width: 650px) {
-    .info-blocks.time-hidden {
-      grid-template-columns: 1fr 1fr;
-    }
+  button.primary.is-loading .spinner {
+      display: block;
   }
-
-  .info-block{
-    background:var(--card-dark);
-    padding:14px;
-    border-radius:12px;
-    text-align:center;
-    border:1px solid #1a1a1a;
-    transition: opacity 0.4s ease, transform 0.4s ease;
+  button.primary.is-loading .btn-text {
+      display: none;
   }
-  .info-block.fade-out {
-    opacity: 0;
-    transform: translateY(-10px);
-    pointer-events: none;
-  }
-  .info-block .value{
-    display:block;
-    margin-top:8px;
-    font-size:1.6rem;
-    color:var(--accent);
-    font-weight:600;
-  }
-  .tabs{
-    display:flex;
-    gap:10px;
-    margin-bottom:16px;
-  }
-  .tab{
-    flex:1;
-    background:var(--card-dark);
-    padding:12px;
-    border-radius:10px;
-    text-align:center;
-    cursor:pointer;
-    border:1px solid #1a1a1a;
-    transition:all 0.2s ease;
-  }
-  .tab:hover{
-    background:#111;
-  }
-  .tab.active{
-    background:var(--accent);
-    color:#000;
-    font-weight:700;
-  }
-  .form-section{
-    display:none;
-    background:var(--card-dark);
-    padding:18px;
-    border-radius:12px;
-    border:1px solid #1a1a1a;
-  }
-  .form-section.active{
-    display:block;
-  }
-  label{
-    display:block;
-    margin-bottom:6px;
-    font-weight:600;
-    font-size:0.9rem;
-  }
-  input,select{
-    width:100%;
-    padding:12px;
-    border-radius:8px;
-    background:#050505;
-    border:1px solid #222;
-    color:var(--text);
-    margin-bottom:12px;
-    font-size:16px;
-    font-family:'Poppins',sans-serif;
-  }
-  input:focus,select:focus{
-    outline:none;
-    border-color:var(--accent);
-    box-shadow:0 0 0 2px rgba(0,255,195,0.2);
-  }
-  button.primary{
-    background:linear-gradient(90deg,var(--accent),var(--accent-2));
-    border:none;
-    padding:12px 20px;
-    border-radius:8px;
-    color:#000;
-    font-weight:700;
-    cursor:pointer;
-    width:100%;
-    margin-top:8px;
-    font-size:1rem;
-    transition: all 0.2s ease;
-  }
-  button.primary:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
-  }
-
-  /* Table styling */
-  .table-container{
-    overflow-x:auto;
-    margin-top:16px;
-    border-radius:12px;
-    border: 1px solid #1a1a1a;
-    -webkit-overflow-scrolling: touch;
-  }
-  table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:800px;
-  }
-  th,td{
-    padding:12px 8px;
-    border-bottom:1px solid #222;
-    text-align:left;
-    white-space: nowrap;
-  }
-  th{
-    color:var(--accent);
-    font-weight:700;
-    font-size:0.9rem;
-    background: rgba(255,255,255,0.02);
-  }
-  td{
-    font-size:0.85rem;
-  }
-  td button{
-    background:var(--danger);
-    color:#fff;
-    border:none;
-    padding:6px 10px;
-    border-radius:6px;
-    cursor:pointer;
-    font-size:0.8rem;
-    transition: all 0.2s ease;
-    min-width: 60px;
-  }
-  td button:hover{
-    background:var(--danger-hover);
-  }
-
-  /* welcome overlay */
-  #welcomeOverlay{
-    position:fixed;
-    left:50%;
-    top:20%;
-    transform:translateX(-50%) translateY(-10px);
-    padding:14px 20px;
-    border-radius:12px;
-    background:linear-gradient(90deg,#18c29a,#00ffc3);
-    color:#012;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    box-shadow:0 12px 30px rgba(0,0,0,0.6);
-    opacity:0;
-    pointer-events:none;
-    z-index:9999;
-    transition:opacity .4s ease, transform .4s ease;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  #welcomeOverlay.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-  }
-
-  /* Success Modal */
-  .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
+  button.primary.is-loading {
+      cursor: not-allowed;
       display: flex;
-      align-items: center;
       justify-content: center;
-      z-index: 10000;
-      opacity: 0;
-      pointer-events: none;
+      align-items: center;
+  }
+  @keyframes spin {
+      to { transform: rotate(360deg); }
+  }
+
+
+  /* Modals (Success & Feedback) */
+  .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10000; opacity: 0; pointer-events: none;
       transition: opacity 0.3s ease;
   }
-  .modal-overlay.show {
-      opacity: 1;
-      pointer-events: auto;
-  }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
   .modal-content {
-      background: var(--card-dark);
-      padding: 30px;
-      border-radius: 16px;
-      border: 1px solid #222;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-      text-align: center;
-      width: 90%;
-      max-width: 380px;
+      background: var(--card-dark); padding: 30px; border-radius: 16px;
+      border: 1px solid #222; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      text-align: center; width: 90%; max-width: 380px;
       transform: scale(0.9);
       transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
-  .modal-overlay.show .modal-content {
-      transform: scale(1);
-  }
+  .modal-overlay.show .modal-content { transform: scale(1); }
   .modal-logo {
-      width: 70px;
-      height: 70px;
-      margin: 0 auto 15px;
-      border-radius: 12px;
+      width: 70px; height: 70px; margin: 0 auto 15px; border-radius: 12px;
       animation: logo-pop 0.5s 0.2s ease-out backwards;
   }
   @keyframes logo-pop {
       0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
       100% { transform: scale(1) rotate(0deg); opacity: 1; }
   }
-  .modal-content h2 {
-      margin: 0 0 10px;
-      font-size: 1.8rem;
-      color: var(--accent);
-      font-weight: 700;
-  }
-  .modal-content p {
-      margin: 0 0 25px;
-      color: var(--muted);
-      font-size: 1rem;
-  }
+  .modal-content h2 { margin: 0 0 10px; font-size: 1.8rem; color: var(--accent); font-weight: 700; }
+  .modal-content p { margin: 0 0 25px; color: var(--muted); font-size: 1rem; }
   .modal-content button {
       background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      border: none;
-      padding: 12px 30px;
-      border-radius: 8px;
-      color: #000;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s ease;
+      border: none; padding: 12px 30px; border-radius: 8px; color: #000;
+      font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;
   }
   .modal-content button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
+      transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);
+  }
+  .modal-content textarea {
+      width: 100%; height: 120px; background: #050505; border: 1px solid #222;
+      color: var(--text); border-radius: 8px; padding: 12px; font-family: 'Poppins', sans-serif;
+      font-size: 1rem; margin-bottom: 16px; resize: vertical;
+  }
+  .modal-content textarea:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,255,195,0.2);
+  }
+  .modal-actions { display: flex; gap: 10px; justify-content: center; }
+  .modal-actions button { flex: 1; }
+  .modal-actions button.secondary {
+      background: #222; color: var(--text);
+  }
+  .modal-actions button.secondary:hover {
+      background: #333; box-shadow: none;
   }
 
-  /* Mobile responsive styles */
-  @media(max-width:768px){
-    header { padding: 12px 16px; }
-    .logo-img { width: 36px; height: 36px; }
-    .username { font-size: 1.15rem; }
-    .profile-avatar { width: 40px; height: 40px; }
-    .profile-dropdown { top: 55px; }
 
-    .signin-card{
-      flex-direction:column;
-      align-items:stretch;
-      margin:16px;
-      padding:16px;
-    }
-    .signin-right{
-      width:100%;
-    }
-
-    main{
-      margin:12px;
-      padding:12px;
-    }
-
-    .info-blocks{
-      grid-template-columns:1fr;
-      gap:12px;
-    }
-
-    .tabs{
-      flex-direction:column;
-      gap:8px;
-    }
-    
-    table{
-      min-width:700px;
-    }
-  }
-
-  @media(max-width:480px){
-    header { padding: 10px 12px; }
-    .logo-img { width: 32px; height: 32px; }
-    .username { font-size: 1.05rem; }
-    .profile-avatar { width: 36px; height: 36px; }
-    .profile-dropdown { min-width: 200px; }
-    
-    .signin-card{
-      margin:12px;
-      padding:12px;
-    }
-    
-    main{
-      margin:8px;
-      padding:8px;
-    }
-
-    /* Mobile table optimization */
-    table {
-      min-width: 600px;
-    }
-
-    #welcomeOverlay{
-      left:10px;
-      right:10px;
-      transform:translateX(0) translateY(-10px);
-      max-width:calc(100% - 20px);
-    }
-    #welcomeOverlay.show{
-      transform:translateX(0) translateY(0);
-    }
-  }
-
-  /* Dark scrollbar */
-  ::-webkit-scrollbar{width:8px;height:8px}
-  ::-webkit-scrollbar-track{background:#111}
-  ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
-  ::-webkit-scrollbar-thumb:hover{background:#444}
+  /* Other styles from previous version */
+  .info-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:18px;}
+  @media (min-width: 650px) {.info-blocks.time-hidden {grid-template-columns: 1fr 1fr;}}
+  .info-block{background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #1a1a1a;transition: opacity 0.4s ease, transform 0.4s ease;}
+  .info-block.fade-out {opacity: 0;transform: translateY(-10px);pointer-events: none;}
+  .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent);font-weight:600;}
+  .tabs{display:flex;gap:10px;margin-bottom:16px;}
+  .tab{flex:1;background:var(--card-dark);padding:12px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid #1a1a1a;transition:all 0.2s ease;}
+  .tab:hover{background:#111;}
+  .tab.active{background:var(--accent);color:#000;font-weight:700;}
+  .form-section{display:none;background:var(--card-dark);padding:18px;border-radius:12px;border:1px solid #1a1a1a;}
+  .form-section.active{display:block;}
+  label{display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem;}
+  input,select{width:100%;padding:12px;border-radius:8px;background:#050505;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px;font-family:'Poppins',sans-serif;}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2);}
+  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:12px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:8px;font-size:1rem;transition: all 0.2s ease;}
+  button.primary:hover{transform: translateY(-2px);box-shadow: 0 4px 12px rgba(0, 255, 195, 0.3);}
+  .table-container{overflow-x:auto;margin-top:16px;border-radius:12px;border: 1px solid #1a1a1a;-webkit-overflow-scrolling: touch;}
+  table{width:100%;border-collapse:collapse;min-width:800px;}
+  th,td{padding:12px 8px;border-bottom:1px solid #222;text-align:left;white-space: nowrap;}
+  th{color:var(--accent);font-weight:700;font-size:0.9rem;background: rgba(255,255,255,0.02);}
+  td{font-size:0.85rem;}
+  td button{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;transition: all 0.2s ease;min-width: 60px;}
+  td button:hover{background:var(--danger-hover);}
+  #welcomeOverlay{position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;transition:opacity .4s ease, transform .4s ease;border: 1px solid rgba(255,255,255,0.1);}
+  #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  
+  @media(max-width:768px){header { padding: 12px 16px; }.logo-img { width: 36px; height: 36px; }.username { font-size: 1.15rem; }.profile-avatar { width: 40px; height: 40px; }.profile-dropdown { top: 55px; }.signin-card{flex-direction:column;align-items:stretch;margin:16px;padding:16px;}.signin-right{width:100%;}main{margin:12px;padding:12px;}.info-blocks{grid-template-columns:1fr;gap:12px;}.tabs{flex-direction:column;gap:8px;}table{min-width:700px;}}
+  @media(max-width:480px){header { padding: 10px 12px; }.logo-img { width: 32px; height: 32px; }.username { font-size: 1.05rem; }.profile-avatar { width: 36px; height: 36px; }.profile-dropdown { min-width: 200px; }.signin-card{margin:12px;padding:12px;}main{margin:8px;padding:8px;}table {min-width: 600px;}#welcomeOverlay{left:10px;right:10px;transform:translateX(0) translateY(-10px);max-width:calc(100% - 20px);}#welcomeOverlay.show{transform:translateX(0) translateY(0);}.feedback-btn span { display: none; } .feedback-btn { padding: 8px; }}
+  ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:#111} ::-webkit-scrollbar-thumb{background:#333;border-radius:4px} ::-webkit-scrollbar-thumb:hover{background:#444}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">
-    <img src="logo.png" alt="Rivava Logo" class="logo-img">
-    <div class="username">RIVAVA</div>
+  <div class="header-left">
+    <div class="brand">
+      <img src="logo.png" alt="Rivava Logo" class="logo-img">
+      <div class="username">RIVAVA</div>
+    </div>
+    <button id="feedbackBtn" class="feedback-btn" onclick="openFeedbackModal()" aria-label="Open Feedback Form">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <span>Feedback</span>
+    </button>
   </div>
   <div id="topUserArea">
-    <!-- User profile will be injected here by JavaScript -->
+    <!-- User profile will be injected here -->
   </div>
 </header>
 
@@ -538,18 +349,9 @@
 
 <main>
   <div class="info-blocks">
-    <div class="info-block" id="timeBlock">
-      Time
-      <span class="value" id="liveTime">--:--:-- --</span>
-    </div>
-    <div class="info-block" id="dateBlock">
-      Date
-      <span class="value" id="fixedDate">--/--/----</span>
-    </div>
-    <div class="info-block" id="totalExpenseBlock">
-      Total Expense
-      <span class="value" id="totalExpense">₹0</span>
-    </div>
+    <div class="info-block" id="timeBlock">Time<span class="value" id="liveTime">--:--:-- --</span></div>
+    <div class="info-block" id="dateBlock">Date<span class="value" id="fixedDate">--/--/----</span></div>
+    <div class="info-block" id="totalExpenseBlock">Total Expense<span class="value" id="totalExpense">₹0</span></div>
   </div>
 
   <div class="tabs">
@@ -559,13 +361,8 @@
 
   <div id="earning" class="form-section active">
     <label for="earningCategory">Category</label>
-    <select id="earningCategory" onchange="handleEarningCategoryChange()">
-      <option>Salary</option>
-      <option>Daily Earning</option>
-      <option>Other</option>
-    </select>
+    <select id="earningCategory" onchange="handleEarningCategoryChange()"><option>Salary</option><option>Daily Earning</option><option>Other</option></select>
     <input type="text" id="customEarningCategory" placeholder="Enter custom earning source" style="display:none;" />
-    
     <label for="earningAmount">Amount</label>
     <input type="number" id="earningAmount" placeholder="Enter earning amount" min="0" step="0.01" />
     <button class="primary" onclick="addEarning()">Add Earning</button>
@@ -573,45 +370,25 @@
 
   <div id="expense" class="form-section">
     <label for="expenseCategory">Category</label>
-    <select id="expenseCategory" onchange="handleCategoryChange()">
-      <option>Personal</option>
-      <option>Food</option>
-      <option>Transport</option>
-      <option>Shopping</option>
-      <option>Recharge and Bills</option>
-      <option>Entertainment</option>
-      <option>Other</option>
-    </select>
+    <select id="expenseCategory" onchange="handleCategoryChange()"><option>Personal</option><option>Food</option><option>Transport</option><option>Shopping</option><option>Recharge and Bills</option><option>Entertainment</option><option>Other</option></select>
     <input type="text" id="customCategory" placeholder="Enter custom category" style="display:none;" />
     <label for="expenseAmount">Amount</label>
     <input type="number" id="expenseAmount" placeholder="Enter expense amount" min="0" step="0.01" />
     <label for="paymentMethod">Payment Method</label>
-    <select id="paymentMethod">
-      <option>UPI</option>
-      <option>Cash</option>
-      <option>Credit Card</option>
-      <option>Bank Transfer</option>
-    </select>
+    <select id="paymentMethod"><option>UPI</option><option>Cash</option><option>Credit Card</option><option>Bank Transfer</option></select>
     <button class="primary" onclick="addExpense()">Add Expense</button>
   </div>
 
   <div class="table-container">
     <table id="dataTable" aria-label="Transactions table">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Amount</th>
-          <th>Category</th>
-          <th>Payment</th>
-          <th>Date</th>
-          <th>Time</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Type</th><th>Amount</th><th>Category</th><th>Payment</th><th>Date</th><th>Time</th><th>Action</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
-  <button id="submitBtn" class="primary" onclick="submitForm()">Submit</button>
+  <button id="submitBtn" class="primary" onclick="submitForm()">
+      <span class="btn-text">Submit</span>
+      <div class="spinner"></div>
+  </button>
 </main>
 
 <div id="welcomeOverlay" role="status" aria-live="polite">
@@ -628,6 +405,19 @@
     </div>
 </div>
 
+<div id="feedbackModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Submit Feedback</h2>
+        <p>We'd love to hear your thoughts on how we can improve!</p>
+        <textarea id="feedbackText" placeholder="Your feedback..."></textarea>
+        <div class="modal-actions">
+            <button class="secondary" onclick="closeFeedbackModal()">Cancel</button>
+            <button class="primary" onclick="submitFeedback()">Send Feedback</button>
+        </div>
+    </div>
+</div>
+
+
 <script>
 /* ----------------------
   CONFIG: Firebase & Google Client
@@ -643,377 +433,176 @@ const firebaseConfig = {
 };
 const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
 
-// Initialize Firebase
 let db;
 try {
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
+  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
   db = firebase.firestore();
   console.log("Firestore instance ready.");
-} catch (error) {
-  console.error("Error initializing Firebase:", error);
-}
+} catch (error) { console.error("Error initializing Firebase:", error); }
 
 /* ----------------------
-  HELPERS & UI
+  MODAL & UI HELPERS
   ---------------------- */
-function parseJwt(token){
-  try{
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c=>'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-    return JSON.parse(jsonPayload);
-  }catch(e){ return null; }
+function parseJwt(token){ try{ const base64Url = token.split('.')[1]; const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/'); const jsonPayload = decodeURIComponent(atob(base64).split('').map(c=>'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')); return JSON.parse(jsonPayload); }catch(e){ return null; } }
+function showWelcome(name, picture){ const ov = document.getElementById('welcomeOverlay'); const txt = document.getElementById('welcomeText'); const av = document.getElementById('welcomeAvatar'); txt.textContent = `Welcome, ${name}`; av.src = picture || ''; ov.classList.add('show'); setTimeout(()=> ov.classList.remove('show'), 2500); }
+function showSuccessModal() { document.getElementById('successModal').classList.add('show'); }
+function closeSuccessModal() { document.getElementById('successModal').classList.remove('show'); }
+function openFeedbackModal() { document.getElementById('feedbackModal').classList.add('show'); }
+function closeFeedbackModal() { document.getElementById('feedbackModal').classList.remove('show'); }
+
+async function submitFeedback() {
+    const feedbackText = document.getElementById('feedbackText').value.trim();
+    if (!feedbackText) return;
+
+    const stored = localStorage.getItem('rivava_user');
+    if (!stored) {
+        alert("You must be signed in to submit feedback.");
+        return;
+    }
+    const user = JSON.parse(stored);
+
+    const payload = {
+        userEmail: user.email,
+        feedback: feedbackText,
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const feedbackBtn = document.querySelector('#feedbackModal .primary');
+    feedbackBtn.classList.add('is-loading');
+    feedbackBtn.disabled = true;
+
+    try {
+        await db.collection('feedback').add(payload);
+        console.log("Feedback submitted successfully.");
+        document.getElementById('feedbackText').value = '';
+        closeFeedbackModal();
+        // Optionally, show a small "thank you" message
+    } catch (error) {
+        console.error("Error submitting feedback:", error);
+        alert("Sorry, there was an error submitting your feedback.");
+    } finally {
+        feedbackBtn.classList.remove('is-loading');
+        feedbackBtn.disabled = false;
+    }
 }
 
-function showWelcome(name, picture){
-  const ov = document.getElementById('welcomeOverlay');
-  const txt = document.getElementById('welcomeText');
-  const av = document.getElementById('welcomeAvatar');
-  txt.textContent = `Welcome, ${name}`;
-  av.src = picture || '';
-  ov.classList.add('show');
-  setTimeout(()=> ov.classList.remove('show'), 2500);
-}
 
+/* ----------------------
+  AUTH & USER UI
+  ---------------------- */
 function setSignedInUI(userObj, showWelcomeFlag){
   const topUserArea = document.getElementById('topUserArea');
   topUserArea.innerHTML = ''; 
-
   document.getElementById('signinCard').style.display = 'none';
+  document.getElementById('feedbackBtn').style.display = 'flex';
 
   const profileContainer = document.createElement('div');
   profileContainer.className = 'profile-container';
-
   const avatar = document.createElement('img');
   avatar.src = userObj.picture;
   avatar.alt = "Profile";
   avatar.className = 'profile-avatar';
-  avatar.onclick = () => {
-    document.getElementById('profileDropdown').classList.toggle('show');
-  };
-
+  avatar.onclick = () => { document.getElementById('profileDropdown').classList.toggle('show'); };
   const dropdown = document.createElement('div');
   dropdown.id = 'profileDropdown';
   dropdown.className = 'profile-dropdown';
-  dropdown.innerHTML = `
-    <div class="dropdown-header">
-      <div class="dropdown-name">${userObj.name}</div>
-      <div class="dropdown-email">${userObj.email}</div>
-    </div>
-    <button class="dropdown-signout" onclick="signOut()">Sign out</button>
-  `;
-  
+  dropdown.innerHTML = `<div class="dropdown-header"><div class="dropdown-name">${userObj.name}</div><div class="dropdown-email">${userObj.email}</div></div><button class="dropdown-signout" onclick="signOut()">Sign out</button>`;
   profileContainer.appendChild(avatar);
   profileContainer.appendChild(dropdown);
   topUserArea.appendChild(profileContainer);
-
   document.getElementById('g_id_signin_container').innerHTML = '';
+  if(showWelcomeFlag) { const firstName = userObj.name.split(' ')[0]; showWelcome(firstName, userObj.picture); }
+}
 
-  if(showWelcomeFlag) {
-    const firstName = userObj.name.split(' ')[0];
-    showWelcome(firstName, userObj.picture);
-  }
+function setSignedOutUI() {
+    document.getElementById('topUserArea').innerHTML = '';
+    document.getElementById('signinCard').style.display = 'flex';
+    document.getElementById('feedbackBtn').style.display = 'none';
+    if(window.google && google.accounts && google.accounts.id){ google.accounts.id.disableAutoSelect(); }
+    setTimeout(() => { renderSignIn(); }, 100);
+    document.querySelector("#dataTable tbody").innerHTML = '';
+    updateTotalExpense();
 }
 
 function signOut(){
   localStorage.removeItem('rivava_user');
-  
-  document.getElementById('topUserArea').innerHTML = '';
-  
-  const signinCard = document.getElementById('signinCard');
-  signinCard.style.display = 'flex';
-  
-  if(window.google && google.accounts && google.accounts.id){
-    google.accounts.id.disableAutoSelect();
-  }
-
-  setTimeout(() => {
-    renderSignIn();
-  }, 100);
-
-  document.querySelector("#dataTable tbody").innerHTML = '';
-  updateTotalExpense();
+  setSignedOutUI();
   console.log('User signed out successfully');
 }
 
-/* ----------------------
-  GOOGLE SIGN-IN (GSI)
-  ---------------------- */
 function renderSignIn(){
   const container = document.getElementById('g_id_signin_container');
   container.innerHTML = '';
-
   if(window.google && google.accounts && google.accounts.id){
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse,
-      auto_select: false,
-      ux_mode: 'popup'
-    });
-    google.accounts.id.renderButton(
-      container,
-      { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rounded', logo_alignment: 'left' }
-    );
-  } else {
-    setTimeout(renderSignIn, 300);
-  }
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: false, ux_mode: 'popup' });
+    google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rounded', logo_alignment: 'left' });
+  } else { setTimeout(renderSignIn, 300); }
 }
 
 function handleCredentialResponse(response){
   const payload = parseJwt(response.credential);
-  if(!payload || !payload.email){
-    console.error('Invalid ID token payload', payload);
-    return;
-  }
-  const user = {
-    name: payload.name,
-    email: payload.email,
-    picture: payload.picture,
-    token: response.credential,
-    sub: payload.sub
-  };
+  if(!payload || !payload.email){ console.error('Invalid ID token payload', payload); return; }
+  const user = { name: payload.name, email: payload.email, picture: payload.picture, token: response.credential, sub: payload.sub };
   localStorage.setItem('rivava_user', JSON.stringify(user));
   setSignedInUI(user, true);
 }
 
 /* ----------------------
-  INITIALIZATION & EVENT LISTENERS
+  INITIALIZATION
   ---------------------- */
 window.addEventListener('load', ()=> {
   setFixedDate();
   startLiveTime();
-
-  // PWA Service Worker Registration
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then(function(registration) {
-        console.log('Service Worker registered with scope:', registration.scope);
-      }).catch(function(error) {
-        console.log('Service Worker registration failed:', error);
-      });
-  }
-
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW registered!', reg)).catch(err => console.log('SW registration failed: ', err)); }
   const storedUser = localStorage.getItem('rivava_user');
-  if(storedUser){
-    try{
-      const user = JSON.parse(storedUser);
-      setSignedInUI(user, true); 
-    }catch(e){
-      console.warn('Failed to restore user session', e);
-      localStorage.removeItem('rivava_user');
-      renderSignIn();
-    }
-  } else {
-    renderSignIn();
-  }
+  if(storedUser){ try{ const user = JSON.parse(storedUser); setSignedInUI(user, false); } catch(e){ localStorage.removeItem('rivava_user'); setSignedOutUI(); } } 
+  else { setSignedOutUI(); }
 });
 
-window.addEventListener('click', function(event) {
-    const profileContainer = document.querySelector('.profile-container');
-    if (profileContainer && !profileContainer.contains(event.target)) {
-        const dropdown = document.getElementById('profileDropdown');
-        if (dropdown && dropdown.classList.contains('show')) {
-            dropdown.classList.remove('show');
-        }
-    }
-});
-
-const timeBlock = document.getElementById('timeBlock');
-const infoBlocksContainer = document.querySelector('.info-blocks');
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        timeBlock.classList.add('fade-out');
-        infoBlocksContainer.classList.add('time-hidden');
-    } else {
-        timeBlock.classList.remove('fade-out');
-        infoBlocksContainer.classList.remove('time-hidden');
-    }
-}, { passive: true });
-
+window.addEventListener('click', function(event) { const pc = document.querySelector('.profile-container'); if (pc && !pc.contains(event.target)) { const dd = document.getElementById('profileDropdown'); if (dd && dd.classList.contains('show')) { dd.classList.remove('show'); } } });
+const timeBlock = document.getElementById('timeBlock'); const infoBlocksContainer = document.querySelector('.info-blocks'); window.addEventListener('scroll', () => { if (window.scrollY > 50) { timeBlock.classList.add('fade-out'); infoBlocksContainer.classList.add('time-hidden'); } else { timeBlock.classList.remove('fade-out'); infoBlocksContainer.classList.remove('time-hidden'); } }, { passive: true });
 
 /* ----------------------
-  CORE APP LOGIC (Unchanged)
+  CORE APP LOGIC
   ---------------------- */
-function showTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
-  document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
-  document.getElementById(tab).classList.add('active');
-}
-
-function setFixedDate() {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, "0");
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const year = today.getFullYear();
-  document.getElementById("fixedDate").textContent = `${day}/${month}/${year}`;
-}
-
-function startLiveTime() {
-  const timeEl = document.getElementById("liveTime");
-  function update() {
-    const now = new Date();
-    let h = now.getHours();
-    const m = now.getMinutes().toString().padStart(2, "0");
-    const s = now.getSeconds().toString().padStart(2, "0");
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12;
-    h = h ? h : 12;
-    timeEl.textContent = `${h.toString().padStart(2, "0")}:${m}:${s} ${ampm}`;
-  }
-  update();
-  setInterval(update, 1000);
-}
-
+function showTab(tab) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active')); document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active'); document.getElementById(tab).classList.add('active'); }
+function setFixedDate() { const today = new Date(); const day = String(today.getDate()).padStart(2, "0"); const month = String(today.getMonth() + 1).padStart(2, "0"); const year = today.getFullYear(); document.getElementById("fixedDate").textContent = `${day}/${month}/${year}`; }
+function startLiveTime() { const timeEl = document.getElementById("liveTime"); function update() { const now = new Date(); let h = now.getHours(); const m = now.getMinutes().toString().padStart(2, "0"); const s = now.getSeconds().toString().padStart(2, "0"); const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12; h = h ? h : 12; timeEl.textContent = `${h.toString().padStart(2, "0")}:${m}:${s} ${ampm}`; } update(); setInterval(update, 1000); }
 const dataTableBody = document.querySelector("#dataTable tbody");
-
-function updateTotalExpense() {
-  let sum = 0;
-  dataTableBody.querySelectorAll("tr").forEach(row => {
-    if (row.cells[0].textContent === "Expense") {
-      const amt = parseFloat(row.cells[1].textContent);
-      if (!isNaN(amt)) sum += amt;
-    }
-  });
-  document.getElementById("totalExpense").textContent = `₹${sum.toFixed(2)}`;
-}
-
-function addRow(type, amount, category, payment, date, time) {
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${type}</td>
-    <td>${parseFloat(amount).toFixed(2)}</td>
-    <td>${category}</td>
-    <td>${payment}</td>
-    <td>${date}</td>
-    <td>${time}</td>
-    <td><button onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>
-  `;
-  dataTableBody.appendChild(row);
-  updateTotalExpense();
-}
-
-function deleteRow(button) {
-  button.closest("tr").remove();
-  updateTotalExpense();
-}
-
-function handleEarningCategoryChange() {
-    const categorySelect = document.getElementById("earningCategory");
-    const customInput = document.getElementById("customEarningCategory");
-    if (categorySelect.value === "Other") {
-        customInput.style.display = "block";
-        customInput.focus();
-    } else {
-        customInput.style.display = "none";
-        customInput.value = "";
-    }
-}
-
-function handleCategoryChange() {
-  const categorySelect = document.getElementById("expenseCategory");
-  const customInput = document.getElementById("customCategory");
-  if (categorySelect.value === "Other") {
-    customInput.style.display = "block";
-    customInput.focus();
-  } else {
-    customInput.style.display = "none";
-    customInput.value = "";
-  }
-}
-
-function addEarning() {
-  const amountInput = document.getElementById("earningAmount");
-  const amount = amountInput.value.trim();
-  if (!amount || Number(amount) <= 0) return;
-  
-  const categorySelect = document.getElementById("earningCategory");
-  let category = categorySelect.value;
-  if (category === "Other") {
-      const customCat = document.getElementById("customEarningCategory").value.trim();
-      if (!customCat) return;
-      category = customCat;
-  }
-
-  const date = document.getElementById("fixedDate").textContent;
-  const time = document.getElementById("liveTime").textContent;
-  addRow("Earning", amount, category, "-", date, time);
-  
-  amountInput.value = "";
-  if (categorySelect.value === "Other") {
-      document.getElementById("customEarningCategory").value = "";
-      handleEarningCategoryChange();
-      categorySelect.value = "Salary";
-  }
-}
-
-function addExpense() {
-  const amountInput = document.getElementById("expenseAmount");
-  const amount = amountInput.value.trim();
-  if (!amount || Number(amount) <= 0) return;
-
-  const categorySelect = document.getElementById("expenseCategory");
-  let category = categorySelect.value;
-  if (category === "Other") {
-    const customCat = document.getElementById("customCategory").value.trim();
-    if (!customCat) return;
-    category = customCat;
-  }
-
-  const payment = document.getElementById("paymentMethod").value;
-  const date = document.getElementById("fixedDate").textContent;
-  const time = document.getElementById("liveTime").textContent;
-  addRow("Expense", amount, category, payment, date, time);
-  
-  amountInput.value = "";
-  if (categorySelect.value === "Other") {
-    document.getElementById("customCategory").value = "";
-    handleCategoryChange();
-    categorySelect.value = "Personal";
-  }
-}
+function updateTotalExpense() { let sum = 0; dataTableBody.querySelectorAll("tr").forEach(row => { if (row.cells[0].textContent === "Expense") { const amt = parseFloat(row.cells[1].textContent); if (!isNaN(amt)) sum += amt; } }); document.getElementById("totalExpense").textContent = `₹${sum.toFixed(2)}`; }
+function addRow(type, amount, category, payment, date, time) { const row = document.createElement("tr"); row.innerHTML = `<td>${type}</td><td>${parseFloat(amount).toFixed(2)}</td><td>${category}</td><td>${payment}</td><td>${date}</td><td>${time}</td><td><button onclick="deleteRow(this)" aria-label="Delete this ${type.toLowerCase()} entry">Delete</button></td>`; dataTableBody.appendChild(row); updateTotalExpense(); }
+function deleteRow(button) { button.closest("tr").remove(); updateTotalExpense(); }
+function handleEarningCategoryChange() { const sel = document.getElementById("earningCategory"); const inp = document.getElementById("customEarningCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
+function handleCategoryChange() { const sel = document.getElementById("expenseCategory"); const inp = document.getElementById("customCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
+function addEarning() { const amountInput = document.getElementById("earningAmount"); const amount = amountInput.value.trim(); if (!amount || Number(amount) <= 0) return; const categorySelect = document.getElementById("earningCategory"); let category = categorySelect.value; if (category === "Other") { const customCat = document.getElementById("customEarningCategory").value.trim(); if (!customCat) return; category = customCat; } const date = document.getElementById("fixedDate").textContent; const time = document.getElementById("liveTime").textContent; addRow("Earning", amount, category, "-", date, time); amountInput.value = ""; if (categorySelect.value === "Other") { document.getElementById("customEarningCategory").value = ""; handleEarningCategoryChange(); categorySelect.value = "Salary"; } }
+function addExpense() { const amountInput = document.getElementById("expenseAmount"); const amount = amountInput.value.trim(); if (!amount || Number(amount) <= 0) return; const categorySelect = document.getElementById("expenseCategory"); let category = categorySelect.value; if (category === "Other") { const customCat = document.getElementById("customCategory").value.trim(); if (!customCat) return; category = customCat; } const payment = document.getElementById("paymentMethod").value; const date = document.getElementById("fixedDate").textContent; const time = document.getElementById("liveTime").textContent; addRow("Expense", amount, category, payment, date, time); amountInput.value = ""; if (categorySelect.value === "Other") { document.getElementById("customCategory").value = ""; handleCategoryChange(); categorySelect.value = "Personal"; } }
 
 async function submitForm() {
   if (dataTableBody.children.length === 0) return;
   const stored = localStorage.getItem('rivava_user');
-  if (!stored) return;
+  if (!stored) { alert("Please sign in to submit your data."); return; }
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.classList.add('is-loading');
+  submitBtn.disabled = true;
 
   const user = JSON.parse(stored);
-  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({
-    type: r.cells[0].textContent.trim(),
-    amount: parseFloat(r.cells[1].textContent.trim()),
-    category: r.cells[2].textContent.trim(),
-    payment: r.cells[3].textContent.trim(),
-    date: r.cells[4].textContent.trim(),
-    time: r.cells[5].textContent.trim()
-  }));
-
-  const payload = {
-    userEmail: user.email,
-    userName: user.name,
-    transactions: rows,
-    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({ type: r.cells[0].textContent.trim(), amount: parseFloat(r.cells[1].textContent.trim()), category: r.cells[2].textContent.trim(), payment: r.cells[3].textContent.trim(), date: r.cells[4].textContent.trim(), time: r.cells[5].textContent.trim() }));
+  const payload = { userEmail: user.email, userName: user.name, transactions: rows, submittedAt: firebase.firestore.FieldValue.serverTimestamp() };
 
   try {
-    const docRef = await db.collection('submissions').add(payload);
-    console.log("Data successfully written to Firebase with ID: ", docRef.id);
+    await db.collection('submissions').add(payload);
+    console.log("Data successfully written to Firebase.");
     showSuccessModal();
     dataTableBody.innerHTML = '';
     updateTotalExpense();
   } catch (error) {
     console.error("Error submitting data to Firebase:", error);
+    alert("There was an error saving your data. Please try again.");
+  } finally {
+    submitBtn.classList.remove('is-loading');
+    submitBtn.disabled = false;
   }
-}
-
-function showSuccessModal() {
-    document.getElementById('successModal').classList.add('show');
-}
-
-function closeSuccessModal() {
-    document.getElementById('successModal').classList.remove('show');
 }
 </script>
 
