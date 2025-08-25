@@ -46,7 +46,6 @@
             position: relative;
         }
 
-        /* --- NEW: Subtle, Brand-Colored Animated Background --- */
         .background-glow {
             position: absolute;
             top: 0;
@@ -96,7 +95,7 @@
         .login-container {
             text-align: center;
             padding: 40px;
-            background: rgba(13, 13, 13, 0.7); /* Refined Glassmorphism */
+            background: rgba(13, 13, 13, 0.7);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
@@ -151,7 +150,6 @@
             transform: translateY(-2px);
         }
 
-        /* --- Modal Styles (Consistent with index.html) --- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -206,7 +204,7 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
@@ -231,7 +229,7 @@
         .phone-input-container input {
             border-radius: 0 8px 8px 0;
         }
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 2px rgba(0,255,195,0.2);
@@ -262,14 +260,15 @@
             font-weight: 600;
         }
         
-        /* --- Fluid & Fast Welcome Animation --- */
+        /* --- UPDATED: Optimized Welcome Animation --- */
         #welcome-animation {
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(5px);
+            background: radial-gradient(circle at center, rgba(13,13,13,0.9) 0%, rgba(0,0,0,0.98) 100%);
+            backdrop-filter: blur(10px);
+            text-align: center;
         }
         .welcome-avatar-container {
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             opacity: 0;
             transform: scale(0.5);
             animation: avatar-pop 0.7s 0.1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
@@ -283,7 +282,7 @@
             animation: glow 2s infinite alternate 0.5s;
         }
         .welcome-avatar-initials {
-            display: none; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 700; color: var(--bg-dark);
+            display: none; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; color: var(--bg-dark);
         }
         @keyframes avatar-pop {
             to { opacity: 1; transform: scale(1); }
@@ -293,15 +292,35 @@
             to { box-shadow: 0 0 50px rgba(0, 255, 195, 0.5); }
         }
         .welcome-text {
-            font-size: 2rem; font-weight: 700; margin-top: 24px; opacity: 0; transform: translateY(20px);
+            font-size: 1.8rem; font-weight: 700; margin-top: 24px; opacity: 0; transform: translateY(20px);
             animation: text-fade-in 0.7s 0.4s ease-out forwards;
         }
         .welcome-sub-text {
-            font-size: 1.1rem; color: var(--muted); margin-top: 8px; opacity: 0; transform: translateY(20px);
+            font-size: 1rem; color: var(--muted); margin-top: 8px; opacity: 0; transform: translateY(20px);
             animation: text-fade-in 0.7s 0.6s ease-out forwards;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
         }
         @keyframes text-fade-in {
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- NEW: Mobile Optimization for Welcome Animation --- */
+        @media (min-width: 480px) {
+            .welcome-avatar-container {
+                width: 120px;
+                height: 120px;
+            }
+            .welcome-avatar-initials {
+                font-size: 3.5rem;
+            }
+            .welcome-text {
+                font-size: 2.2rem;
+            }
+            .welcome-sub-text {
+                font-size: 1.1rem;
+            }
         }
 
     </style>
@@ -322,10 +341,10 @@
         </div>
     </div>
 
-    <!-- Registration Modal for New Users -->
+    <!-- Registration Modal for New & Existing Users with missing info -->
     <div id="registrationModal" class="modal-overlay">
         <div class="modal-content registration-content">
-            <h2>Complete Your Profile</h2>
+            <h2 id="registration-title">Complete Your Profile</h2>
             <div class="form-group">
                 <label for="userNameInput">Full Name</label>
                 <input type="text" id="userNameInput" placeholder="Enter your full name">
@@ -336,6 +355,16 @@
                     <span class="phone-prefix">+91</span>
                     <input type="tel" id="phoneInput" placeholder="10-digit mobile number" maxlength="10">
                 </div>
+            </div>
+            <!-- NEW: Gender Selection -->
+            <div class="form-group">
+                <label for="genderInput">Gender</label>
+                <select id="genderInput">
+                    <option value="" disabled selected>Select your gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
             <button onclick="completeRegistration()">Save & Continue</button>
             <p id="error-message"></p>
@@ -383,7 +412,7 @@
 
         async function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
-            if (!payload || !payload.email) {
+            if (!payload) {
                 console.error("Invalid login response");
                 return;
             }
@@ -400,24 +429,36 @@
             const userRef = db.collection('users').doc(currentUserData.sub);
             const userDoc = await userRef.get();
 
-            if (!userDoc.exists) {
+            if (userDoc.exists) {
+                const data = userDoc.data();
+                if (!data.phone || !data.gender) {
+                    document.getElementById('registration-title').textContent = "Update Your Profile";
+                    document.getElementById('userNameInput').value = data.name || currentUserData.name;
+                    if (data.phone) {
+                         document.getElementById('phoneInput').value = data.phone.replace('+91', '');
+                    }
+                    document.getElementById('registrationModal').classList.add('show');
+                } else {
+                    const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                    userRef.update({ lastLogin: serverTimestamp }); 
+                    localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
+                    window.location.href = './index.html';
+                }
+            } else {
+                document.getElementById('registration-title').textContent = "Complete Your Profile";
                 document.getElementById('userNameInput').value = currentUserData.name;
                 document.getElementById('registrationModal').classList.add('show');
-            } else {
-                const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                userRef.update({ lastLogin: serverTimestamp }); 
-                localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
-                window.location.href = './index.html';
             }
         }
 
         async function completeRegistration() {
             const name = document.getElementById('userNameInput').value.trim();
             const phone = document.getElementById('phoneInput').value.trim();
+            const gender = document.getElementById('genderInput').value;
             const errorMessage = document.getElementById('error-message');
 
-            if (!name || !/^\d{10}$/.test(phone)) {
-                errorMessage.textContent = "Please enter a valid name and 10-digit mobile number.";
+            if (!name || !/^\d{10}$/.test(phone) || !gender) {
+                errorMessage.textContent = "Please fill out all fields correctly.";
                 errorMessage.style.display = 'block';
                 return;
             }
@@ -425,19 +466,27 @@
 
             currentUserData.name = name;
             currentUserData.phone = `+91${phone}`;
+            currentUserData.gender = gender;
 
             const userRef = db.collection('users').doc(currentUserData.sub);
             const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
 
+            const dataToSave = {
+                name: currentUserData.name,
+                email: currentUserData.email,
+                picture: currentUserData.picture,
+                phone: currentUserData.phone,
+                gender: currentUserData.gender,
+                lastLogin: serverTimestamp
+            };
+
             try {
-                await userRef.set({
-                    name: currentUserData.name,
-                    email: currentUserData.email,
-                    picture: currentUserData.picture,
-                    phone: currentUserData.phone,
-                    createdAt: serverTimestamp,
-                    lastLogin: serverTimestamp
-                });
+                await userRef.set(dataToSave, { merge: true });
+
+                const userDoc = await userRef.get();
+                if (!userDoc.data().createdAt) {
+                    await userRef.update({ createdAt: serverTimestamp });
+                }
 
                 document.getElementById('registrationModal').classList.remove('show');
                 showWelcomeAnimation(currentUserData);
