@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         :root {
@@ -142,13 +141,6 @@
             color: var(--muted);
             margin-bottom: 30px;
         }
-        .error-message {
-            color: var(--danger);
-            font-size: 0.85rem;
-            min-height: 1.2em;
-            display: none;
-            margin-top: 5px;
-        }
         #g_id_signin_container {
             display: inline-block;
             transition: transform 0.2s ease;
@@ -266,11 +258,19 @@
             transform: none;
             box-shadow: none;
         }
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            min-height: 1.2em;
+            display: none;
+            margin-top: 5px;
+        }
         #general-error-message {
             text-align: center;
             margin-top: 15px;
         }
         
+        /* --- NEW WELCOME ANIMATION STYLES --- */
         #welcome-animation {
             background: radial-gradient(circle at center, #0d0d0d 0%, #000000 100%);
             flex-direction: column;
@@ -295,12 +295,20 @@
         @keyframes welcome-pop-in {
             to { opacity: 1; transform: scale(1); }
         }
-        #welcomeAvatar {
+        .welcome-avatar, .welcome-avatar-initials {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             border: 4px solid var(--accent);
             box-shadow: 0 0 25px var(--accent-glow);
+        }
+        .welcome-avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #000;
         }
         .welcome-checkmark {
             position: absolute;
@@ -366,8 +374,6 @@
             <h1>Welcome to Rivava</h1>
             <p>Sign in to begin your financial journey.</p>
             <div id="g_id_signin_container"></div>
-            <!-- FIX: Added a dedicated element for login error messages -->
-            <p id="login-error-message" class="error-message"></p>
         </div>
     </div>
 
@@ -400,15 +406,11 @@
         </div>
     </div>
 
+    <!-- Redesigned Welcome Animation -->
     <div id="welcome-animation" class="modal-overlay">
         <div class="welcome-content">
-            <div class="welcome-avatar-wrapper">
-                <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
-                <div class="welcome-checkmark">
-                    <svg viewBox="0 0 52 52">
-                        <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                    </svg>
-                </div>
+            <div class="welcome-avatar-wrapper" id="welcomeAvatarContainer">
+                <!-- Avatar will be inserted here by script -->
             </div>
             <div class="welcome-text-container">
                 <div id="welcomeText"></div>
@@ -418,26 +420,32 @@
     </div>
 
     <script>
-        // --- Firebase Configuration ---
         const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
         const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
         
-        // --- Global Variables ---
-        let db, auth;
+        let db;
+        let currentUserData = null;
         let phoneCheckTimeout;
 
-        // --- Firebase Initialization ---
         try {
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
             db = firebase.firestore();
-            auth = firebase.auth();
         } catch (error) {
-            console.error("Firebase Initialization Error:", error);
+            console.error("Firebase Init Error:", error);
         }
 
-        // --- Utility Functions ---
+        // --- UTILITY FUNCTIONS ---
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) { return null; }
+        }
+
         function debounce(func, delay) {
             return function(...args) {
                 clearTimeout(phoneCheckTimeout);
@@ -445,36 +453,51 @@
             };
         }
 
-        // --- Core Authentication Flow ---
-
-        async function onUserAuthenticated(firebaseUser) {
-            if (!firebaseUser) return;
+        // --- CORE LOGIC ---
+        async function handleCredentialResponse(response) {
+            const payload = parseJwt(response.credential);
+            if (!payload) {
+                console.error("Invalid login response");
+                return;
+            }
+            
+            currentUserData = {
+                name: payload.name,
+                email: payload.email,
+                picture: payload.picture,
+                sub: payload.sub
+            };
 
             document.getElementById('loginContainer').classList.add('hidden');
-            const userRef = db.collection('users').doc(firebaseUser.uid);
+
+            const userRef = db.collection('users').doc(currentUserData.sub);
 
             try {
                 const userDoc = await userRef.get();
                 
-                if (userDoc.exists()) {
+                if (userDoc.exists) {
                     const userData = userDoc.data();
                     if (userData.phone && userData.gender) {
                         userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                        
-                        const fullUserData = {
-                            uid: firebaseUser.uid,
-                            displayName: userData.name,
-                            email: firebaseUser.email,
-                            photoURL: userData.picture,
-                            ...userData
-                        };
-                        localStorage.setItem('rivava_user', JSON.stringify(fullUserData));
+                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
                         window.location.href = './index.html';
-                    } else {
-                        showRegistrationModal(firebaseUser, userData);
+                    } 
+                    else {
+                        document.getElementById('registration-title').textContent = "Update Your Profile";
+                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
+                        if (userData.phone) {
+                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
+                        }
+                        if(userData.gender) {
+                            document.getElementById('genderInput').value = userData.gender;
+                        }
+                        document.getElementById('registrationModal').classList.add('show');
                     }
-                } else {
-                    showRegistrationModal(firebaseUser);
+                } 
+                else {
+                    document.getElementById('registration-title').textContent = "Complete Your Profile";
+                    document.getElementById('userNameInput').value = currentUserData.name;
+                    document.getElementById('registrationModal').classList.add('show');
                 }
             } catch (error) {
                 console.error("Error checking user document:", error);
@@ -484,143 +507,22 @@
             }
         }
 
-        /**
-         * FIX: Improved error handling for Google Sign-In.
-         * - Removed alert().
-         * - Added specific error logging to the console for debugging.
-         * - Displays a user-friendly message on the page.
-         */
-        function handleGoogleSignIn(response) {
-            const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
-            const loginErrorMsg = document.getElementById('login-error-message');
-            
-            auth.signInWithCredential(credential).catch((error) => {
-                // Log detailed error information to the console
-                console.error("Firebase sign-in error:", error.code, error.message);
-                
-                // Display a helpful message to the user
-                loginErrorMsg.textContent = "Sign-in failed. Please check console for details.";
-                loginErrorMsg.style.display = 'block';
-                
-                document.getElementById('loginContainer').classList.remove('hidden');
-            });
-        }
-
-        // --- UI Functions ---
-
-        function showRegistrationModal(firebaseUser, existingData = {}) {
-            document.getElementById('registration-title').textContent = existingData.phone ? "Update Your Profile" : "Complete Your Profile";
-            document.getElementById('userNameInput').value = existingData.name || firebaseUser.displayName || '';
-            document.getElementById('phoneInput').value = existingData.phone ? existingData.phone.replace('+91', '') : '';
-            document.getElementById('genderInput').value = existingData.gender || '';
-            document.getElementById('registrationModal').classList.add('show');
-        }
-
-        async function completeRegistration() {
-            const name = document.getElementById('userNameInput').value.trim();
-            const phone = document.getElementById('phoneInput').value.trim();
-            const gender = document.getElementById('genderInput').value;
-            const generalErrorMsg = document.getElementById('general-error-message');
-            const submitBtn = document.getElementById('completeRegistrationBtn');
-            const currentUser = auth.currentUser;
-
-            if (!currentUser) {
-                generalErrorMsg.textContent = "Authentication error. Please sign in again.";
-                generalErrorMsg.style.display = 'block';
-                return;
-            }
-
-            if (!name || !/^\d{10}$/.test(phone) || !gender) {
-                generalErrorMsg.textContent = "Please fill out all fields correctly.";
-                generalErrorMsg.style.display = 'block';
-                return;
-            }
-            generalErrorMsg.style.display = 'none';
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
-
-            const userRef = db.collection('users').doc(currentUser.uid);
-            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-            const pictureUrl = currentUser.photoURL 
-                ? currentUser.photoURL 
-                : `https://placehold.co/120x120/0d0d0d/00ffc3?text=${name.charAt(0).toUpperCase()}`;
-
-            const dataToSave = {
-                name: name,
-                email: currentUser.email,
-                picture: pictureUrl,
-                phone: `+91${phone}`,
-                gender: gender,
-                lastLogin: serverTimestamp
-            };
-
-            try {
-                const userDoc = await userRef.get();
-                if (!userDoc.exists) {
-                    dataToSave.createdAt = serverTimestamp;
-                }
-                
-                await userRef.set(dataToSave, { merge: true });
-
-                const finalUserData = { 
-                    uid: currentUser.uid,
-                    displayName: dataToSave.name,
-                    email: dataToSave.email,
-                    photoURL: dataToSave.picture,
-                    ...dataToSave 
-                };
-
-                document.getElementById('registrationModal').classList.remove('show');
-                showWelcomeAnimation(finalUserData);
-
-                setTimeout(() => {
-                    localStorage.setItem('rivava_user', JSON.stringify(finalUserData));
-                    window.location.href = './index.html';
-                }, 3000);
-
-            } catch (error) {
-                console.error("Registration Error:", error);
-                generalErrorMsg.textContent = "Could not save details. Please try again.";
-                generalErrorMsg.style.display = 'block';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Save & Continue';
-            }
-        }
-
-        function showWelcomeAnimation(user) {
-            const welcomeAnimation = document.getElementById('welcome-animation');
-            const welcomeAvatarImg = document.getElementById('welcomeAvatar');
-            const userName = user.displayName || user.name;
-            
-            welcomeAvatarImg.src = user.photoURL;
-            welcomeAvatarImg.onerror = () => {
-                welcomeAvatarImg.src = `https://placehold.co/120x120/0d0d0d/00ffc3?text=${userName.charAt(0).toUpperCase()}`;
-            };
-
-            document.getElementById('welcomeText').textContent = `Welcome, ${userName.split(' ')[0]}!`;
-            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
-            welcomeAnimation.classList.add('show');
-        }
-        
         async function checkPhoneNumber(phone) {
             const phoneErrorMsg = document.getElementById('phone-error-message');
             const submitBtn = document.getElementById('completeRegistrationBtn');
-            const currentUser = auth.currentUser;
+            const formattedPhone = `+91${phone}`;
 
-            if (!currentUser || phone.length !== 10) {
+            if (phone.length !== 10) {
                 phoneErrorMsg.style.display = 'none';
                 submitBtn.disabled = false;
                 return;
             }
 
-            const formattedPhone = `+91${phone}`;
             try {
                 const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
                 if (!querySnapshot.empty) {
                     const doc = querySnapshot.docs[0];
-                    if (doc.id !== currentUser.uid) {
+                    if (doc.id !== currentUserData.sub) {
                         phoneErrorMsg.textContent = "This number is already registered.";
                         phoneErrorMsg.style.display = 'block';
                         submitBtn.disabled = true;
@@ -640,27 +542,106 @@
             }
         }
 
-        // --- Page Initialization ---
+        async function completeRegistration() {
+            const name = document.getElementById('userNameInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            const gender = document.getElementById('genderInput').value;
+            const generalErrorMsg = document.getElementById('general-error-message');
+            const submitBtn = document.getElementById('completeRegistrationBtn');
+
+            if (!name || !/^\d{10}$/.test(phone) || !gender) {
+                generalErrorMsg.textContent = "Please fill out all fields correctly.";
+                generalErrorMsg.style.display = 'block';
+                return;
+            }
+            generalErrorMsg.style.display = 'none';
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            const userRef = db.collection('users').doc(currentUserData.sub);
+            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+            const dataToSave = {
+                name: name,
+                email: currentUserData.email,
+                picture: currentUserData.picture || null,
+                phone: `+91${phone}`,
+                gender: gender,
+                lastLogin: serverTimestamp
+            };
+
+            const userDoc = await userRef.get();
+            if (!userDoc.exists) {
+                dataToSave.createdAt = serverTimestamp;
+            }
+
+            try {
+                await userRef.set(dataToSave, { merge: true });
+                currentUserData = {...currentUserData, ...dataToSave};
+                document.getElementById('registrationModal').classList.remove('show');
+                showWelcomeAnimation(currentUserData);
+
+                setTimeout(() => {
+                    localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
+                    window.location.href = './index.html';
+                }, 3000);
+
+            } catch (error) {
+                console.error("Registration Error:", error);
+                generalErrorMsg.textContent = "Could not save details. Please try again.";
+                generalErrorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save & Continue';
+            }
+        }
+
+        function showWelcomeAnimation(user) {
+            const welcomeAnimation = document.getElementById('welcome-animation');
+            const avatarContainer = document.getElementById('welcomeAvatarContainer');
+            
+            let avatarHTML;
+            if (user.picture) {
+                avatarHTML = `<img src="${user.picture}" alt="User Avatar" class="welcome-avatar">`;
+            } else {
+                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+                const colors = ['#00ffc3', '#ff6b6b', '#4d94ff', '#feca57', '#ff9ff3'];
+                const color = colors[Math.abs(initial.charCodeAt(0) - 65) % colors.length];
+                avatarHTML = `<div class="welcome-avatar-initials" style="background-color: ${color};">${initial}</div>`;
+            }
+            
+            avatarContainer.innerHTML = avatarHTML + `
+                <div class="welcome-checkmark">
+                    <svg viewBox="0 0 52 52">
+                        <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>`;
+
+            document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
+            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
+            welcomeAnimation.classList.add('show');
+        }
+        
+        // --- EVENT LISTENERS ---
         window.onload = function () {
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    onUserAuthenticated(user);
-                } else {
-                    if (window.google?.accounts?.id) {
-                        google.accounts.id.initialize({
-                            client_id: GOOGLE_CLIENT_ID,
-                            callback: handleGoogleSignIn
-                        });
-                        google.accounts.id.renderButton(
-                            document.getElementById('g_id_signin_container'),
-                            { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
-                        );
-                    } else {
-                        console.warn("Google GSI client not loaded, retrying...");
-                        setTimeout(window.onload, 300);
-                    }
-                }
-            });
+            if(localStorage.getItem('rivava_user')) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            if (window.google?.accounts?.id) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('g_id_signin_container'),
+                    { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
+                );
+            } else {
+                console.warn("Google GSI client not loaded, retrying...");
+                setTimeout(window.onload, 300);
+            }
 
             const phoneInput = document.getElementById('phoneInput');
             phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 500));
