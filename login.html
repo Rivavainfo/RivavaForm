@@ -382,7 +382,7 @@
         
         let db;
         let currentUserData = null;
-        let isNewUser = false; // Flag to track if the user is new
+        let isNewUser = false;
 
         try {
             if (!firebase.apps.length) {
@@ -478,13 +478,13 @@
                 lastLogin: serverTimestamp
             };
 
-            // --- FIXED: Simplified and corrected save logic ---
             if (isNewUser) {
                 dataToSave.createdAt = serverTimestamp;
             }
 
             try {
-                // set with merge will create or update the document safely.
+                // --- FIXED: This single command will create a new document OR
+                // update an existing one without overwriting fields. ---
                 await userRef.set(dataToSave, { merge: true });
 
                 document.getElementById('registrationModal').classList.remove('show');
