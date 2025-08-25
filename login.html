@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         :root {
@@ -270,7 +271,6 @@
             margin-top: 15px;
         }
         
-        /* --- NEW WELCOME ANIMATION STYLES --- */
         #welcome-animation {
             background: radial-gradient(circle at center, #0d0d0d 0%, #000000 100%);
             flex-direction: column;
@@ -398,7 +398,6 @@
         </div>
     </div>
 
-    <!-- Redesigned Welcome Animation -->
     <div id="welcome-animation" class="modal-overlay">
         <div class="welcome-content">
             <div class="welcome-avatar-wrapper">
@@ -417,32 +416,26 @@
     </div>
 
     <script>
+        // --- Firebase Configuration ---
         const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
         const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
         
-        let db;
-        let currentUserData = null;
+        // --- Global Variables ---
+        let db, auth;
         let phoneCheckTimeout;
 
+        // --- Firebase Initialization ---
         try {
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
             db = firebase.firestore();
+            auth = firebase.auth();
         } catch (error) {
-            console.error("Firebase Init Error:", error);
+            console.error("Firebase Initialization Error:", error);
         }
 
-        // --- UTILITY FUNCTIONS ---
-        function parseJwt(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) { return null; }
-        }
-
+        // --- Utility Functions ---
         function debounce(func, delay) {
             return function(...args) {
                 clearTimeout(phoneCheckTimeout);
@@ -450,55 +443,45 @@
             };
         }
 
-        // --- CORE LOGIC ---
-        async function handleCredentialResponse(response) {
-            const payload = parseJwt(response.credential);
-            if (!payload) {
-                console.error("Invalid login response");
-                return;
-            }
-            
-            currentUserData = {
-                name: payload.name,
-                email: payload.email,
-                picture: payload.picture,
-                sub: payload.sub
-            };
+        // --- Core Authentication Flow ---
+
+        /**
+         * Main handler for authenticated users. Checks if their profile is complete in Firestore.
+         * @param {firebase.User} firebaseUser - The authenticated user object from Firebase.
+         */
+        async function onUserAuthenticated(firebaseUser) {
+            if (!firebaseUser) return;
 
             document.getElementById('loginContainer').classList.add('hidden');
-
-            const userRef = db.collection('users').doc(currentUserData.sub);
+            const userRef = db.collection('users').doc(firebaseUser.uid);
 
             try {
-                const userDoc = await userRef.get();
+                const userDoc = await userDoc.get();
                 
-                // Scenario 1: User profile exists in the 'users' collection
                 if (userDoc.exists) {
                     const userData = userDoc.data();
-                    // Scenario 1a: Profile is complete -> Redirect to app
+                    // User exists, check for profile completion
                     if (userData.phone && userData.gender) {
+                        // Profile is complete, proceed to the main app
                         userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
+                        
+                        // Create a comprehensive user object for local storage
+                        const fullUserData = {
+                            uid: firebaseUser.uid,
+                            displayName: userData.name,
+                            email: firebaseUser.email,
+                            photoURL: userData.picture,
+                            ...userData
+                        };
+                        localStorage.setItem('rivava_user', JSON.stringify(fullUserData));
                         window.location.href = './index.html';
-                    } 
-                    // Scenario 1b: Profile is incomplete -> Show update modal
-                    else {
-                        document.getElementById('registration-title').textContent = "Update Your Profile";
-                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
-                        if (userData.phone) {
-                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
-                        }
-                        if(userData.gender) {
-                            document.getElementById('genderInput').value = userData.gender;
-                        }
-                        document.getElementById('registrationModal').classList.add('show');
+                    } else {
+                        // Profile is incomplete, show modal to update details
+                        showRegistrationModal(firebaseUser, userData);
                     }
-                } 
-                // Scenario 2: User profile does NOT exist -> Treat as a new user needing to complete their profile
-                else {
-                    document.getElementById('registration-title').textContent = "Complete Your Profile";
-                    document.getElementById('userNameInput').value = currentUserData.name;
-                    document.getElementById('registrationModal').classList.add('show');
+                } else {
+                    // This is a new user, show modal to complete profile
+                    showRegistrationModal(firebaseUser);
                 }
             } catch (error) {
                 console.error("Error checking user document:", error);
@@ -508,22 +491,154 @@
             }
         }
 
+        /**
+         * Handles the credential response from Google Sign-In and uses it to authenticate with Firebase.
+         * @param {Object} response - The credential response from Google.
+         */
+        function handleGoogleSignIn(response) {
+            const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+            
+            auth.signInWithCredential(credential).catch((error) => {
+                console.error("Firebase sign-in error:", error);
+                alert("Could not sign in with Google. Please try again.");
+                document.getElementById('loginContainer').classList.remove('hidden');
+            });
+        }
+
+        // --- UI Functions ---
+
+        /**
+         * Displays the registration modal, pre-filling any existing data.
+         * @param {firebase.User} firebaseUser - The authenticated user object.
+         * @param {Object} [existingData={}] - Existing user data from Firestore.
+         */
+        function showRegistrationModal(firebaseUser, existingData = {}) {
+            document.getElementById('registration-title').textContent = existingData.phone ? "Update Your Profile" : "Complete Your Profile";
+            document.getElementById('userNameInput').value = existingData.name || firebaseUser.displayName || '';
+            document.getElementById('phoneInput').value = existingData.phone ? existingData.phone.replace('+91', '') : '';
+            document.getElementById('genderInput').value = existingData.gender || '';
+            document.getElementById('registrationModal').classList.add('show');
+        }
+
+        /**
+         * Validates and saves user profile details to Firestore.
+         */
+        async function completeRegistration() {
+            const name = document.getElementById('userNameInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            const gender = document.getElementById('genderInput').value;
+            const generalErrorMsg = document.getElementById('general-error-message');
+            const submitBtn = document.getElementById('completeRegistrationBtn');
+            const currentUser = auth.currentUser;
+
+            if (!currentUser) {
+                generalErrorMsg.textContent = "Authentication error. Please sign in again.";
+                generalErrorMsg.style.display = 'block';
+                return;
+            }
+
+            if (!name || !/^\d{10}$/.test(phone) || !gender) {
+                generalErrorMsg.textContent = "Please fill out all fields correctly.";
+                generalErrorMsg.style.display = 'block';
+                return;
+            }
+            generalErrorMsg.style.display = 'none';
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            const userRef = db.collection('users').doc(currentUser.uid);
+            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+            // Ensure a valid picture URL is always available, preventing 'undefined' errors.
+            const pictureUrl = currentUser.photoURL 
+                ? currentUser.photoURL 
+                : `https://placehold.co/120x120/0d0d0d/00ffc3?text=${name.charAt(0).toUpperCase()}`;
+
+            const dataToSave = {
+                name: name,
+                email: currentUser.email,
+                picture: pictureUrl,
+                phone: `+91${phone}`,
+                gender: gender,
+                lastLogin: serverTimestamp
+            };
+
+            try {
+                const userDoc = await userRef.get();
+                if (!userDoc.exists) {
+                    dataToSave.createdAt = serverTimestamp;
+                }
+                
+                await userRef.set(dataToSave, { merge: true });
+
+                // Prepare the final user object for the welcome animation and local storage
+                const finalUserData = { 
+                    uid: currentUser.uid,
+                    displayName: dataToSave.name,
+                    email: dataToSave.email,
+                    photoURL: dataToSave.picture,
+                    ...dataToSave 
+                };
+
+                document.getElementById('registrationModal').classList.remove('show');
+                showWelcomeAnimation(finalUserData);
+
+                // Redirect to the main app after the animation
+                setTimeout(() => {
+                    localStorage.setItem('rivava_user', JSON.stringify(finalUserData));
+                    window.location.href = './index.html';
+                }, 3000);
+
+            } catch (error) {
+                console.error("Registration Error:", error);
+                generalErrorMsg.textContent = "Could not save details. Please try again.";
+                generalErrorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save & Continue';
+            }
+        }
+
+        /**
+         * Displays the welcome animation with the user's details.
+         * @param {Object} user - The final user data object.
+         */
+        function showWelcomeAnimation(user) {
+            const welcomeAnimation = document.getElementById('welcome-animation');
+            const welcomeAvatarImg = document.getElementById('welcomeAvatar');
+            const userName = user.displayName || user.name;
+            
+            welcomeAvatarImg.src = user.photoURL; // This is now guaranteed to be a valid URL
+            welcomeAvatarImg.onerror = () => { // Fallback just in case the image fails to load
+                welcomeAvatarImg.src = `https://placehold.co/120x120/0d0d0d/00ffc3?text=${userName.charAt(0).toUpperCase()}`;
+            };
+
+            document.getElementById('welcomeText').textContent = `Welcome, ${userName.split(' ')[0]}!`;
+            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
+            welcomeAnimation.classList.add('show');
+        }
+        
+        /**
+         * Checks if a phone number is already registered to another user.
+         * @param {string} phone - The 10-digit phone number to check.
+         */
         async function checkPhoneNumber(phone) {
             const phoneErrorMsg = document.getElementById('phone-error-message');
             const submitBtn = document.getElementById('completeRegistrationBtn');
-            const formattedPhone = `+91${phone}`;
+            const currentUser = auth.currentUser;
 
-            if (phone.length !== 10) {
+            if (!currentUser || phone.length !== 10) {
                 phoneErrorMsg.style.display = 'none';
                 submitBtn.disabled = false;
                 return;
             }
 
+            const formattedPhone = `+91${phone}`;
             try {
                 const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
                 if (!querySnapshot.empty) {
                     const doc = querySnapshot.docs[0];
-                    if (doc.id !== currentUserData.sub) {
+                    if (doc.id !== currentUser.uid) {
                         phoneErrorMsg.textContent = "This number is already registered.";
                         phoneErrorMsg.style.display = 'block';
                         submitBtn.disabled = true;
@@ -543,100 +658,32 @@
             }
         }
 
-        async function completeRegistration() {
-            const name = document.getElementById('userNameInput').value.trim();
-            const phone = document.getElementById('phoneInput').value.trim();
-            const gender = document.getElementById('genderInput').value;
-            const generalErrorMsg = document.getElementById('general-error-message');
-            const submitBtn = document.getElementById('completeRegistrationBtn');
-
-            if (!name || !/^\d{10}$/.test(phone) || !gender) {
-                generalErrorMsg.textContent = "Please fill out all fields correctly.";
-                generalErrorMsg.style.display = 'block';
-                return;
-            }
-            generalErrorMsg.style.display = 'none';
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
-
-            const userRef = db.collection('users').doc(currentUserData.sub);
-            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-            const dataToSave = {
-                name: name,
-                email: currentUserData.email,
-                picture: currentUserData.picture,
-                phone: `+91${phone}`,
-                gender: gender,
-                lastLogin: serverTimestamp
-            };
-
-            // Add createdAt timestamp ONLY if the document does not exist yet
-            const userDoc = await userRef.get();
-            if (!userDoc.exists) {
-                dataToSave.createdAt = serverTimestamp;
-            }
-
-            try {
-                // set with merge:true is the perfect command here. 
-                // It creates the document if it's missing, or updates it if it exists.
-                await userRef.set(dataToSave, { merge: true });
-
-                currentUserData = {...currentUserData, ...dataToSave};
-
-                document.getElementById('registrationModal').classList.remove('show');
-                showWelcomeAnimation(currentUserData);
-
-                setTimeout(() => {
-                    localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
-                    window.location.href = './index.html';
-                }, 3000);
-
-            } catch (error) {
-                console.error("Registration Error:", error);
-                generalErrorMsg.textContent = "Could not save details. Please try again.";
-                generalErrorMsg.style.display = 'block';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Save & Continue';
-            }
-        }
-
-        function showWelcomeAnimation(user) {
-            const welcomeAnimation = document.getElementById('welcome-animation');
-            const welcomeAvatarImg = document.getElementById('welcomeAvatar');
-            
-            welcomeAvatarImg.src = user.picture || `https://placehold.co/120x120/0d0d0d/00ffc3?text=${user.name.charAt(0).toUpperCase()}`;
-            welcomeAvatarImg.onerror = () => {
-                welcomeAvatarImg.src = `https://placehold.co/120x120/0d0d0d/00ffc3?text=${user.name.charAt(0).toUpperCase()}`;
-            };
-
-            document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
-            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
-            welcomeAnimation.classList.add('show');
-        }
-        
-        // --- EVENT LISTENERS ---
+        // --- Page Initialization ---
         window.onload = function () {
-            if(localStorage.getItem('rivava_user')) {
-                window.location.href = './index.html';
-                return;
-            }
+            // The primary listener for authentication state changes.
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // If a user is logged in, start the profile check flow.
+                    onUserAuthenticated(user);
+                } else {
+                    // If no user is logged in, render the Google Sign-In button.
+                    if (window.google?.accounts?.id) {
+                        google.accounts.id.initialize({
+                            client_id: GOOGLE_CLIENT_ID,
+                            callback: handleGoogleSignIn
+                        });
+                        google.accounts.id.renderButton(
+                            document.getElementById('g_id_signin_container'),
+                            { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
+                        );
+                    } else {
+                        console.warn("Google GSI client not loaded, retrying...");
+                        setTimeout(window.onload, 300); // Retry initialization
+                    }
+                }
+            });
 
-            if (window.google?.accounts?.id) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse
-                });
-                google.accounts.id.renderButton(
-                    document.getElementById('g_id_signin_container'),
-                    { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
-                );
-            } else {
-                console.warn("Google GSI client not loaded, retrying...");
-                setTimeout(window.onload, 300);
-            }
-
+            // Add the debounced input listener for the phone number field.
             const phoneInput = document.getElementById('phoneInput');
             phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 500));
         };
