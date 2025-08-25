@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Rivava Finance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- ADDED: Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --bg-dark: #000;
+            --card-dark: #0d0d0d;
+            --accent: #00ffc3;
+            --accent-glow: rgba(0, 255, 195, 0.3);
+            --text: #fff;
+            --muted: #888;
+        }
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            /* ADDED: Animated background */
+            background: linear-gradient(-45deg, #000, #0a0a0a, #000, #111);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .login-container {
+            text-align: center;
+            padding: 40px;
+            background: var(--card-dark);
+            border-radius: 20px;
+            border: 1px solid #1a1a1a;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            /* UPDATED: Animation and transition */
+            opacity: 0;
+            transform: scale(0.95);
+            animation: fadeIn 1s ease-out forwards;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .login-container.hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            animation: logo-pop 0.8s 0.5s ease-out backwards;
+        }
+        @keyframes logo-pop {
+            0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 10px;
+            background: linear-gradient(90deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            color: var(--muted);
+            margin-bottom: 30px;
+        }
+        #g_id_signin_container {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+        #g_id_signin_container:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ADDED: Welcome Animation Styles */
+        #welcome-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        #welcome-animation.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .welcome-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            box-shadow: 0 0 30px var(--accent-glow);
+            opacity: 0;
+            transform: scale(0.5);
+            animation: avatar-pop 0.8s 0.3s ease-out forwards;
+        }
+        @keyframes avatar-pop {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .welcome-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: text-fade-in 0.8s 0.8s ease-out forwards;
+        }
+        @keyframes text-fade-in {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container" id="loginContainer">
+        <img src="./logo.png" alt="Rivava Logo" class="logo">
+        <h1>Welcome Back</h1>
+        <p>Sign in to manage your finances.</p>
+        <div id="g_id_signin_container"></div>
+    </div>
+
+    <!-- ADDED: Welcome Animation Container -->
+    <div id="welcome-animation">
+        <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
+        <div id="welcomeText" class="welcome-text"></div>
+    </div>
+
+    <script>
+        const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
+        const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
+        
+        // Initialize Firebase
+        let db;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        } catch (error) {
+            console.error("Firebase Init Error:", error);
+        }
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // UPDATED: Handle the response from Google Sign-In
+        async function handleCredentialResponse(response) {
+            const payload = parseJwt(response.credential);
+            if (!payload || !payload.email) {
+                console.error("Invalid login response");
+                return;
+            }
+            const user = {
+                name: payload.name,
+                email: payload.email,
+                picture: payload.picture,
+                sub: payload.sub // Google's unique user ID
+            };
+
+            // Hide the login form
+            document.getElementById('loginContainer').classList.add('hidden');
+
+            const userRef = db.collection('users').doc(user.sub);
+            const userDoc = await userRef.get();
+            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+            if (!userDoc.exists) {
+                // --- NEW USER ---
+                // Show welcome animation
+                document.getElementById('welcomeAvatar').src = user.picture;
+                document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
+                document.getElementById('welcome-animation').classList.add('show');
+
+                // Create new user record in Firestore
+                await userRef.set({
+                    name: user.name,
+                    email: user.email,
+                    picture: user.picture,
+                    createdAt: serverTimestamp,
+                    lastLogin: serverTimestamp
+                });
+
+                // Wait for animation, then redirect
+                setTimeout(() => {
+                    localStorage.setItem('rivava_user', JSON.stringify(user));
+                    window.location.href = './index.html';
+                }, 2500); // Wait 2.5 seconds
+
+            } else {
+                // --- EXISTING USER ---
+                // Just update last login time
+                await userRef.update({ lastLogin: serverTimestamp });
+                localStorage.setItem('rivava_user', JSON.stringify(user));
+                window.location.href = './index.html';
+            }
+        }
+
+        // Initialize Google Sign-In
+        window.onload = function () {
+            // Redirect if already logged in
+            if(localStorage.getItem('rivava_user')) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            if (window.google?.accounts?.id) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('g_id_signin_container'),
+                    { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
+                );
+            } else {
+                setTimeout(window.onload, 300);
+            }
+        };
+    </script>
+
+</body>
+</html>
