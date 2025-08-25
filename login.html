@@ -462,49 +462,49 @@
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
-                sub: payload.sub // This is the unique Google ID
+                sub: payload.sub
             };
 
             document.getElementById('loginContainer').classList.add('hidden');
 
             const userRef = db.collection('users').doc(currentUserData.sub);
-            const submissionRef = db.collection('submissions').doc(currentUserData.sub);
 
             try {
-                // Fetch from both collections simultaneously
-                const [userDoc, submissionDoc] = await Promise.all([userRef.get(), submissionRef.get()]);
+                const userDoc = await userRef.get();
                 
-                const userExistsInAnyCollection = userDoc.exists || submissionDoc.exists;
-                const userData = userDoc.exists ? userDoc.data() : {};
-
-                // Scenario 1: User exists in either collection AND has a complete profile in 'users'
-                if (userExistsInAnyCollection && userData.phone && userData.gender) {
-                    userRef.set({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(console.error);
-                    localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
-                    window.location.href = './index.html';
+                // Scenario 1: User profile exists in the 'users' collection
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    // Scenario 1a: Profile is complete -> Redirect to app
+                    if (userData.phone && userData.gender) {
+                        userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
+                        window.location.href = './index.html';
+                    } 
+                    // Scenario 1b: Profile is incomplete -> Show update modal
+                    else {
+                        document.getElementById('registration-title').textContent = "Update Your Profile";
+                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
+                        if (userData.phone) {
+                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
+                        }
+                        if(userData.gender) {
+                            document.getElementById('genderInput').value = userData.gender;
+                        }
+                        document.getElementById('registrationModal').classList.add('show');
+                    }
                 } 
-                // Scenario 2: User exists in either collection but profile is incomplete
-                else if (userExistsInAnyCollection) {
-                    document.getElementById('registration-title').textContent = "Update Your Profile";
-                    document.getElementById('userNameInput').value = userData.name || currentUserData.name;
-                    if (userData.phone) {
-                        document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
-                    }
-                    if(userData.gender) {
-                        document.getElementById('genderInput').value = userData.gender;
-                    }
-                    document.getElementById('registrationModal').classList.add('show');
-                }
-                // Scenario 3: New user (does not exist in either collection)
+                // Scenario 2: User profile does NOT exist -> Treat as a new user needing to complete their profile
                 else {
                     document.getElementById('registration-title').textContent = "Complete Your Profile";
                     document.getElementById('userNameInput').value = currentUserData.name;
                     document.getElementById('registrationModal').classList.add('show');
                 }
             } catch (error) {
-                console.error("Error checking user existence:", error);
-                document.getElementById('general-error-message').textContent = "Error checking your account. Please try again.";
-                document.getElementById('general-error-message').style.display = 'block';
+                console.error("Error checking user document:", error);
+                const generalErrorMsg = document.getElementById('general-error-message');
+                generalErrorMsg.textContent = "Error checking your account. Please try again.";
+                generalErrorMsg.style.display = 'block';
             }
         }
 
@@ -572,12 +572,15 @@
                 lastLogin: serverTimestamp
             };
 
+            // Add createdAt timestamp ONLY if the document does not exist yet
             const userDoc = await userRef.get();
             if (!userDoc.exists) {
                 dataToSave.createdAt = serverTimestamp;
             }
 
             try {
+                // set with merge:true is the perfect command here. 
+                // It creates the document if it's missing, or updates it if it exists.
                 await userRef.set(dataToSave, { merge: true });
 
                 currentUserData = {...currentUserData, ...dataToSave};
