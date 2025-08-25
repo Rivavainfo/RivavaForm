@@ -10,12 +10,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         :root {
-            --bg-dark: #000;
-            --card-dark: #0d0d0d;
+            --bg-dark: #0a0a0a;
+            --card-dark: rgba(18, 18, 18, 0.6); /* Glassmorphism background */
             --accent: #00ffc3;
-            --accent-glow: rgba(0, 255, 195, 0.3);
+            --accent-glow: rgba(0, 255, 195, 0.4);
             --text: #fff;
-            --muted: #888;
+            --muted: #a0a0a0;
         }
         body {
             margin: 0;
@@ -27,26 +27,59 @@
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
-            background: linear-gradient(-45deg, #000, #0a0a0a, #000, #111);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            position: relative; /* Needed for positioning the animated shapes */
         }
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        
+        /* --- NEW: Animated Background Shapes --- */
+        .shape-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
         }
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.1;
+            filter: blur(80px);
+        }
+        .shape1 {
+            width: 400px;
+            height: 400px;
+            top: -100px;
+            left: -100px;
+            animation: move 25s infinite alternate ease-in-out;
+        }
+        .shape2 {
+            width: 300px;
+            height: 300px;
+            bottom: -50px;
+            right: -50px;
+            animation: move 20s infinite alternate-reverse ease-in-out;
+        }
+        @keyframes move {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 150px) scale(1.2); }
+        }
+
         .login-container {
             text-align: center;
             padding: 40px;
             background: var(--card-dark);
-            border-radius: 20px;
-            border: 1px solid #1a1a1a;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px); /* Glassmorphism blur */
+            -webkit-backdrop-filter: blur(15px);
             opacity: 0;
-            transform: scale(0.95);
-            animation: fadeIn 1s ease-out forwards;
+            transform: scale(0.95) translateY(20px);
+            animation: fadeIn 1s 0.2s ease-out forwards;
             transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 1;
         }
         .login-container.hidden {
             opacity: 0;
@@ -56,48 +89,55 @@
         @keyframes fadeIn {
             to {
                 opacity: 1;
-                transform: scale(1);
+                transform: scale(1) translateY(0);
             }
         }
         .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
+            width: 90px;
+            height: 90px;
+            border-radius: 16px;
             margin-bottom: 20px;
-            animation: logo-pop 0.8s 0.5s ease-out backwards;
+            animation: logo-pop 0.8s 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) backwards;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 40px var(--accent-glow);
         }
         @keyframes logo-pop {
-            0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+            0% { transform: scale(0.5) rotate(-20deg); opacity: 0; }
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
         h1 {
-            font-size: 2rem;
+            font-size: 2.2rem;
             margin: 0 0 10px;
+            font-weight: 700;
             background: linear-gradient(90deg, var(--accent), #fff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         p {
             color: var(--muted);
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            font-size: 1.1rem;
         }
         #g_id_signin_container {
             display: inline-block;
             transition: transform 0.2s ease;
         }
         #g_id_signin_container:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.02);
         }
 
-        /* --- UPDATED: Welcome Animation Styles --- */
+        /* --- Welcome Animation Styles --- */
         #welcome-animation {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(5px);
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -111,7 +151,6 @@
             opacity: 1;
             pointer-events: auto;
         }
-        /* ADDED: Container for avatar/initials */
         .welcome-avatar-container {
             position: relative;
             width: 120px;
@@ -125,12 +164,11 @@
             height: 100%;
             border-radius: 50%;
             border: 4px solid var(--accent);
-            box-shadow: 0 0 30px var(--accent-glow);
+            box-shadow: 0 0 35px var(--accent-glow);
             animation: glow 2s infinite alternate 1s;
         }
-        /* ADDED: Styles for the initial display */
         .welcome-avatar-initials {
-            display: none; /* Hidden by default */
+            display: none;
             align-items: center;
             justify-content: center;
             font-size: 3.5rem;
@@ -144,11 +182,11 @@
             }
         }
         @keyframes glow {
-            from { box-shadow: 0 0 30px var(--accent-glow); }
-            to { box-shadow: 0 0 50px rgba(0, 255, 195, 0.5); }
+            from { box-shadow: 0 0 35px var(--accent-glow); }
+            to { box-shadow: 0 0 60px rgba(0, 255, 195, 0.6); }
         }
         .welcome-text {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
             margin-top: 24px;
             opacity: 0;
@@ -156,7 +194,7 @@
             animation: text-fade-in 0.8s 0.8s ease-out forwards;
         }
         .welcome-sub-text {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: var(--muted);
             margin-top: 8px;
             opacity: 0;
@@ -173,14 +211,20 @@
 </head>
 <body>
 
+    <!-- NEW: Animated Background -->
+    <div class="shape-bg">
+        <div class="shape shape1"></div>
+        <div class="shape shape2"></div>
+    </div>
+
     <div class="login-container" id="loginContainer">
-        <img src="./logo.png" alt="Rivava Logo" class="logo">
+        <img src="./logo.png" alt="Rivava Logo" class="logo" onerror="this.style.display='none'">
         <h1>Welcome to Rivava</h1>
         <p>Sign in to begin your financial journey.</p>
         <div id="g_id_signin_container"></div>
     </div>
 
-    <!-- UPDATED: Welcome Animation Container -->
+    <!-- Welcome Animation Container -->
     <div id="welcome-animation">
         <div class="welcome-avatar-container">
             <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
@@ -241,7 +285,6 @@
                 const welcomeAvatarImg = document.getElementById('welcomeAvatar');
                 const welcomeAvatarInitial = document.getElementById('welcomeAvatarInitial');
                 
-                // ADDED: Logic to show initial if no picture is available
                 if (user.picture) {
                     welcomeAvatarImg.src = user.picture;
                     welcomeAvatarImg.style.display = 'block';
@@ -261,7 +304,7 @@
                 document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
                 document.getElementById('welcome-animation').classList.add('show');
 
-                await userRef.set({
+                userRef.set({
                     name: user.name,
                     email: user.email,
                     picture: user.picture,
@@ -305,3 +348,4 @@
 
 </body>
 </html>
+
