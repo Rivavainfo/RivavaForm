@@ -182,7 +182,7 @@
   button.animated-add {
     background: var(--accent);
     border: none;
-    padding: 14px 20px; /* Increased padding for better touch target */
+    padding: 14px 20px;
     border-radius: 8px;
     color: #000;
     font-weight: 700;
@@ -213,8 +213,51 @@
   td{font-size:0.9rem;}
   td button{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;transition: all 0.2s ease;min-width: 60px;}
   td button:hover{background:#ff3838;}
-  #welcomeOverlay{position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;transition:opacity .4s ease, transform .4s ease;border: 1px solid rgba(255,255,255,0.1);}
-  #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* --- UPDATED: Welcome Overlay --- */
+  #welcomeOverlay{
+    position:fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    width: auto;
+    max-width: 90%;
+    padding: 16px 24px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: opacity .4s ease, transform .4s ease;
+    border: 1px solid #222;
+  }
+  #welcomeOverlay.show{
+    opacity:1;
+    transform: translateX(-50%) translateY(0);
+  }
+  #welcomeOverlay #welcomeAvatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+  }
+  #welcomeOverlay .welcome-main-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.2;
+  }
+   #welcomeOverlay .welcome-sub-text {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
   
   /* --- MOBILE OPTIMIZATIONS --- */
   @media(max-width:768px){
@@ -223,11 +266,11 @@
         padding: 0 16px;
     }
     .info-blocks{
-        grid-template-columns:1fr 1fr; /* Two columns on medium screens */
+        grid-template-columns:1fr 1fr;
         gap:12px;
     }
     .tabs{
-        flex-direction:row; /* Keep tabs in a row */
+        flex-direction:row;
         gap:8px;
     }
     .tab {
@@ -241,10 +284,10 @@
         padding: 0 12px;
     }
     .info-blocks{
-        grid-template-columns:1fr; /* Single column on small screens */
+        grid-template-columns:1fr;
     }
     .tabs{
-        flex-direction:column; /* Stack tabs on small screens */
+        flex-direction:column;
     }
     .form-section {
         padding: 16px;
@@ -332,9 +375,13 @@
 
 
 <!-- Modals and Overlays -->
+<!-- UPDATED: Welcome Overlay Structure -->
 <div id="welcomeOverlay" role="status" aria-live="polite">
-  <img id="welcomeAvatar" src="" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
-  <div id="welcomeText" style="font-weight:800;color:#012"></div>
+    <img id="welcomeAvatar" src="" alt="User Avatar">
+    <div class="welcome-content">
+        <div id="welcomeText" class="welcome-main-text"></div>
+        <div id="welcomeSubText" class="welcome-sub-text"></div>
+    </div>
 </div>
 
 <div id="successModal" class="modal-overlay">
@@ -379,7 +426,6 @@
 </div>
 
 <script>
-// --- NO FUNCTIONAL CHANGES MADE TO JAVASCRIPT ---
 let selectedFeedbackCategory = '';
 let deferredInstallPrompt = null;
 const installButton = document.getElementById('installBtn');
@@ -420,13 +466,35 @@ function viewHistory() {
 /* ----------------------
   MODAL & UI HELPERS
   ---------------------- */
-function showWelcome(name, picture){ const ov = document.getElementById('welcomeOverlay'); ov.querySelector('#welcomeText').textContent = `Welcome, ${name}`; ov.querySelector('#welcomeAvatar').src = picture || ''; ov.classList.add('show'); setTimeout(()=> ov.classList.remove('show'), 2500); }
+function showWelcome(name, picture){
+    const ov = document.getElementById('welcomeOverlay');
+    const subtextEl = ov.querySelector('#welcomeSubText');
+    const subtexts = [
+        "Let's make today profitable.",
+        "Your financial journey continues.",
+        "Track every rupee, build your future.",
+        "Smart tracking for a brighter tomorrow."
+    ];
+    const randomSubtext = subtexts[Math.floor(Math.random() * subtexts.length)];
+
+    ov.querySelector('#welcomeText').textContent = `Welcome back, ${name}!`;
+    ov.querySelector('#welcomeAvatar').src = picture || '';
+    subtextEl.textContent = randomSubtext;
+
+    ov.classList.add('show');
+    setTimeout(()=> ov.classList.remove('show'), 3500);
+}
+
 function openModal(modalId) { document.getElementById(modalId).classList.add('show'); }
 function closeModal(modalId) { document.getElementById(modalId).classList.remove('show'); }
 
+// --- THIS IS THE FIX ---
+// This logic closes modals, but prevents the new user form from closing on an outside click.
 document.querySelectorAll('.modal-overlay').forEach(modal => {
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) { closeModal(modal.id); }
+        if (e.target === modal && modal.id !== 'newUserModal') {
+            closeModal(modal.id);
+        }
     });
 });
 
@@ -491,7 +559,10 @@ function setSignedInUI(userObj, showWelcomeFlag){
     <button class="dropdown-item" onclick="viewHistory()">View Dashboard</button>
     <button class="dropdown-item danger" onclick="signOut()">Sign out</button>
   </div>`;
-  profileContainer.querySelector('.profile-avatar-wrapper').onclick = () => { document.getElementById('profileDropdown').classList.toggle('show'); };
+  profileContainer.querySelector('.profile-avatar-wrapper').onclick = (e) => { 
+      e.stopPropagation();
+      document.getElementById('profileDropdown').classList.toggle('show'); 
+  };
   topUserArea.appendChild(profileContainer);
   if(showWelcomeFlag) { showWelcome(userObj.name.split(' ')[0], userObj.picture); }
 }
@@ -512,19 +583,17 @@ async function completeRegistration() {
     }
 
     user.phone = phone;
-    user.name = name; // Update name if user changed it
+    user.name = name;
 
     try {
-        // Save the new user's full profile to the 'users' collection
         await db.collection('users').doc(user.sub).set({
             name: user.name,
             email: user.email,
             phone: user.phone,
             picture: user.picture,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }); // Use merge to avoid overwriting createdAt
+        }, { merge: true });
 
-        // Update localStorage with the new info
         localStorage.setItem('rivava_user', JSON.stringify(user));
         closeModal('newUserModal');
         setSignedInUI(user, true);
@@ -553,19 +622,16 @@ window.addEventListener('load', async ()=> {
 
   try {
       const user = JSON.parse(storedUserStr);
-      // Check if the user exists in our database
       const userDoc = await db.collection('users').doc(user.sub).get();
 
       if (!userDoc.exists || !userDoc.data().phone) {
-          // This is a new user OR an existing user who hasn't provided a phone number
           document.getElementById('userNameInput').value = user.name;
           openModal('newUserModal');
       } else {
-          // Existing user, update local storage with potentially new data from DB
           const dbUser = userDoc.data();
           const updatedUser = { ...user, ...dbUser };
           localStorage.setItem('rivava_user', JSON.stringify(updatedUser));
-          setSignedInUI(updatedUser, false); // Set showWelcome to false to avoid double welcome
+          setSignedInUI(updatedUser, false);
       }
       
   } catch(e){ 
@@ -575,7 +641,17 @@ window.addEventListener('load', async ()=> {
   }
 });
 
-window.addEventListener('click', (e) => { const pc = document.querySelector('.profile-container'); if (pc && !pc.contains(e.target)) { document.getElementById('profileDropdown')?.classList.remove('show'); } });
+// This listener closes the profile dropdown if you click anywhere else on the page.
+window.addEventListener('click', (e) => {
+    const pc = document.querySelector('.profile-container');
+    if (pc && !pc.contains(e.target)) {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    }
+});
+
 function showTab(tab) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active')); document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active'); document.getElementById(tab).classList.add('active'); }
 function setFixedDate() { const d = new Date(); document.getElementById("fixedDate").textContent = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; }
 function startLiveTime() { const el = document.getElementById("liveTime"); function u() { const n = new Date(); let h=n.getHours(); el.textContent = `${String(h%12||12).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}:${String(n.getSeconds()).padStart(2,"0")} ${h>=12?'PM':'AM'}`; } u(); setInterval(u, 1000); }
@@ -602,17 +678,16 @@ async function submitForm() {
 
   const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({ type: r.cells[0].textContent, amount: +r.cells[1].textContent, category: r.cells[2].textContent, payment: r.cells[3].textContent, date: r.cells[4].textContent, time: r.cells[5].textContent, submittedAt: firebase.firestore.FieldValue.serverTimestamp() }));
   
-  // NEW: Use a batch write to add all transactions at once for efficiency
   const batch = db.batch();
   const transactionsCollection = db.collection('users').doc(user.sub).collection('transactions');
   
   rows.forEach(transaction => {
-      const newTransactionRef = transactionsCollection.doc(); // Create a new doc with a random ID
+      const newTransactionRef = transactionsCollection.doc();
       batch.set(newTransactionRef, transaction);
   });
 
   try {
-    await batch.commit(); // Commit the batch
+    await batch.commit();
     openModal('successModal');
     dataTableBody.innerHTML = '';
     updateTotalExpense();
