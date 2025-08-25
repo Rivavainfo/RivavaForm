@@ -467,42 +467,42 @@
 
             document.getElementById('loginContainer').classList.add('hidden');
 
-            // *** SIMPLIFIED LOGIC: 'users' collection is the SINGLE SOURCE OF TRUTH ***
             const userRef = db.collection('users').doc(currentUserData.sub);
+            const submissionRef = db.collection('submissions').doc(currentUserData.sub);
 
             try {
-                const userDoc = await userRef.get();
+                // Fetch from both collections simultaneously
+                const [userDoc, submissionDoc] = await Promise.all([userRef.get(), submissionRef.get()]);
                 
-                // Scenario 1: User document exists in the 'users' collection
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    // Scenario 1a: Profile is complete -> Redirect to app
-                    if (userData.phone && userData.gender) {
-                        userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
-                        window.location.href = './index.html';
-                    } 
-                    // Scenario 1b: Profile is incomplete -> Show update modal
-                    else {
-                        document.getElementById('registration-title').textContent = "Update Your Profile";
-                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
-                        if (userData.phone) {
-                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
-                        }
-                        if(userData.gender) {
-                            document.getElementById('genderInput').value = userData.gender;
-                        }
-                        document.getElementById('registrationModal').classList.add('show');
-                    }
+                const userExistsInAnyCollection = userDoc.exists || submissionDoc.exists;
+                const userData = userDoc.exists ? userDoc.data() : {};
+
+                // Scenario 1: User exists in either collection AND has a complete profile in 'users'
+                if (userExistsInAnyCollection && userData.phone && userData.gender) {
+                    userRef.set({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(console.error);
+                    localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
+                    window.location.href = './index.html';
                 } 
-                // Scenario 2: User document does NOT exist -> Treat as a new user
+                // Scenario 2: User exists in either collection but profile is incomplete
+                else if (userExistsInAnyCollection) {
+                    document.getElementById('registration-title').textContent = "Update Your Profile";
+                    document.getElementById('userNameInput').value = userData.name || currentUserData.name;
+                    if (userData.phone) {
+                        document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
+                    }
+                    if(userData.gender) {
+                        document.getElementById('genderInput').value = userData.gender;
+                    }
+                    document.getElementById('registrationModal').classList.add('show');
+                }
+                // Scenario 3: New user (does not exist in either collection)
                 else {
                     document.getElementById('registration-title').textContent = "Complete Your Profile";
                     document.getElementById('userNameInput').value = currentUserData.name;
                     document.getElementById('registrationModal').classList.add('show');
                 }
             } catch (error) {
-                console.error("Error checking user document:", error);
+                console.error("Error checking user existence:", error);
                 document.getElementById('general-error-message').textContent = "Error checking your account. Please try again.";
                 document.getElementById('general-error-message').style.display = 'block';
             }
@@ -523,7 +523,6 @@
                 const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
                 if (!querySnapshot.empty) {
                     const doc = querySnapshot.docs[0];
-                    // Allow if the number belongs to the current user (e.g., they are just re-saving their profile)
                     if (doc.id !== currentUserData.sub) {
                         phoneErrorMsg.textContent = "This number is already registered.";
                         phoneErrorMsg.style.display = 'block';
@@ -579,10 +578,8 @@
             }
 
             try {
-                // set with merge:true is perfect. It creates if not exists, and updates if it does.
                 await userRef.set(dataToSave, { merge: true });
 
-                // Update currentUserData with the newly saved details
                 currentUserData = {...currentUserData, ...dataToSave};
 
                 document.getElementById('registrationModal').classList.remove('show');
