@@ -260,7 +260,6 @@
             font-weight: 600;
         }
         
-        /* --- UPDATED: Optimized Welcome Animation --- */
         #welcome-animation {
             background: radial-gradient(circle at center, rgba(13,13,13,0.9) 0%, rgba(0,0,0,0.98) 100%);
             backdrop-filter: blur(10px);
@@ -306,7 +305,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- NEW: Mobile Optimization for Welcome Animation --- */
         @media (min-width: 480px) {
             .welcome-avatar-container {
                 width: 120px;
@@ -341,7 +339,6 @@
         </div>
     </div>
 
-    <!-- Registration Modal for New & Existing Users with missing info -->
     <div id="registrationModal" class="modal-overlay">
         <div class="modal-content registration-content">
             <h2 id="registration-title">Complete Your Profile</h2>
@@ -356,7 +353,6 @@
                     <input type="tel" id="phoneInput" placeholder="10-digit mobile number" maxlength="10">
                 </div>
             </div>
-            <!-- NEW: Gender Selection -->
             <div class="form-group">
                 <label for="genderInput">Gender</label>
                 <select id="genderInput">
@@ -371,7 +367,6 @@
         </div>
     </div>
 
-    <!-- Welcome Animation Container (for after registration) -->
     <div id="welcome-animation" class="modal-overlay">
         <div class="welcome-avatar-container">
             <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
@@ -387,6 +382,7 @@
         
         let db;
         let currentUserData = null;
+        let isNewUser = false; // Flag to track if the user is new
 
         try {
             if (!firebase.apps.length) {
@@ -430,6 +426,7 @@
             const userDoc = await userRef.get();
 
             if (userDoc.exists) {
+                isNewUser = false;
                 const data = userDoc.data();
                 if (!data.phone || !data.gender) {
                     document.getElementById('registration-title').textContent = "Update Your Profile";
@@ -445,6 +442,7 @@
                     window.location.href = './index.html';
                 }
             } else {
+                isNewUser = true;
                 document.getElementById('registration-title').textContent = "Complete Your Profile";
                 document.getElementById('userNameInput').value = currentUserData.name;
                 document.getElementById('registrationModal').classList.add('show');
@@ -480,13 +478,14 @@
                 lastLogin: serverTimestamp
             };
 
-            try {
-                await userRef.set(dataToSave, { merge: true });
+            // --- FIXED: Simplified and corrected save logic ---
+            if (isNewUser) {
+                dataToSave.createdAt = serverTimestamp;
+            }
 
-                const userDoc = await userRef.get();
-                if (!userDoc.data().createdAt) {
-                    await userRef.update({ createdAt: serverTimestamp });
-                }
+            try {
+                // set with merge will create or update the document safely.
+                await userRef.set(dataToSave, { merge: true });
 
                 document.getElementById('registrationModal').classList.remove('show');
                 showWelcomeAnimation(currentUserData);
