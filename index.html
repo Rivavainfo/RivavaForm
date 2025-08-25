@@ -17,9 +17,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="./icons_folder/icon-32x32.png">
 <link rel="apple-touch-icon" href="./icons_folder/icon-180x180.png">
 
-<!-- Fonts & Google Identity lib -->
+<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- Load Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -47,8 +46,7 @@
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
     overflow-x: hidden;
-    /* --- MOBILE OPTIMIZATION --- */
-    overscroll-behavior-y: contain; /* Prevents pull-to-refresh on the whole page */
+    overscroll-behavior-y: contain;
   }
 
   /* Header */
@@ -125,13 +123,6 @@
   .dropdown-item:hover { background-color: #222; }
   .dropdown-item.danger { color: var(--danger); }
   .dropdown-item.danger:hover { background-color: rgba(255, 82, 82, 0.1); }
-
-  /* Signin Card */
-  .signin-card{ max-width:920px;margin:28px auto;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:18px; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
-  .signin-left{flex:1;min-width:0}
-  .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
-  .signin-title{font-size:1.2rem;font-weight:700;margin-bottom:6px;}
-  .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
 
   /* Main Content Area */
   main {
@@ -231,14 +222,6 @@
         margin: 16px auto;
         padding: 0 16px;
     }
-    .signin-card{
-        flex-direction:column;
-        align-items:stretch;
-        margin: 16px;
-        padding: 24px; /* More padding on mobile */
-        text-align: center;
-    }
-    .signin-right{width:100%;}
     .info-blocks{
         grid-template-columns:1fr 1fr; /* Two columns on medium screens */
         gap:12px;
@@ -256,10 +239,6 @@
   @media(max-width:480px){
     main {
         padding: 0 12px;
-    }
-    .signin-card{
-        margin: 12px;
-        padding: 20px;
     }
     .info-blocks{
         grid-template-columns:1fr; /* Single column on small screens */
@@ -293,16 +272,6 @@
     <div id="topUserArea"></div>
   </div>
 </header>
-
-<section class="signin-card" id="signinCard">
-  <div class="signin-left">
-    <div class="signin-title">Welcome to Rivava Finance</div>
-    <div class="signin-sub">Track earnings & expenses quickly — secure sign in required to save your data privately.</div>
-  </div>
-  <div class="signin-right">
-    <div id="g_id_signin_container"></div>
-  </div>
-</section>
 
 <main id="mainContent" style="display: none;">
   <div class="info-blocks">
@@ -347,6 +316,20 @@
       <div class="spinner"></div>
   </button>
 </main>
+
+<!-- New User Modal -->
+<div id="newUserModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Welcome to Rivava!</h2>
+        <p>Please confirm your details to get started.</p>
+        <label for="userNameInput" style="text-align: left; display: block; margin-bottom: 6px;">Full Name</label>
+        <input type="text" id="userNameInput" placeholder="Your full name">
+        <label for="phoneInput" style="text-align: left; display: block; margin-bottom: 6px;">Phone Number</label>
+        <input type="tel" id="phoneInput" placeholder="Your phone number">
+        <button onclick="completeRegistration()">Save & Continue</button>
+    </div>
+</div>
+
 
 <!-- Modals and Overlays -->
 <div id="welcomeOverlay" role="status" aria-live="polite">
@@ -424,7 +407,6 @@ window.addEventListener('appinstalled', () => {
   CONFIG & INITIALIZATION
   ---------------------- */
 const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
-const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
 let db;
 try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch (error) { console.error("Firebase Init Error:", error); }
 
@@ -438,7 +420,6 @@ function viewHistory() {
 /* ----------------------
   MODAL & UI HELPERS
   ---------------------- */
-function parseJwt(token){ try{ const b64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(decodeURIComponent(atob(b64).split('').map(c=>'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); }catch(e){ return null; } }
 function showWelcome(name, picture){ const ov = document.getElementById('welcomeOverlay'); ov.querySelector('#welcomeText').textContent = `Welcome, ${name}`; ov.querySelector('#welcomeAvatar').src = picture || ''; ov.classList.add('show'); setTimeout(()=> ov.classList.remove('show'), 2500); }
 function openModal(modalId) { document.getElementById(modalId).classList.add('show'); }
 function closeModal(modalId) { document.getElementById(modalId).classList.remove('show'); }
@@ -488,7 +469,6 @@ async function submitFeedback() {
   AUTH & USER UI
   ---------------------- */
 function setSignedInUI(userObj, showWelcomeFlag){
-  document.getElementById('signinCard').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
   document.getElementById('feedbackBtn').style.display = 'flex';
   const topUserArea = document.getElementById('topUserArea');
@@ -516,31 +496,83 @@ function setSignedInUI(userObj, showWelcomeFlag){
   if(showWelcomeFlag) { showWelcome(userObj.name.split(' ')[0], userObj.picture); }
 }
 
-function setSignedOutUI() {
-    document.getElementById('signinCard').style.display = 'flex';
-    document.getElementById('mainContent').style.display = 'none';
-    document.getElementById('feedbackBtn').style.display = 'none';
-    document.getElementById('topUserArea').innerHTML = '';
-    if(window.google?.accounts?.id) { google.accounts.id.disableAutoSelect(); }
-    setTimeout(renderSignIn, 100);
-    document.querySelector("#dataTable tbody").innerHTML = '';
-    updateTotalExpense();
+function signOut(){ 
+    localStorage.removeItem('rivava_user'); 
+    window.location.href = './login.html';
 }
 
-function signOut(){ localStorage.removeItem('rivava_user'); setSignedOutUI(); }
-function renderSignIn(){ const container = document.getElementById('g_id_signin_container'); container.innerHTML = ''; if(window.google?.accounts?.id){ google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse }); google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }); } else { setTimeout(renderSignIn, 300); } }
-function handleCredentialResponse(response){ const payload = parseJwt(response.credential); if(!payload?.email){ return; } const user = { name: payload.name, email: payload.email, picture: payload.picture, sub: payload.sub }; localStorage.setItem('rivava_user', JSON.stringify(user)); setSignedInUI(user, true); }
+async function completeRegistration() {
+    const user = JSON.parse(localStorage.getItem('rivava_user'));
+    const phone = document.getElementById('phoneInput').value.trim();
+    const name = document.getElementById('userNameInput').value.trim();
+
+    if (!phone || !name) {
+        alert("Please fill in all fields.");
+        return;
+    }
+
+    user.phone = phone;
+    user.name = name; // Update name if user changed it
+
+    try {
+        // Save the new user's full profile to the 'users' collection
+        await db.collection('users').doc(user.sub).set({
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            picture: user.picture,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }); // Use merge to avoid overwriting createdAt
+
+        // Update localStorage with the new info
+        localStorage.setItem('rivava_user', JSON.stringify(user));
+        closeModal('newUserModal');
+        setSignedInUI(user, true);
+
+    } catch (error) {
+        console.error("Error completing registration:", error);
+        alert("Could not complete registration. Please try again.");
+    }
+}
+
 
 /* ----------------------
   INITIALIZATION & CORE LOGIC
   ---------------------- */
-window.addEventListener('load', ()=> {
+window.addEventListener('load', async ()=> {
   setFixedDate();
   startLiveTime();
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
-  const storedUser = localStorage.getItem('rivava_user');
-  if(storedUser){ try{ setSignedInUI(JSON.parse(storedUser), false); } catch(e){ localStorage.removeItem('rivava_user'); setSignedOutUI(); } } 
-  else { setSignedOutUI(); }
+  
+  const storedUserStr = localStorage.getItem('rivava_user');
+  
+  if(!storedUserStr){ 
+      window.location.href = './login.html';
+      return;
+  } 
+
+  try {
+      const user = JSON.parse(storedUserStr);
+      // Check if the user exists in our database
+      const userDoc = await db.collection('users').doc(user.sub).get();
+
+      if (!userDoc.exists || !userDoc.data().phone) {
+          // This is a new user OR an existing user who hasn't provided a phone number
+          document.getElementById('userNameInput').value = user.name;
+          openModal('newUserModal');
+      } else {
+          // Existing user, update local storage with potentially new data from DB
+          const dbUser = userDoc.data();
+          const updatedUser = { ...user, ...dbUser };
+          localStorage.setItem('rivava_user', JSON.stringify(updatedUser));
+          setSignedInUI(updatedUser, false); // Set showWelcome to false to avoid double welcome
+      }
+      
+  } catch(e){ 
+      console.error("Auth check failed:", e);
+      localStorage.removeItem('rivava_user'); 
+      window.location.href = './login.html';
+  }
 });
 
 window.addEventListener('click', (e) => { const pc = document.querySelector('.profile-container'); if (pc && !pc.contains(e.target)) { document.getElementById('profileDropdown')?.classList.remove('show'); } });
@@ -559,17 +591,28 @@ function addExpense() { const amountInput = document.getElementById("expenseAmou
 async function submitForm() {
   if (dataTableBody.children.length === 0) return;
   const user = JSON.parse(localStorage.getItem('rivava_user'));
-  if (!user) { return; }
+  if (!user || !user.sub) { 
+      alert("You must be signed in to submit.");
+      return; 
+  }
 
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.classList.add('is-loading');
   submitBtn.disabled = true;
 
-  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({ type: r.cells[0].textContent, amount: +r.cells[1].textContent, category: r.cells[2].textContent, payment: r.cells[3].textContent, date: r.cells[4].textContent, time: r.cells[5].textContent }));
-  const payload = { userEmail: user.email, userName: user.name, transactions: rows, submittedAt: firebase.firestore.FieldValue.serverTimestamp() };
+  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({ type: r.cells[0].textContent, amount: +r.cells[1].textContent, category: r.cells[2].textContent, payment: r.cells[3].textContent, date: r.cells[4].textContent, time: r.cells[5].textContent, submittedAt: firebase.firestore.FieldValue.serverTimestamp() }));
+  
+  // NEW: Use a batch write to add all transactions at once for efficiency
+  const batch = db.batch();
+  const transactionsCollection = db.collection('users').doc(user.sub).collection('transactions');
+  
+  rows.forEach(transaction => {
+      const newTransactionRef = transactionsCollection.doc(); // Create a new doc with a random ID
+      batch.set(newTransactionRef, transaction);
+  });
 
   try {
-    await db.collection('submissions').add(payload);
+    await batch.commit(); // Commit the batch
     openModal('successModal');
     dataTableBody.innerHTML = '';
     updateTotalExpense();
