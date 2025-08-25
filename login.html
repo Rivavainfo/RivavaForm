@@ -129,14 +129,14 @@
             transform: translateY(-3px) scale(1.02);
         }
 
-        /* --- Welcome Animation & Registration Modal Styles --- */
+        /* --- UPDATED: Welcome Animation & Registration Modal Styles --- */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 10, 10, 0.9);
+            background: radial-gradient(circle, rgba(10,10,10,0.9) 0%, rgba(0,0,0,0.95) 100%);
             backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
@@ -145,7 +145,7 @@
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.4s ease;
         }
         .modal-overlay.show {
             opacity: 1;
@@ -156,8 +156,8 @@
             width: 120px;
             height: 120px;
             opacity: 0;
-            transform: scale(0.5);
-            animation: avatar-pop 0.8s 0.3s ease-out forwards;
+            transform: scale(0.5) translateY(20px);
+            animation: avatar-pop 0.7s 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
         .welcome-avatar, .welcome-avatar-initials {
             width: 100%;
@@ -165,7 +165,7 @@
             border-radius: 50%;
             border: 4px solid var(--accent);
             box-shadow: 0 0 35px var(--accent-glow);
-            animation: glow 2s infinite alternate 1s;
+            animation: glow 2.5s infinite alternate 0.5s;
         }
         .welcome-avatar-initials {
             display: none;
@@ -178,7 +178,7 @@
         @keyframes avatar-pop {
             to {
                 opacity: 1;
-                transform: scale(1);
+                transform: scale(1) translateY(0);
             }
         }
         @keyframes glow {
@@ -191,7 +191,7 @@
             margin-top: 24px;
             opacity: 0;
             transform: translateY(20px);
-            animation: text-fade-in 0.8s 0.8s ease-out forwards;
+            animation: text-fade-in 0.7s 0.5s ease-out forwards;
         }
         .welcome-sub-text {
             font-size: 1.2rem;
@@ -199,7 +199,7 @@
             margin-top: 8px;
             opacity: 0;
             transform: translateY(20px);
-            animation: text-fade-in 0.8s 1s ease-out forwards;
+            animation: text-fade-in 0.7s 0.7s ease-out forwards;
         }
         @keyframes text-fade-in {
             to {
@@ -208,7 +208,7 @@
             }
         }
         
-        /* --- NEW: Registration Modal Content --- */
+        /* --- Registration Modal Content --- */
         .registration-content {
             background: var(--card-dark);
             padding: 30px;
@@ -303,7 +303,7 @@
         <div id="g_id_signin_container"></div>
     </div>
 
-    <!-- NEW: Registration Modal for New Users -->
+    <!-- Registration Modal for New Users -->
     <div id="registrationModal" class="modal-overlay">
         <div class="registration-content">
             <h2>Complete Your Profile</h2>
@@ -369,13 +369,11 @@
                 return;
             }
             
-            // We use the unique 'sub' (subject) field from Google as the user's permanent ID.
-            // This is secure and guarantees no two users will ever have the same ID.
             currentUserData = {
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
-                sub: payload.sub // This is the unique user ID
+                sub: payload.sub
             };
 
             document.getElementById('loginContainer').classList.add('hidden');
@@ -388,9 +386,10 @@
                 document.getElementById('userNameInput').value = currentUserData.name;
                 document.getElementById('registrationModal').classList.add('show');
             } else {
-                // --- EXISTING USER: Proceed directly ---
+                // --- EXISTING USER: Proceed directly (FIX APPLIED) ---
                 const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                await userRef.update({ lastLogin: serverTimestamp });
+                // Removed 'await' to prevent blocking the UI. The update happens in the background.
+                userRef.update({ lastLogin: serverTimestamp }); 
                 localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
                 window.location.href = './index.html';
             }
@@ -401,7 +400,6 @@
             const phone = document.getElementById('phoneInput').value.trim();
             const errorMessage = document.getElementById('error-message');
 
-            // --- Validation for Indian Mobile Number ---
             if (!name || !/^\d{10}$/.test(phone)) {
                 errorMessage.textContent = "Please enter a valid name and 10-digit mobile number.";
                 errorMessage.style.display = 'block';
@@ -409,7 +407,6 @@
             }
             errorMessage.style.display = 'none';
 
-            // Update user data with details from the form
             currentUserData.name = name;
             currentUserData.phone = `+91${phone}`;
 
@@ -426,15 +423,14 @@
                     lastLogin: serverTimestamp
                 });
 
-                // Hide registration and show welcome animation
                 document.getElementById('registrationModal').classList.remove('show');
                 showWelcomeAnimation(currentUserData);
 
-                // Redirect after animation
+                // FASTER REDIRECT
                 setTimeout(() => {
                     localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
                     window.location.href = './index.html';
-                }, 3000);
+                }, 2500); // Reduced from 3000ms
 
             } catch (error) {
                 console.error("Registration Error:", error);
