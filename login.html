@@ -467,43 +467,44 @@
 
             document.getElementById('loginContainer').classList.add('hidden');
 
+            // *** SIMPLIFIED LOGIC: 'users' collection is the SINGLE SOURCE OF TRUTH ***
             const userRef = db.collection('users').doc(currentUserData.sub);
-            const submissionRef = db.collection('submissions').doc(currentUserData.sub);
 
             try {
-                const [userDoc, submissionDoc] = await Promise.all([userRef.get(), submissionRef.get()]);
-                const userExists = userDoc.exists || submissionDoc.exists;
-                const userData = userDoc.exists ? userDoc.data() : {};
-
-                // Scenario 3: User exists and has a complete profile
-                if (userExists && userData.phone && userData.gender) {
-                    const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                    userRef.update({ lastLogin: serverTimestamp }).catch(console.error);
-                    localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
-                    window.location.href = './index.html';
+                const userDoc = await userRef.get();
+                
+                // Scenario 1: User document exists in the 'users' collection
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    // Scenario 1a: Profile is complete -> Redirect to app
+                    if (userData.phone && userData.gender) {
+                        userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
+                        window.location.href = './index.html';
+                    } 
+                    // Scenario 1b: Profile is incomplete -> Show update modal
+                    else {
+                        document.getElementById('registration-title').textContent = "Update Your Profile";
+                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
+                        if (userData.phone) {
+                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
+                        }
+                        if(userData.gender) {
+                            document.getElementById('genderInput').value = userData.gender;
+                        }
+                        document.getElementById('registrationModal').classList.add('show');
+                    }
                 } 
-                // Scenario 2: User exists but profile is incomplete
-                else if (userExists) {
-                    document.getElementById('registration-title').textContent = "Update Your Profile";
-                    document.getElementById('userNameInput').value = userData.name || currentUserData.name;
-                    if (userData.phone) {
-                        document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
-                    }
-                    if(userData.gender) {
-                        document.getElementById('genderInput').value = userData.gender;
-                    }
-                    document.getElementById('registrationModal').classList.add('show');
-                }
-                // Scenario 1: New user
+                // Scenario 2: User document does NOT exist -> Treat as a new user
                 else {
                     document.getElementById('registration-title').textContent = "Complete Your Profile";
                     document.getElementById('userNameInput').value = currentUserData.name;
                     document.getElementById('registrationModal').classList.add('show');
                 }
             } catch (error) {
-                console.error("Error checking user existence:", error);
-                // Fallback to registration if checks fail
-                document.getElementById('registrationModal').classList.add('show');
+                console.error("Error checking user document:", error);
+                document.getElementById('general-error-message').textContent = "Error checking your account. Please try again.";
+                document.getElementById('general-error-message').style.display = 'block';
             }
         }
 
@@ -514,14 +515,15 @@
 
             if (phone.length !== 10) {
                 phoneErrorMsg.style.display = 'none';
+                submitBtn.disabled = false;
                 return;
             }
 
             try {
                 const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
                 if (!querySnapshot.empty) {
-                    // Check if the found number belongs to the current user who might be updating their profile
                     const doc = querySnapshot.docs[0];
+                    // Allow if the number belongs to the current user (e.g., they are just re-saving their profile)
                     if (doc.id !== currentUserData.sub) {
                         phoneErrorMsg.textContent = "This number is already registered.";
                         phoneErrorMsg.style.display = 'block';
@@ -549,7 +551,6 @@
             const generalErrorMsg = document.getElementById('general-error-message');
             const submitBtn = document.getElementById('completeRegistrationBtn');
 
-            // Final validation before submitting
             if (!name || !/^\d{10}$/.test(phone) || !gender) {
                 generalErrorMsg.textContent = "Please fill out all fields correctly.";
                 generalErrorMsg.style.display = 'block';
@@ -557,34 +558,32 @@
             }
             generalErrorMsg.style.display = 'none';
             
-            // Disable button to prevent multiple submissions
             submitBtn.disabled = true;
             submitBtn.textContent = 'Saving...';
-
-            currentUserData.name = name;
-            currentUserData.phone = `+91${phone}`;
-            currentUserData.gender = gender;
 
             const userRef = db.collection('users').doc(currentUserData.sub);
             const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
 
             const dataToSave = {
-                name: currentUserData.name,
+                name: name,
                 email: currentUserData.email,
                 picture: currentUserData.picture,
-                phone: currentUserData.phone,
-                gender: currentUserData.gender,
+                phone: `+91${phone}`,
+                gender: gender,
                 lastLogin: serverTimestamp
             };
 
-            // Check if it's a new user by checking for createdAt field
             const userDoc = await userRef.get();
-            if (!userDoc.exists || !userDoc.data().createdAt) {
+            if (!userDoc.exists) {
                 dataToSave.createdAt = serverTimestamp;
             }
 
             try {
+                // set with merge:true is perfect. It creates if not exists, and updates if it does.
                 await userRef.set(dataToSave, { merge: true });
+
+                // Update currentUserData with the newly saved details
+                currentUserData = {...currentUserData, ...dataToSave};
 
                 document.getElementById('registrationModal').classList.remove('show');
                 showWelcomeAnimation(currentUserData);
@@ -592,13 +591,12 @@
                 setTimeout(() => {
                     localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
                     window.location.href = './index.html';
-                }, 3000); // Increased timeout for the new animation
+                }, 3000);
 
             } catch (error) {
                 console.error("Registration Error:", error);
                 generalErrorMsg.textContent = "Could not save details. Please try again.";
                 generalErrorMsg.style.display = 'block';
-                // Re-enable button on error
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save & Continue';
             }
@@ -620,13 +618,11 @@
         
         // --- EVENT LISTENERS ---
         window.onload = function () {
-            // If user is already logged in, redirect
             if(localStorage.getItem('rivava_user')) {
                 window.location.href = './index.html';
                 return;
             }
 
-            // Initialize Google Sign-In
             if (window.google?.accounts?.id) {
                 google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
@@ -641,7 +637,6 @@
                 setTimeout(window.onload, 300);
             }
 
-            // Add debounced event listener for phone input
             const phoneInput = document.getElementById('phoneInput');
             phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 500));
         };
