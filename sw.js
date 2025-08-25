@@ -1,11 +1,11 @@
 // A new version name is CRITICAL for triggering the update process.
-const CACHE_NAME = 'rivava-cache-v10'; 
+const CACHE_NAME = 'rivava-cache-v11'; // Incremented version
 
 // List of all essential files for the app to work offline.
-// This now includes your new history page and main logo.
 const urlsToCache = [
   './',
   './index.html',
+  './login.html', // Added login page to cache
   './history.html',
   './manifest.json',
   './logo.png',
@@ -38,6 +38,11 @@ self.addEventListener('activate', event => {
           }
         })
       );
+    }).then(() => {
+        // --- THIS IS THE FIX ---
+        // This tells the service worker to take control of the page immediately.
+        console.log('Service Worker: Claiming clients');
+        return self.clients.claim();
     })
   );
 });
