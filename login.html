@@ -6,7 +6,6 @@
     <title>Login - Rivava Finance</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- ADDED: Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
@@ -28,7 +27,6 @@
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
-            /* ADDED: Animated background */
             background: linear-gradient(-45deg, #000, #0a0a0a, #000, #111);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -45,7 +43,6 @@
             border-radius: 20px;
             border: 1px solid #1a1a1a;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-            /* UPDATED: Animation and transition */
             opacity: 0;
             transform: scale(0.95);
             animation: fadeIn 1s ease-out forwards;
@@ -92,14 +89,15 @@
             transform: translateY(-2px);
         }
 
-        /* ADDED: Welcome Animation Styles */
+        /* --- UPDATED: Welcome Animation Styles --- */
         #welcome-animation {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(5px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -121,7 +119,7 @@
             box-shadow: 0 0 30px var(--accent-glow);
             opacity: 0;
             transform: scale(0.5);
-            animation: avatar-pop 0.8s 0.3s ease-out forwards;
+            animation: avatar-pop 0.8s 0.3s ease-out forwards, glow 2s infinite alternate 1s;
         }
         @keyframes avatar-pop {
             to {
@@ -129,13 +127,25 @@
                 transform: scale(1);
             }
         }
+        @keyframes glow {
+            from { box-shadow: 0 0 30px var(--accent-glow); }
+            to { box-shadow: 0 0 50px rgba(0, 255, 195, 0.5); }
+        }
         .welcome-text {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-top: 20px;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 24px;
             opacity: 0;
             transform: translateY(20px);
             animation: text-fade-in 0.8s 0.8s ease-out forwards;
+        }
+        .welcome-sub-text {
+            font-size: 1.1rem;
+            color: var(--muted);
+            margin-top: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: text-fade-in 0.8s 1s ease-out forwards;
         }
         @keyframes text-fade-in {
             to {
@@ -149,22 +159,22 @@
 
     <div class="login-container" id="loginContainer">
         <img src="./logo.png" alt="Rivava Logo" class="logo">
-        <h1>Welcome Back</h1>
-        <p>Sign in to manage your finances.</p>
+        <h1>Welcome to Rivava</h1>
+        <p>Sign in to begin your financial journey.</p>
         <div id="g_id_signin_container"></div>
     </div>
 
-    <!-- ADDED: Welcome Animation Container -->
+    <!-- UPDATED: Welcome Animation Container -->
     <div id="welcome-animation">
         <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
         <div id="welcomeText" class="welcome-text"></div>
+        <div id="welcomeSubText" class="welcome-sub-text"></div>
     </div>
 
     <script>
         const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
         const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
         
-        // Initialize Firebase
         let db;
         try {
             if (!firebase.apps.length) {
@@ -188,7 +198,6 @@
             }
         }
 
-        // UPDATED: Handle the response from Google Sign-In
         async function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
             if (!payload || !payload.email) {
@@ -199,10 +208,9 @@
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
-                sub: payload.sub // Google's unique user ID
+                sub: payload.sub
             };
 
-            // Hide the login form
             document.getElementById('loginContainer').classList.add('hidden');
 
             const userRef = db.collection('users').doc(user.sub);
@@ -210,13 +218,12 @@
             const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
 
             if (!userDoc.exists) {
-                // --- NEW USER ---
-                // Show welcome animation
+                // --- NEW USER: Show enhanced welcome animation ---
                 document.getElementById('welcomeAvatar').src = user.picture;
                 document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
+                document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
                 document.getElementById('welcome-animation').classList.add('show');
 
-                // Create new user record in Firestore
                 await userRef.set({
                     name: user.name,
                     email: user.email,
@@ -225,24 +232,20 @@
                     lastLogin: serverTimestamp
                 });
 
-                // Wait for animation, then redirect
                 setTimeout(() => {
                     localStorage.setItem('rivava_user', JSON.stringify(user));
                     window.location.href = './index.html';
-                }, 2500); // Wait 2.5 seconds
+                }, 3000); // Increased duration for better effect
 
             } else {
                 // --- EXISTING USER ---
-                // Just update last login time
                 await userRef.update({ lastLogin: serverTimestamp });
                 localStorage.setItem('rivava_user', JSON.stringify(user));
                 window.location.href = './index.html';
             }
         }
 
-        // Initialize Google Sign-In
         window.onload = function () {
-            // Redirect if already logged in
             if(localStorage.getItem('rivava_user')) {
                 window.location.href = './index.html';
                 return;
