@@ -271,9 +271,24 @@
         }
         
         /* --- NEW WELCOME ANIMATION STYLES --- */
-        #welcome-animation {
-            background: radial-gradient(circle at center, #0d0d0d 0%, #000000 100%);
-            flex-direction: column;
+        #welcomeScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+        }
+        #welcomeScreen.show {
+            opacity: 1;
+            pointer-events: auto;
         }
         .welcome-content {
             display: flex;
@@ -286,78 +301,56 @@
         }
         .welcome-avatar-wrapper {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
             opacity: 0;
-            transform: scale(0.5);
-            animation: welcome-pop-in 0.7s 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            transform: scale(0.3);
+            animation: avatar-swoop 0.8s 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-        @keyframes welcome-pop-in {
-            to { opacity: 1; transform: scale(1); }
+        @keyframes avatar-swoop {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
         .welcome-avatar, .welcome-avatar-initials {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             border: 4px solid var(--accent);
-            box-shadow: 0 0 25px var(--accent-glow);
+            box-shadow: 0 0 35px var(--accent-glow);
         }
         .welcome-avatar-initials {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 700;
             color: #000;
-        }
-        .welcome-checkmark {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 40px;
-            height: 40px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: scale(0);
-            animation: checkmark-pop 0.5s 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-        }
-        @keyframes checkmark-pop {
-            to { transform: scale(1); }
-        }
-        .welcome-checkmark svg {
-            width: 24px;
-            height: 24px;
-            stroke: #000;
-            stroke-width: 3;
-            stroke-dasharray: 100;
-            stroke-dashoffset: 100;
-            animation: draw-check 0.4s 1s ease-out forwards;
-        }
-        @keyframes draw-check {
-            to { stroke-dashoffset: 0; }
         }
         .welcome-text-container {
             margin-top: 24px;
             opacity: 0;
-            transform: translateY(20px);
-            animation: text-fade-in 0.7s 1.2s ease-out forwards;
+            transform: translateY(30px);
+            animation: text-slide-up 0.7s 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        @keyframes text-slide-up {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         #welcomeText {
-            font-size: clamp(1.8rem, 5vw, 2.2rem);
+            font-size: clamp(2rem, 6vw, 2.5rem);
             font-weight: 700;
             line-height: 1.2;
+            color: var(--text);
         }
         #welcomeSubText {
             font-size: clamp(1rem, 3vw, 1.1rem);
             color: var(--muted);
             margin-top: 8px;
             max-width: 350px;
-        }
-        @keyframes text-fade-in {
-            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -407,7 +400,7 @@
     </div>
 
     <!-- Redesigned Welcome Animation -->
-    <div id="welcome-animation" class="modal-overlay">
+    <div id="welcomeScreen">
         <div class="welcome-content">
             <div class="welcome-avatar-wrapper" id="welcomeAvatarContainer">
                 <!-- Avatar will be inserted here by script -->
@@ -436,7 +429,6 @@
             console.error("Firebase Init Error:", error);
         }
 
-        // --- UTILITY FUNCTIONS ---
         function parseJwt(token) {
             try {
                 const base64Url = token.split('.')[1];
@@ -453,7 +445,6 @@
             };
         }
 
-        // --- CORE LOGIC ---
         async function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
             if (!payload) {
@@ -522,6 +513,7 @@
                 const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
                 if (!querySnapshot.empty) {
                     const doc = querySnapshot.docs[0];
+                    // This logic correctly handles the case where the number belongs to another user.
                     if (doc.id !== currentUserData.sub) {
                         phoneErrorMsg.textContent = "This number is already registered.";
                         phoneErrorMsg.style.display = 'block';
@@ -585,7 +577,7 @@
                 setTimeout(() => {
                     localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
                     window.location.href = './index.html';
-                }, 3000);
+                }, 2500); // Faster redirect
 
             } catch (error) {
                 console.error("Registration Error:", error);
@@ -597,7 +589,7 @@
         }
 
         function showWelcomeAnimation(user) {
-            const welcomeAnimation = document.getElementById('welcome-animation');
+            const welcomeScreen = document.getElementById('welcomeScreen');
             const avatarContainer = document.getElementById('welcomeAvatarContainer');
             
             let avatarHTML;
@@ -610,19 +602,13 @@
                 avatarHTML = `<div class="welcome-avatar-initials" style="background-color: ${color};">${initial}</div>`;
             }
             
-            avatarContainer.innerHTML = avatarHTML + `
-                <div class="welcome-checkmark">
-                    <svg viewBox="0 0 52 52">
-                        <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                    </svg>
-                </div>`;
+            avatarContainer.innerHTML = avatarHTML;
 
             document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
             document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
-            welcomeAnimation.classList.add('show');
+            welcomeScreen.classList.add('show');
         }
         
-        // --- EVENT LISTENERS ---
         window.onload = function () {
             if(localStorage.getItem('rivava_user')) {
                 window.location.href = './index.html';
@@ -644,7 +630,8 @@
             }
 
             const phoneInput = document.getElementById('phoneInput');
-            phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 500));
+            // Use 'input' for real-time checking, debounced for performance
+            phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 400));
         };
     </script>
 
