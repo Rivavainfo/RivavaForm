@@ -30,7 +30,7 @@
             position: relative; /* Needed for positioning the animated shapes */
         }
         
-        /* --- NEW: Animated Background Shapes --- */
+        /* --- Animated Background Shapes --- */
         .shape-bg {
             position: absolute;
             top: 0;
@@ -73,7 +73,7 @@
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(15px); /* Glassmorphism blur */
+            backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             opacity: 0;
             transform: scale(0.95) translateY(20px);
@@ -129,8 +129,8 @@
             transform: translateY(-3px) scale(1.02);
         }
 
-        /* --- Welcome Animation Styles --- */
-        #welcome-animation {
+        /* --- Welcome Animation & Registration Modal Styles --- */
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -147,7 +147,7 @@
             pointer-events: none;
             transition: opacity 0.5s ease;
         }
-        #welcome-animation.show {
+        .modal-overlay.show {
             opacity: 1;
             pointer-events: auto;
         }
@@ -207,25 +207,124 @@
                 transform: translateY(0);
             }
         }
+        
+        /* --- NEW: Registration Modal Content --- */
+        .registration-content {
+            background: var(--card-dark);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            width: 90%;
+            max-width: 400px;
+            text-align: left;
+        }
+        .registration-content h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: #050505;
+            border: 1px solid #222;
+            color: var(--text);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .phone-input-container {
+            display: flex;
+        }
+        .phone-prefix {
+            padding: 12px;
+            background: #222;
+            border: 1px solid #222;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+        }
+        .phone-input-container input {
+            border-radius: 0 8px 8px 0;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0,255,195,0.2);
+        }
+        .registration-content button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #000;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .registration-content button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+        #error-message {
+            color: #ff5252;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+            font-weight: 600;
+        }
+
     </style>
 </head>
 <body>
 
-    <!-- NEW: Animated Background -->
+    <!-- Animated Background -->
     <div class="shape-bg">
         <div class="shape shape1"></div>
         <div class="shape shape2"></div>
     </div>
 
     <div class="login-container" id="loginContainer">
-        <img src="./logo.png" alt="Rivava Logo" class="logo" onerror="this.style.display='none'">
+        <img src="https://placehold.co/90x90/00ffc3/0a0a0a?text=R" alt="Rivava Logo" class="logo">
         <h1>Welcome to Rivava</h1>
         <p>Sign in to begin your financial journey.</p>
         <div id="g_id_signin_container"></div>
     </div>
 
-    <!-- Welcome Animation Container -->
-    <div id="welcome-animation">
+    <!-- NEW: Registration Modal for New Users -->
+    <div id="registrationModal" class="modal-overlay">
+        <div class="registration-content">
+            <h2>Complete Your Profile</h2>
+            <div class="form-group">
+                <label for="userNameInput">Full Name</label>
+                <input type="text" id="userNameInput" placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label for="phoneInput">Mobile Number</label>
+                <div class="phone-input-container">
+                    <span class="phone-prefix">+91</span>
+                    <input type="tel" id="phoneInput" placeholder="10-digit mobile number" maxlength="10">
+                </div>
+            </div>
+            <button onclick="completeRegistration()">Save & Continue</button>
+            <p id="error-message"></p>
+        </div>
+    </div>
+
+    <!-- Welcome Animation Container (for after registration) -->
+    <div id="welcome-animation" class="modal-overlay">
         <div class="welcome-avatar-container">
             <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
             <div id="welcomeAvatarInitial" class="welcome-avatar-initials"></div>
@@ -239,6 +338,8 @@
         const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
         
         let db;
+        let currentUserData = null; // Store user data temporarily
+
         try {
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
@@ -267,62 +368,104 @@
                 console.error("Invalid login response");
                 return;
             }
-            const user = {
+            
+            // We use the unique 'sub' (subject) field from Google as the user's permanent ID.
+            // This is secure and guarantees no two users will ever have the same ID.
+            currentUserData = {
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
-                sub: payload.sub
+                sub: payload.sub // This is the unique user ID
             };
 
             document.getElementById('loginContainer').classList.add('hidden');
 
-            const userRef = db.collection('users').doc(user.sub);
+            const userRef = db.collection('users').doc(currentUserData.sub);
             const userDoc = await userRef.get();
-            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
 
             if (!userDoc.exists) {
-                // --- NEW USER: Show enhanced welcome animation ---
-                const welcomeAvatarImg = document.getElementById('welcomeAvatar');
-                const welcomeAvatarInitial = document.getElementById('welcomeAvatarInitial');
-                
-                if (user.picture) {
-                    welcomeAvatarImg.src = user.picture;
-                    welcomeAvatarImg.style.display = 'block';
-                    welcomeAvatarInitial.style.display = 'none';
-                } else {
-                    const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
-                    const colors = ['#00ffc3', '#feca57', '#ff9ff3', '#4d94ff', '#ff6b6b'];
-                    const color = colors[Math.abs((initial.charCodeAt(0) || 0) - 65) % colors.length];
-                    
-                    welcomeAvatarInitial.textContent = initial;
-                    welcomeAvatarInitial.style.backgroundColor = color;
-                    welcomeAvatarInitial.style.display = 'flex';
-                    welcomeAvatarImg.style.display = 'none';
-                }
+                // --- NEW USER: Show registration form ---
+                document.getElementById('userNameInput').value = currentUserData.name;
+                document.getElementById('registrationModal').classList.add('show');
+            } else {
+                // --- EXISTING USER: Proceed directly ---
+                const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                await userRef.update({ lastLogin: serverTimestamp });
+                localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
+                window.location.href = './index.html';
+            }
+        }
 
-                document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
-                document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
-                document.getElementById('welcome-animation').classList.add('show');
+        async function completeRegistration() {
+            const name = document.getElementById('userNameInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            const errorMessage = document.getElementById('error-message');
 
-                userRef.set({
-                    name: user.name,
-                    email: user.email,
-                    picture: user.picture,
+            // --- Validation for Indian Mobile Number ---
+            if (!name || !/^\d{10}$/.test(phone)) {
+                errorMessage.textContent = "Please enter a valid name and 10-digit mobile number.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+            errorMessage.style.display = 'none';
+
+            // Update user data with details from the form
+            currentUserData.name = name;
+            currentUserData.phone = `+91${phone}`;
+
+            const userRef = db.collection('users').doc(currentUserData.sub);
+            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+            try {
+                await userRef.set({
+                    name: currentUserData.name,
+                    email: currentUserData.email,
+                    picture: currentUserData.picture,
+                    phone: currentUserData.phone,
                     createdAt: serverTimestamp,
                     lastLogin: serverTimestamp
                 });
 
+                // Hide registration and show welcome animation
+                document.getElementById('registrationModal').classList.remove('show');
+                showWelcomeAnimation(currentUserData);
+
+                // Redirect after animation
                 setTimeout(() => {
-                    localStorage.setItem('rivava_user', JSON.stringify(user));
+                    localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
                     window.location.href = './index.html';
                 }, 3000);
 
-            } else {
-                // --- EXISTING USER ---
-                await userRef.update({ lastLogin: serverTimestamp });
-                localStorage.setItem('rivava_user', JSON.stringify(user));
-                window.location.href = './index.html';
+            } catch (error) {
+                console.error("Registration Error:", error);
+                errorMessage.textContent = "Could not save details. Please try again.";
+                errorMessage.style.display = 'block';
             }
+        }
+
+        function showWelcomeAnimation(user) {
+            const welcomeAnimation = document.getElementById('welcome-animation');
+            const welcomeAvatarImg = document.getElementById('welcomeAvatar');
+            const welcomeAvatarInitial = document.getElementById('welcomeAvatarInitial');
+            
+            if (user.picture) {
+                welcomeAvatarImg.src = user.picture;
+                welcomeAvatarImg.style.display = 'block';
+                welcomeAvatarInitial.style.display = 'none';
+            } else {
+                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+                const colors = ['#00ffc3', '#feca57', '#ff9ff3', '#4d94ff', '#ff6b6b'];
+                const color = colors[Math.abs((initial.charCodeAt(0) || 0) - 65) % colors.length];
+                
+                welcomeAvatarInitial.textContent = initial;
+                welcomeAvatarInitial.style.backgroundColor = color;
+                welcomeAvatarInitial.style.display = 'flex';
+                welcomeAvatarImg.style.display = 'none';
+            }
+
+            document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
+            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
+            welcomeAnimation.classList.add('show');
         }
 
         window.onload = function () {
@@ -348,4 +491,3 @@
 
 </body>
 </html>
-
