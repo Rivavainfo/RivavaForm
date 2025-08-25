@@ -590,7 +590,8 @@ async function completeRegistration() {
             name: user.name,
             email: user.email,
             phone: user.phone,
-            picture: user.picture,
+            // *** FIX: Ensure picture is not undefined. Save null instead. ***
+            picture: user.picture || null,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
