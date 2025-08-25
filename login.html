@@ -17,11 +17,10 @@
             --text: #f0f0f0;
             --muted: #888;
             --danger: #ff5252;
+            --success: #00ffc3;
             --border-color: #1a1a1a;
-            /* --- Brand Colors from Logo --- */
             --brand-pink: #f82a99;
             --brand-blue: #2aa1f8;
-            --brand-lime: #dcf82a;
         }
         
         * {
@@ -197,6 +196,7 @@
         }
         .form-group {
             margin-bottom: 15px;
+            position: relative;
         }
         .form-group label {
             display: block;
@@ -246,81 +246,111 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.2s ease;
+            position: relative;
         }
         .registration-content button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px var(--accent-glow);
         }
-        #error-message {
+        .registration-content button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .error-message {
             color: var(--danger);
-            text-align: center;
-            margin-top: 15px;
+            font-size: 0.85rem;
             min-height: 1.2em;
             display: none;
-            font-weight: 600;
+            margin-top: 5px;
+        }
+        #general-error-message {
+            text-align: center;
+            margin-top: 15px;
         }
         
+        /* --- NEW WELCOME ANIMATION STYLES --- */
         #welcome-animation {
-            background: radial-gradient(circle at center, rgba(13,13,13,0.9) 0%, rgba(0,0,0,0.98) 100%);
-            backdrop-filter: blur(10px);
-            text-align: center;
+            background: radial-gradient(circle at center, #0d0d0d 0%, #000000 100%);
+            flex-direction: column;
         }
-        .welcome-avatar-container {
-            width: 110px;
-            height: 110px;
+        .welcome-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            padding: 20px;
+        }
+        .welcome-avatar-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
             opacity: 0;
             transform: scale(0.5);
-            animation: avatar-pop 0.7s 0.1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            animation: welcome-pop-in 0.7s 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
-        .welcome-avatar, .welcome-avatar-initials {
+        @keyframes welcome-pop-in {
+            to { opacity: 1; transform: scale(1); }
+        }
+        #welcomeAvatar {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             border: 4px solid var(--accent);
-            box-shadow: 0 0 35px var(--accent-glow);
-            animation: glow 2s infinite alternate 0.5s;
+            box-shadow: 0 0 25px var(--accent-glow);
         }
-        .welcome-avatar-initials {
-            display: none; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; color: var(--bg-dark);
+        .welcome-checkmark {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0);
+            animation: checkmark-pop 0.5s 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
-        @keyframes avatar-pop {
-            to { opacity: 1; transform: scale(1); }
+        @keyframes checkmark-pop {
+            to { transform: scale(1); }
         }
-        @keyframes glow {
-            from { box-shadow: 0 0 35px var(--accent-glow); }
-            to { box-shadow: 0 0 50px rgba(0, 255, 195, 0.5); }
+        .welcome-checkmark svg {
+            width: 24px;
+            height: 24px;
+            stroke: #000;
+            stroke-width: 3;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: draw-check 0.4s 1s ease-out forwards;
         }
-        .welcome-text {
-            font-size: 1.8rem; font-weight: 700; margin-top: 24px; opacity: 0; transform: translateY(20px);
-            animation: text-fade-in 0.7s 0.4s ease-out forwards;
+        @keyframes draw-check {
+            to { stroke-dashoffset: 0; }
         }
-        .welcome-sub-text {
-            font-size: 1rem; color: var(--muted); margin-top: 8px; opacity: 0; transform: translateY(20px);
-            animation: text-fade-in 0.7s 0.6s ease-out forwards;
-            max-width: 90%;
-            margin-left: auto;
-            margin-right: auto;
+        .welcome-text-container {
+            margin-top: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: text-fade-in 0.7s 1.2s ease-out forwards;
+        }
+        #welcomeText {
+            font-size: clamp(1.8rem, 5vw, 2.2rem);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        #welcomeSubText {
+            font-size: clamp(1rem, 3vw, 1.1rem);
+            color: var(--muted);
+            margin-top: 8px;
+            max-width: 350px;
         }
         @keyframes text-fade-in {
             to { opacity: 1; transform: translateY(0); }
         }
-
-        @media (min-width: 480px) {
-            .welcome-avatar-container {
-                width: 120px;
-                height: 120px;
-            }
-            .welcome-avatar-initials {
-                font-size: 3.5rem;
-            }
-            .welcome-text {
-                font-size: 2.2rem;
-            }
-            .welcome-sub-text {
-                font-size: 1.1rem;
-            }
-        }
-
     </style>
 </head>
 <body>
@@ -352,6 +382,7 @@
                     <span class="phone-prefix">+91</span>
                     <input type="tel" id="phoneInput" placeholder="10-digit mobile number" maxlength="10">
                 </div>
+                <p id="phone-error-message" class="error-message"></p>
             </div>
             <div class="form-group">
                 <label for="genderInput">Gender</label>
@@ -362,18 +393,27 @@
                     <option value="Other">Other</option>
                 </select>
             </div>
-            <button onclick="completeRegistration()">Save & Continue</button>
-            <p id="error-message"></p>
+            <button id="completeRegistrationBtn" onclick="completeRegistration()">Save & Continue</button>
+            <p id="general-error-message" class="error-message"></p>
         </div>
     </div>
 
+    <!-- Redesigned Welcome Animation -->
     <div id="welcome-animation" class="modal-overlay">
-        <div class="welcome-avatar-container">
-            <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
-            <div id="welcomeAvatarInitial" class="welcome-avatar-initials"></div>
+        <div class="welcome-content">
+            <div class="welcome-avatar-wrapper">
+                <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
+                <div class="welcome-checkmark">
+                    <svg viewBox="0 0 52 52">
+                        <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="welcome-text-container">
+                <div id="welcomeText"></div>
+                <div id="welcomeSubText"></div>
+            </div>
         </div>
-        <div id="welcomeText" class="welcome-text"></div>
-        <div id="welcomeSubText" class="welcome-sub-text"></div>
     </div>
 
     <script>
@@ -382,7 +422,7 @@
         
         let db;
         let currentUserData = null;
-        let isNewUser = false;
+        let phoneCheckTimeout;
 
         try {
             if (!firebase.apps.length) {
@@ -393,19 +433,24 @@
             console.error("Firebase Init Error:", error);
         }
 
+        // --- UTILITY FUNCTIONS ---
         function parseJwt(token) {
             try {
                 const base64Url = token.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
                 return JSON.parse(jsonPayload);
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
+        function debounce(func, delay) {
+            return function(...args) {
+                clearTimeout(phoneCheckTimeout);
+                phoneCheckTimeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        // --- CORE LOGIC ---
         async function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
             if (!payload) {
@@ -417,35 +462,83 @@
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
-                sub: payload.sub
+                sub: payload.sub // This is the unique Google ID
             };
 
             document.getElementById('loginContainer').classList.add('hidden');
 
             const userRef = db.collection('users').doc(currentUserData.sub);
-            const userDoc = await userRef.get();
+            const submissionRef = db.collection('submissions').doc(currentUserData.sub);
 
-            if (userDoc.exists) {
-                isNewUser = false;
-                const data = userDoc.data();
-                if (!data.phone || !data.gender) {
+            try {
+                const [userDoc, submissionDoc] = await Promise.all([userRef.get(), submissionRef.get()]);
+                const userExists = userDoc.exists || submissionDoc.exists;
+                const userData = userDoc.exists ? userDoc.data() : {};
+
+                // Scenario 3: User exists and has a complete profile
+                if (userExists && userData.phone && userData.gender) {
+                    const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                    userRef.update({ lastLogin: serverTimestamp }).catch(console.error);
+                    localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
+                    window.location.href = './index.html';
+                } 
+                // Scenario 2: User exists but profile is incomplete
+                else if (userExists) {
                     document.getElementById('registration-title').textContent = "Update Your Profile";
-                    document.getElementById('userNameInput').value = data.name || currentUserData.name;
-                    if (data.phone) {
-                         document.getElementById('phoneInput').value = data.phone.replace('+91', '');
+                    document.getElementById('userNameInput').value = userData.name || currentUserData.name;
+                    if (userData.phone) {
+                        document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
+                    }
+                    if(userData.gender) {
+                        document.getElementById('genderInput').value = userData.gender;
                     }
                     document.getElementById('registrationModal').classList.add('show');
-                } else {
-                    const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                    userRef.update({ lastLogin: serverTimestamp }); 
-                    localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
-                    window.location.href = './index.html';
                 }
-            } else {
-                isNewUser = true;
-                document.getElementById('registration-title').textContent = "Complete Your Profile";
-                document.getElementById('userNameInput').value = currentUserData.name;
+                // Scenario 1: New user
+                else {
+                    document.getElementById('registration-title').textContent = "Complete Your Profile";
+                    document.getElementById('userNameInput').value = currentUserData.name;
+                    document.getElementById('registrationModal').classList.add('show');
+                }
+            } catch (error) {
+                console.error("Error checking user existence:", error);
+                // Fallback to registration if checks fail
                 document.getElementById('registrationModal').classList.add('show');
+            }
+        }
+
+        async function checkPhoneNumber(phone) {
+            const phoneErrorMsg = document.getElementById('phone-error-message');
+            const submitBtn = document.getElementById('completeRegistrationBtn');
+            const formattedPhone = `+91${phone}`;
+
+            if (phone.length !== 10) {
+                phoneErrorMsg.style.display = 'none';
+                return;
+            }
+
+            try {
+                const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
+                if (!querySnapshot.empty) {
+                    // Check if the found number belongs to the current user who might be updating their profile
+                    const doc = querySnapshot.docs[0];
+                    if (doc.id !== currentUserData.sub) {
+                        phoneErrorMsg.textContent = "This number is already registered.";
+                        phoneErrorMsg.style.display = 'block';
+                        submitBtn.disabled = true;
+                    } else {
+                        phoneErrorMsg.style.display = 'none';
+                        submitBtn.disabled = false;
+                    }
+                } else {
+                    phoneErrorMsg.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error("Error checking phone number:", error);
+                phoneErrorMsg.textContent = "Could not verify number. Try again.";
+                phoneErrorMsg.style.display = 'block';
+                submitBtn.disabled = true;
             }
         }
 
@@ -453,14 +546,20 @@
             const name = document.getElementById('userNameInput').value.trim();
             const phone = document.getElementById('phoneInput').value.trim();
             const gender = document.getElementById('genderInput').value;
-            const errorMessage = document.getElementById('error-message');
+            const generalErrorMsg = document.getElementById('general-error-message');
+            const submitBtn = document.getElementById('completeRegistrationBtn');
 
+            // Final validation before submitting
             if (!name || !/^\d{10}$/.test(phone) || !gender) {
-                errorMessage.textContent = "Please fill out all fields correctly.";
-                errorMessage.style.display = 'block';
+                generalErrorMsg.textContent = "Please fill out all fields correctly.";
+                generalErrorMsg.style.display = 'block';
                 return;
             }
-            errorMessage.style.display = 'none';
+            generalErrorMsg.style.display = 'none';
+            
+            // Disable button to prevent multiple submissions
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
 
             currentUserData.name = name;
             currentUserData.phone = `+91${phone}`;
@@ -478,13 +577,13 @@
                 lastLogin: serverTimestamp
             };
 
-            if (isNewUser) {
+            // Check if it's a new user by checking for createdAt field
+            const userDoc = await userRef.get();
+            if (!userDoc.exists || !userDoc.data().createdAt) {
                 dataToSave.createdAt = serverTimestamp;
             }
 
             try {
-                // --- FIXED: This single command will create a new document OR
-                // update an existing one without overwriting fields. ---
                 await userRef.set(dataToSave, { merge: true });
 
                 document.getElementById('registrationModal').classList.remove('show');
@@ -493,46 +592,41 @@
                 setTimeout(() => {
                     localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
                     window.location.href = './index.html';
-                }, 2200);
+                }, 3000); // Increased timeout for the new animation
 
             } catch (error) {
                 console.error("Registration Error:", error);
-                errorMessage.textContent = "Could not save details. Please try again.";
-                errorMessage.style.display = 'block';
+                generalErrorMsg.textContent = "Could not save details. Please try again.";
+                generalErrorMsg.style.display = 'block';
+                // Re-enable button on error
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save & Continue';
             }
         }
 
         function showWelcomeAnimation(user) {
             const welcomeAnimation = document.getElementById('welcome-animation');
             const welcomeAvatarImg = document.getElementById('welcomeAvatar');
-            const welcomeAvatarInitial = document.getElementById('welcomeAvatarInitial');
             
-            if (user.picture) {
-                welcomeAvatarImg.src = user.picture;
-                welcomeAvatarImg.style.display = 'block';
-                welcomeAvatarInitial.style.display = 'none';
-            } else {
-                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
-                const colors = ['#00ffc3', '#feca57', '#ff9ff3', '#4d94ff', '#ff6b6b'];
-                const color = colors[Math.abs((initial.charCodeAt(0) || 0) - 65) % colors.length];
-                
-                welcomeAvatarInitial.textContent = initial;
-                welcomeAvatarInitial.style.backgroundColor = color;
-                welcomeAvatarInitial.style.display = 'flex';
-                welcomeAvatarImg.style.display = 'none';
-            }
+            welcomeAvatarImg.src = user.picture || `https://placehold.co/120x120/0d0d0d/00ffc3?text=${user.name.charAt(0).toUpperCase()}`;
+            welcomeAvatarImg.onerror = () => {
+                welcomeAvatarImg.src = `https://placehold.co/120x120/0d0d0d/00ffc3?text=${user.name.charAt(0).toUpperCase()}`;
+            };
 
             document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
             document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
             welcomeAnimation.classList.add('show');
         }
-
+        
+        // --- EVENT LISTENERS ---
         window.onload = function () {
+            // If user is already logged in, redirect
             if(localStorage.getItem('rivava_user')) {
                 window.location.href = './index.html';
                 return;
             }
 
+            // Initialize Google Sign-In
             if (window.google?.accounts?.id) {
                 google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
@@ -543,8 +637,13 @@
                     { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
                 );
             } else {
+                console.warn("Google GSI client not loaded, retrying...");
                 setTimeout(window.onload, 300);
             }
+
+            // Add debounced event listener for phone input
+            const phoneInput = document.getElementById('phoneInput');
+            phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 500));
         };
     </script>
 
