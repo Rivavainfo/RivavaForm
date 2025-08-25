@@ -111,15 +111,31 @@
             opacity: 1;
             pointer-events: auto;
         }
-        .welcome-avatar {
+        /* ADDED: Container for avatar/initials */
+        .welcome-avatar-container {
+            position: relative;
             width: 120px;
             height: 120px;
+            opacity: 0;
+            transform: scale(0.5);
+            animation: avatar-pop 0.8s 0.3s ease-out forwards;
+        }
+        .welcome-avatar, .welcome-avatar-initials {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             border: 4px solid var(--accent);
             box-shadow: 0 0 30px var(--accent-glow);
-            opacity: 0;
-            transform: scale(0.5);
-            animation: avatar-pop 0.8s 0.3s ease-out forwards, glow 2s infinite alternate 1s;
+            animation: glow 2s infinite alternate 1s;
+        }
+        /* ADDED: Styles for the initial display */
+        .welcome-avatar-initials {
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--bg-dark);
         }
         @keyframes avatar-pop {
             to {
@@ -166,7 +182,10 @@
 
     <!-- UPDATED: Welcome Animation Container -->
     <div id="welcome-animation">
-        <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
+        <div class="welcome-avatar-container">
+            <img id="welcomeAvatar" src="" alt="User Avatar" class="welcome-avatar">
+            <div id="welcomeAvatarInitial" class="welcome-avatar-initials"></div>
+        </div>
         <div id="welcomeText" class="welcome-text"></div>
         <div id="welcomeSubText" class="welcome-sub-text"></div>
     </div>
@@ -219,7 +238,25 @@
 
             if (!userDoc.exists) {
                 // --- NEW USER: Show enhanced welcome animation ---
-                document.getElementById('welcomeAvatar').src = user.picture;
+                const welcomeAvatarImg = document.getElementById('welcomeAvatar');
+                const welcomeAvatarInitial = document.getElementById('welcomeAvatarInitial');
+                
+                // ADDED: Logic to show initial if no picture is available
+                if (user.picture) {
+                    welcomeAvatarImg.src = user.picture;
+                    welcomeAvatarImg.style.display = 'block';
+                    welcomeAvatarInitial.style.display = 'none';
+                } else {
+                    const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+                    const colors = ['#00ffc3', '#feca57', '#ff9ff3', '#4d94ff', '#ff6b6b'];
+                    const color = colors[Math.abs((initial.charCodeAt(0) || 0) - 65) % colors.length];
+                    
+                    welcomeAvatarInitial.textContent = initial;
+                    welcomeAvatarInitial.style.backgroundColor = color;
+                    welcomeAvatarInitial.style.display = 'flex';
+                    welcomeAvatarImg.style.display = 'none';
+                }
+
                 document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
                 document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
                 document.getElementById('welcome-animation').classList.add('show');
@@ -235,7 +272,7 @@
                 setTimeout(() => {
                     localStorage.setItem('rivava_user', JSON.stringify(user));
                     window.location.href = './index.html';
-                }, 3000); // Increased duration for better effect
+                }, 3000);
 
             } else {
                 // --- EXISTING USER ---
