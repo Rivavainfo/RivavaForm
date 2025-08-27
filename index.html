@@ -404,7 +404,7 @@
 
 
 <script>
-// --- 🐞 START: ROBUST AUTHENTICATION FIX ---
+// --- 🐞 FIXED: ROBUST AUTHENTICATION & FIREBASE INTEGRATION ---
 // Global state to hold the current user object once authenticated.
 let currentUser = null;
 
@@ -703,13 +703,72 @@ async function submitForm() {
       };
   });
   
+  // Fixed: Ensure proper document reference and batch processing
   const batch = db.batch();
-  const submissionsCollection = db.collection('users').doc(currentUser.sub).collection('submissions');
+  const userDocRef = db.collection('users').doc(currentUser.sub);
+  const submissionsCollectionRef = userDocRef.collection('submissions');
   
-  rows.forEach(submission => {
-      const newSubmissionRef = submissionsCollection.doc();
-      batch.set(newSubmissionRef, submission);
+  // Create a document for today's date
+  const today = new Date();
+  const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const dailyDocRef = submissionsCollectionRef.doc(dateString);
+  
+  // Get existing data or initialize empty arrays
+  let existingData = { earnings: [], expenses: [] };
+  
+  try {
+    const docSnapshot = await dailyDocRef.get();
+    if (docSnapshot.exists) {
+      existingData = docSnapshot.data();
+    }
+  } catch (error) {
+    console.log("No existing data found, creating new document");
+  }
+  
+  // Separate earnings and expenses
+  const earnings = [];
+  const expenses = [];
+  
+  rows.forEach(row => {
+    const item = {
+      amount: row.amount,
+      category: row.category,
+      payment: row.payment,
+      transactionDate: row.transactionDate,
+      submittedAt: row.submittedAt
+    };
+    
+    if (row.type === "Earning") {
+      earnings.push(item);
+    } else {
+      expenses.push(item);
+    }
   });
+  
+  // Combine with existing data
+  const finalEarnings = [...existingData.earnings, ...earnings];
+  const finalExpenses = [...existingData.expenses, ...expenses];
+  
+  // Set the document data
+  batch.set(dailyDocRef, {
+    earnings: finalEarnings,
+    expenses: finalExpenses,
+    date: dateString,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  
+  // Also update the main user document with totals
+  const totalEarnings = finalEarnings.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpenses = finalExpenses.reduce((sum, item) => sum + item.amount, 0);
+  
+  batch.set(userDocRef, {
+    totalEarnings: totalEarnings,
+    totalExpenses: totalExpenses,
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+    name: currentUser.name,
+    email: currentUser.email,
+    phone: currentUser.phone
+  }, { merge: true });
 
   try {
     await batch.commit();
