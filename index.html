@@ -103,8 +103,8 @@
 
   /* Profile Dropdown & Avatar */
   .profile-container { position: relative; display: inline-block; }
-  .profile-avatar, .avatar-initials { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: border-color 0.2s ease; }
-  .profile-avatar:hover, .avatar-initials:hover { border-color: var(--accent); }
+  .profile-avatar, .avatar-initials { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: all 0.2s ease; }
+  .profile-avatar:hover, .avatar-initials:hover { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
   .avatar-initials {
       display: flex;
       align-items: center;
@@ -139,7 +139,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Modals */
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, rgba(0,0,0,0.6), rgba(0,0,0,0.8)); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
   .modal-overlay.show { opacity: 1; pointer-events: auto; }
   .modal-content { background: var(--card-dark); padding: 30px; border-radius: 16px; border: 1px solid #222; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); text-align: center; width: 90%; max-width: 420px; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
   .modal-overlay.show .modal-content { transform: scale(1); }
@@ -164,9 +164,10 @@
   .modal-actions button.secondary { background: #222; color: var(--text); }
   .modal-actions button.secondary:hover { background: #333; box-shadow: none; }
 
-  /* Other styles */
+  /* Info Blocks & Main UI */
   .info-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:18px;}
   .info-block{background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #1a1a1a;transition: all 0.3s ease;}
+  .info-block:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0, 255, 195, 0.1); border-color: #222; }
   .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent);font-weight:600;}
   .tabs{display:flex;gap:10px;margin-bottom:16px;}
   .tab{flex:1;background:var(--card-dark);padding:12px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid #1a1a1a;transition:all 0.2s ease;}
@@ -174,34 +175,16 @@
   .tab.active{background:var(--accent);color:#000;font-weight:700;}
   .form-section{display:none; background:var(--card-dark);padding:18px;border-radius:12px;border:1px solid #1a1a1a;}
   .form-section.active{display:block; animation: formFadeIn 0.5s ease;}
-  @keyframes formFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes formFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   label{display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem;}
-  input,select{width:100%;padding:12px;border-radius:8px;background:#050505;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px;font-family:'Poppins',sans-serif;}
+  input,select{width:100%;padding:12px;border-radius:8px;background:#050505;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px;font-family:'Poppins',sans-serif; transition: border-color 0.2s ease, box-shadow 0.2s ease;}
   input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2);}
   
   button.animated-add {
-    background: var(--accent);
-    border: none;
-    padding: 14px 20px;
-    border-radius: 8px;
-    color: #000;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 8px;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
+    background: var(--accent); border: none; padding: 14px 20px; border-radius: 8px; color: #000; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-size: 1rem; transition: all 0.2s ease; position: relative; overflow: hidden;
   }
-  button.animated-add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px var(--accent-glow);
-  }
-  button.animated-add:active {
-    transform: translateY(-1px) scale(0.98);
-    box-shadow: 0 2px 8px var(--accent-glow);
-  }
+  button.animated-add:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--accent-glow); }
+  button.animated-add:active { transform: translateY(-1px) scale(0.98); box-shadow: 0 2px 8px var(--accent-glow); }
   
   button.primary{background:var(--accent);border:none;padding:14px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:16px;font-size:1rem;transition: all 0.2s ease;}
   button.primary:hover{transform: translateY(-2px);box-shadow: 0 4px 12px var(--accent-glow);}
@@ -213,89 +196,35 @@
   td{font-size:0.9rem;}
   td button{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;transition: all 0.2s ease;min-width: 60px;}
   td button:hover{background:#ff3838;}
-
-  /* --- UPDATED: Welcome Overlay --- */
-  #welcomeOverlay{
-    position:fixed;
-    top: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-20px);
-    width: auto;
-    max-width: 90%;
-    padding: 16px 24px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
-    opacity: 0;
-    pointer-events: none;
-    z-index: 9999;
-    transition: opacity .4s ease, transform .4s ease;
-    border: 1px solid #222;
-  }
-  #welcomeOverlay.show{
-    opacity:1;
-    transform: translateX(-50%) translateY(0);
-  }
-  #welcomeOverlay #welcomeAvatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--accent);
-  }
-  #welcomeOverlay .welcome-main-text {
-    font-weight: 700;
-    font-size: 1.1rem;
-    line-height: 1.2;
-  }
-   #welcomeOverlay .welcome-sub-text {
-    font-weight: 400;
-    font-size: 0.9rem;
-    color: var(--muted);
-    margin-top: 4px;
-  }
   
-  /* --- MOBILE OPTIMIZATIONS --- */
+  /* --- IMPROVED: Table Row Animation --- */
+  @keyframes rowFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  tr.new-row { animation: rowFadeIn 0.4s ease-out; }
+
+  /* Welcome Overlay */
+  #welcomeOverlay{
+    position:fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-20px); width: auto; max-width: 90%; padding: 16px 24px; border-radius: 12px; background: linear-gradient(135deg, #0d0d0d, #1a1a1a); color: var(--text); display: flex; align-items: center; gap: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); opacity: 0; pointer-events: none; z-index: 9999; transition: opacity .4s ease, transform .4s ease; border: 1px solid #222;
+  }
+  #welcomeOverlay.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+  #welcomeOverlay #welcomeAvatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+  #welcomeOverlay .welcome-main-text { font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
+  #welcomeOverlay .welcome-sub-text { font-weight: 400; font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
+  
+  /* Mobile Optimizations */
   @media(max-width:768px){
-    main {
-        margin: 16px auto;
-        padding: 0 16px;
-    }
-    .info-blocks{
-        grid-template-columns:1fr 1fr;
-        gap:12px;
-    }
-    .tabs{
-        flex-direction:row;
-        gap:8px;
-    }
-    .tab {
-        font-size: 0.9rem;
-    }
+    main { margin: 16px auto; padding: 0 16px; }
+    .info-blocks{ grid-template-columns:1fr 1fr; gap:12px; }
+    .tabs{ flex-direction:row; gap:8px; }
+    .tab { font-size: 0.9rem; }
     table{min-width:600px;}
   }
 
   @media(max-width:480px){
-    main {
-        padding: 0 12px;
-    }
-    .info-blocks{
-        grid-template-columns:1fr;
-    }
-    .tabs{
-        flex-direction:column;
-    }
-    .form-section {
-        padding: 16px;
-    }
-    td, th {
-        padding: 10px 12px;
-        font-size: 0.85rem;
-    }
+    main { padding: 0 12px; }
+    .info-blocks{ grid-template-columns:1fr; }
+    .tabs{ flex-direction:column; }
+    .form-section { padding: 16px; }
+    td, th { padding: 10px 12px; font-size: 0.85rem; }
   }
   ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:#111} ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
 </style>
@@ -375,7 +304,6 @@
 
 
 <!-- Modals and Overlays -->
-<!-- UPDATED: Welcome Overlay Structure -->
 <div id="welcomeOverlay" role="status" aria-live="polite">
     <img id="welcomeAvatar" src="" alt="User Avatar">
     <div class="welcome-content">
@@ -469,16 +397,11 @@ function viewHistory() {
 function showWelcome(name, picture){
     const ov = document.getElementById('welcomeOverlay');
     const subtextEl = ov.querySelector('#welcomeSubText');
-    const subtexts = [
-        "Let's make today profitable.",
-        "Your financial journey continues.",
-        "Track every rupee, build your future.",
-        "Smart tracking for a brighter tomorrow."
-    ];
+    const subtexts = ["Let's make today profitable.", "Your financial journey continues.", "Track every rupee, build your future.", "Smart tracking for a brighter tomorrow."];
     const randomSubtext = subtexts[Math.floor(Math.random() * subtexts.length)];
 
     ov.querySelector('#welcomeText').textContent = `Welcome back, ${name}!`;
-    ov.querySelector('#welcomeAvatar').src = picture || '';
+    ov.querySelector('#welcomeAvatar').src = picture || './icons_folder/icon-180x180.png'; // Fallback icon
     subtextEl.textContent = randomSubtext;
 
     ov.classList.add('show');
@@ -488,8 +411,6 @@ function showWelcome(name, picture){
 function openModal(modalId) { document.getElementById(modalId).classList.add('show'); }
 function closeModal(modalId) { document.getElementById(modalId).classList.remove('show'); }
 
-// --- THIS IS THE FIX ---
-// This logic closes modals, but prevents the new user form from closing on an outside click.
 document.querySelectorAll('.modal-overlay').forEach(modal => {
     modal.addEventListener('click', (e) => {
         if (e.target === modal && modal.id !== 'newUserModal') {
@@ -502,6 +423,7 @@ function openFeedbackModal(reset = false) {
     if (reset) {
         document.getElementById('feedback-category-selection').style.display = 'flex';
         document.getElementById('feedback-text-input').style.display = 'none';
+        document.getElementById('feedbackText').value = '';
     }
     openModal('feedbackModal');
 }
@@ -527,7 +449,6 @@ async function submitFeedback() {
 
     try {
         await db.collection('feedback').add(payload);
-        document.getElementById('feedbackText').value = '';
         closeModal('feedbackModal');
     } catch (error) { console.error("Feedback Error:", error); } 
     finally { feedbackBtn.classList.remove('is-loading'); feedbackBtn.disabled = false; }
@@ -577,11 +498,7 @@ async function completeRegistration() {
     const phone = document.getElementById('phoneInput').value.trim();
     const name = document.getElementById('userNameInput').value.trim();
 
-    if (!phone || !name) {
-        alert("Please fill in all fields.");
-        return;
-    }
-
+    if (!phone || !name) { alert("Please fill in all fields."); return; }
     user.phone = phone;
     user.name = name;
 
@@ -590,15 +507,13 @@ async function completeRegistration() {
             name: user.name,
             email: user.email,
             phone: user.phone,
-            // *** FIX: Ensure picture is not undefined. Save null instead. ***
-            picture: user.picture || null,
+            picture: user.picture || null, // Ensure picture is not undefined
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
         localStorage.setItem('rivava_user', JSON.stringify(user));
         closeModal('newUserModal');
         setSignedInUI(user, true);
-
     } catch (error) {
         console.error("Error completing registration:", error);
         alert("Could not complete registration. Please try again.");
@@ -615,11 +530,7 @@ window.addEventListener('load', async ()=> {
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
   
   const storedUserStr = localStorage.getItem('rivava_user');
-  
-  if(!storedUserStr){ 
-      window.location.href = './login.html';
-      return;
-  } 
+  if(!storedUserStr){ window.location.href = './login.html'; return; } 
 
   try {
       const user = JSON.parse(storedUserStr);
@@ -634,7 +545,6 @@ window.addEventListener('load', async ()=> {
           localStorage.setItem('rivava_user', JSON.stringify(updatedUser));
           setSignedInUI(updatedUser, false);
       }
-      
   } catch(e){ 
       console.error("Auth check failed:", e);
       localStorage.removeItem('rivava_user'); 
@@ -642,14 +552,10 @@ window.addEventListener('load', async ()=> {
   }
 });
 
-// This listener closes the profile dropdown if you click anywhere else on the page.
 window.addEventListener('click', (e) => {
     const pc = document.querySelector('.profile-container');
     if (pc && !pc.contains(e.target)) {
-        const dropdown = document.getElementById('profileDropdown');
-        if (dropdown) {
-            dropdown.classList.remove('show');
-        }
+        document.getElementById('profileDropdown')?.classList.remove('show');
     }
 });
 
@@ -658,33 +564,52 @@ function setFixedDate() { const d = new Date(); document.getElementById("fixedDa
 function startLiveTime() { const el = document.getElementById("liveTime"); function u() { const n = new Date(); let h=n.getHours(); el.textContent = `${String(h%12||12).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}:${String(n.getSeconds()).padStart(2,"0")} ${h>=12?'PM':'AM'}`; } u(); setInterval(u, 1000); }
 const dataTableBody = document.querySelector("#dataTable tbody");
 function updateTotalExpense() { let sum = 0; dataTableBody.querySelectorAll("tr").forEach(row => { if (row.cells[0].textContent === "Expense") { const amt = parseFloat(row.cells[1].textContent); if (!isNaN(amt)) sum += amt; } }); document.getElementById("totalExpense").textContent = `₹${sum.toFixed(2)}`; }
-function addRow(type, amount, category, payment, date, time) { const row = document.createElement("tr"); row.innerHTML = `<td>${type}</td><td>${parseFloat(amount).toFixed(2)}</td><td>${category}</td><td>${payment}</td><td>${date}</td><td>${time}</td><td><button onclick="deleteRow(this)">Delete</button></td>`; dataTableBody.appendChild(row); updateTotalExpense(); }
+function addRow(type, amount, category, payment, date, time) { const row = document.createElement("tr"); row.className = 'new-row'; row.innerHTML = `<td>${type}</td><td>${parseFloat(amount).toFixed(2)}</td><td>${category}</td><td>${payment}</td><td>${date}</td><td>${time}</td><td><button onclick="deleteRow(this)">Delete</button></td>`; dataTableBody.appendChild(row); setTimeout(()=> row.classList.remove('new-row'), 500); updateTotalExpense(); }
 function deleteRow(button) { button.closest("tr").remove(); updateTotalExpense(); }
 function handleEarningCategoryChange() { const sel = document.getElementById("earningCategory"), inp = document.getElementById("customEarningCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
 function handleCategoryChange() { const sel = document.getElementById("expenseCategory"), inp = document.getElementById("customCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
 function addEarning() { const amountInput = document.getElementById("earningAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("earningCategory").value; if (category === "Other") { category = document.getElementById("customEarningCategory").value.trim(); if (!category) { document.getElementById("customEarningCategory").focus(); return; } } addRow("Earning", amount, category, "-", document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("earningCategory").value === "Other") { document.getElementById("customEarningCategory").value = ""; handleEarningCategoryChange(); document.getElementById("earningCategory").value = "Salary"; } }
 function addExpense() { const amountInput = document.getElementById("expenseAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("expenseCategory").value; if (category === "Other") { category = document.getElementById("customCategory").value.trim(); if (!category) { document.getElementById("customCategory").focus(); return; } } addRow("Expense", amount, category, document.getElementById("paymentMethod").value, document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("expenseCategory").value === "Other") { document.getElementById("customCategory").value = ""; handleCategoryChange(); document.getElementById("expenseCategory").value = "Personal"; } }
 
+// --- ⚡️ FIXED & IMPROVED: Form Submission to Firebase ---
 async function submitForm() {
   if (dataTableBody.children.length === 0) return;
   const user = JSON.parse(localStorage.getItem('rivava_user'));
-  if (!user || !user.sub) { 
-      alert("You must be signed in to submit.");
-      return; 
-  }
+  if (!user || !user.sub) { alert("You must be signed in to submit."); return; }
 
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.classList.add('is-loading');
   submitBtn.disabled = true;
 
-  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({ type: r.cells[0].textContent, amount: +r.cells[1].textContent, category: r.cells[2].textContent, payment: r.cells[3].textContent, date: r.cells[4].textContent, time: r.cells[5].textContent, submittedAt: firebase.firestore.FieldValue.serverTimestamp() }));
+  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => {
+      // Helper function to parse DD/MM/YYYY and HH:MM:SS AM/PM into a valid Date object
+      const dateParts = r.cells[4].textContent.split('/'); // [DD, MM, YYYY]
+      const timeString = r.cells[5].textContent; // e.g., "02:05:30 PM"
+      const [time, modifier] = timeString.split(' ');
+      let [hours, minutes, seconds] = time.split(':');
+      if (hours === '12') { hours = '00'; }
+      if (modifier === 'PM') { hours = parseInt(hours, 10) + 12; }
+      // new Date() wants (YYYY, MonthIndex, Day, Hr, Min, Sec)
+      const transactionDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], hours, minutes, seconds);
+
+      return {
+          type: r.cells[0].textContent,
+          amount: +r.cells[1].textContent,
+          category: r.cells[2].textContent,
+          payment: r.cells[3].textContent,
+          // Convert the JS Date to a Firestore Timestamp for proper data handling
+          transactionDate: firebase.firestore.Timestamp.fromDate(transactionDate),
+          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+  });
   
   const batch = db.batch();
-  const transactionsCollection = db.collection('users').doc(user.sub).collection('transactions');
+  // Saving to the 'submissions' collection as requested
+  const submissionsCollection = db.collection('users').doc(user.sub).collection('submissions');
   
-  rows.forEach(transaction => {
-      const newTransactionRef = transactionsCollection.doc();
-      batch.set(newTransactionRef, transaction);
+  rows.forEach(submission => {
+      const newSubmissionRef = submissionsCollection.doc();
+      batch.set(newSubmissionRef, submission);
   });
 
   try {
@@ -692,8 +617,14 @@ async function submitForm() {
     openModal('successModal');
     dataTableBody.innerHTML = '';
     updateTotalExpense();
-  } catch (error) { console.error("Submit Error:", error); } 
-  finally { submitBtn.classList.remove('is-loading'); submitBtn.disabled = false; }
+  } catch (error) { 
+    console.error("Submit Error:", error); 
+    alert("There was an error saving your data. Please check your connection and try again.");
+  } 
+  finally { 
+    submitBtn.classList.remove('is-loading'); 
+    submitBtn.disabled = false; 
+  }
 }
 </script>
 
