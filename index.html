@@ -451,6 +451,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 installButton.addEventListener('click', async () => {
+    // --- FIX: Corrected variable name from deferredInstallprompt to deferredInstallPrompt ---
     if (!deferredInstallPrompt) { return; }
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
@@ -555,7 +556,6 @@ function setSignedInUI(userObj){
   profileContainer.querySelector('.profile-avatar-wrapper').onclick = () => { document.getElementById('profileDropdown').classList.toggle('show'); };
   topUserArea.appendChild(profileContainer);
   
-  // Make the body visible now that the UI is ready
   document.body.style.visibility = 'visible';
 }
 
@@ -568,21 +568,17 @@ function signOut(){
   INITIALIZATION & CORE LOGIC
   ---------------------- */
 window.addEventListener('load', ()=> {
-  // --- MODIFICATION: Auth check is now the first step ---
   const storedUser = localStorage.getItem('rivava_user');
   
   if(!storedUser) {
-      // If no user is found, redirect to login page immediately.
       window.location.href = './login.html';
-      return; // Stop executing the rest of the script
+      return; 
   }
 
-  // If a user is found, proceed to set up the page
   try { 
       const user = JSON.parse(storedUser);
       setSignedInUI(user); 
       
-      // These functions can now run safely
       setFixedDate();
       startLiveTime();
       if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
@@ -593,7 +589,6 @@ window.addEventListener('load', ()=> {
           sessionStorage.removeItem('justLoggedIn');
       }
   } catch(e){ 
-      // If user data is corrupted, clear it and redirect to login
       localStorage.removeItem('rivava_user'); 
       window.location.href = './login.html';
   } 
