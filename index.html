@@ -17,12 +17,12 @@
 <link rel="icon" type="image/png" sizes="32x32" href="./icons_folder/icon-32x32.png">
 <link rel="apple-touch-icon" href="./icons_folder/icon-180x180.png">
 
-<!-- Fonts -->
+<!-- Fonts & Google Identity lib -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- Load Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
@@ -47,7 +47,8 @@
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
     overflow-x: hidden;
-    overscroll-behavior-y: contain;
+    /* --- MOBILE OPTIMIZATION --- */
+    overscroll-behavior-y: contain; /* Prevents pull-to-refresh on the whole page */
   }
 
   /* Header */
@@ -104,8 +105,8 @@
 
   /* Profile Dropdown & Avatar */
   .profile-container { position: relative; display: inline-block; }
-  .profile-avatar, .avatar-initials { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: all 0.2s ease; }
-  .profile-avatar:hover, .avatar-initials:hover { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+  .profile-avatar, .avatar-initials { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: border-color 0.2s ease; }
+  .profile-avatar:hover, .avatar-initials:hover { border-color: var(--accent); }
   .avatar-initials {
       display: flex;
       align-items: center;
@@ -125,6 +126,13 @@
   .dropdown-item.danger { color: var(--danger); }
   .dropdown-item.danger:hover { background-color: rgba(255, 82, 82, 0.1); }
 
+  /* Signin Card */
+  .signin-card{ max-width:920px;margin:28px auto;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:18px; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+  .signin-left{flex:1;min-width:0}
+  .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .signin-title{font-size:1.2rem;font-weight:700;margin-bottom:6px;}
+  .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
+
   /* Main Content Area */
   main {
       max-width: 920px;
@@ -140,7 +148,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Modals */
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, rgba(0,0,0,0.6), rgba(0,0,0,0.8)); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
   .modal-overlay.show { opacity: 1; pointer-events: auto; }
   .modal-content { background: var(--card-dark); padding: 30px; border-radius: 16px; border: 1px solid #222; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); text-align: center; width: 90%; max-width: 420px; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
   .modal-overlay.show .modal-content { transform: scale(1); }
@@ -164,11 +172,70 @@
   .modal-actions button { flex: 1; }
   .modal-actions button.secondary { background: #222; color: var(--text); }
   .modal-actions button.secondary:hover { background: #333; box-shadow: none; }
+  
+  /* --- NEW: Thank You Modal Styles --- */
+  .thank-you-modal {
+    background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+    border: 1px solid var(--accent);
+    box-shadow: 0 15px 50px var(--accent-glow);
+  }
+  .thank-you-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: icon-pop-in 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.2s backwards;
+  }
+  @keyframes icon-pop-in {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .thank-you-icon svg {
+    width: 44px;
+    height: 44px;
+    stroke: #000;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .thank-you-icon .check-mark {
+    stroke-dasharray: 60;
+    stroke-dashoffset: 60;
+    animation: draw-check 0.5s 0.8s ease-out forwards;
+  }
+  @keyframes draw-check {
+    to { stroke-dashoffset: 0; }
+  }
+  .thank-you-modal h2 {
+    font-size: 2rem;
+    background: linear-gradient(90deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .thank-you-modal p {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .thank-you-modal button {
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .thank-you-modal button:hover {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  /* --- End of New Styles --- */
 
-  /* Info Blocks & Main UI */
+  /* Other styles */
   .info-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:18px;}
   .info-block{background:var(--card-dark);padding:14px;border-radius:12px;text-align:center;border:1px solid #1a1a1a;transition: all 0.3s ease;}
-  .info-block:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0, 255, 195, 0.1); border-color: #222; }
   .info-block .value{display:block;margin-top:8px;font-size:1.6rem;color:var(--accent);font-weight:600;}
   .tabs{display:flex;gap:10px;margin-bottom:16px;}
   .tab{flex:1;background:var(--card-dark);padding:12px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid #1a1a1a;transition:all 0.2s ease;}
@@ -176,16 +243,34 @@
   .tab.active{background:var(--accent);color:#000;font-weight:700;}
   .form-section{display:none; background:var(--card-dark);padding:18px;border-radius:12px;border:1px solid #1a1a1a;}
   .form-section.active{display:block; animation: formFadeIn 0.5s ease;}
-  @keyframes formFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes formFadeIn { from { opacity: 0; } to { opacity: 1; } }
   label{display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem;}
-  input,select{width:100%;padding:12px;border-radius:8px;background:#050505;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px;font-family:'Poppins',sans-serif; transition: border-color 0.2s ease, box-shadow 0.2s ease;}
+  input,select{width:100%;padding:12px;border-radius:8px;background:#050505;border:1px solid #222;color:var(--text);margin-bottom:12px;font-size:16px;font-family:'Poppins',sans-serif;}
   input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,255,195,0.2);}
   
   button.animated-add {
-    background: var(--accent); border: none; padding: 14px 20px; border-radius: 8px; color: #000; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-size: 1rem; transition: all 0.2s ease; position: relative; overflow: hidden;
+    background: var(--accent);
+    border: none;
+    padding: 14px 20px; /* Increased padding for better touch target */
+    border-radius: 8px;
+    color: #000;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
   }
-  button.animated-add:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--accent-glow); }
-  button.animated-add:active { transform: translateY(-1px) scale(0.98); box-shadow: 0 2px 8px var(--accent-glow); }
+  button.animated-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  button.animated-add:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
   
   button.primary{background:var(--accent);border:none;padding:14px 20px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;width:100%;margin-top:16px;font-size:1rem;transition: all 0.2s ease;}
   button.primary:hover{transform: translateY(-2px);box-shadow: 0 4px 12px var(--accent-glow);}
@@ -197,68 +282,58 @@
   td{font-size:0.9rem;}
   td button{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;transition: all 0.2s ease;min-width: 60px;}
   td button:hover{background:#ff3838;}
+  #welcomeOverlay{position:fixed;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);padding:14px 20px;border-radius:12px;background:linear-gradient(90deg,#18c29a,#00ffc3);color:#012;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);opacity:0;pointer-events:none;z-index:9999;transition:opacity .4s ease, transform .4s ease;border: 1px solid rgba(255,255,255,0.1);}
+  #welcomeOverlay.show{opacity:1;transform:translateX(-50%) translateY(0);}
   
-  /* --- IMPROVED: Table Row Animation --- */
-  @keyframes rowFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  tr.new-row { animation: rowFadeIn 0.4s ease-out; }
-
-  /* Welcome Overlay */
-  #welcomeOverlay{
-    position:fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-20px); width: auto; max-width: 90%; padding: 16px 24px; border-radius: 12px; background: linear-gradient(135deg, #0d0d0d, #1a1a1a); color: var(--text); display: flex; align-items: center; gap: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); opacity: 0; pointer-events: none; z-index: 9999; transition: opacity .4s ease, transform .4s ease; border: 1px solid #222;
-  }
-  #welcomeOverlay.show{ opacity:1; transform: translateX(-50%) translateY(0); }
-  #welcomeOverlay #welcomeAvatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
-  #welcomeOverlay .welcome-main-text { font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
-  #welcomeOverlay .welcome-sub-text { font-weight: 400; font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
-  
-  /* --- NEW: Feedback Thank You Modal --- */
-  #feedbackThanksModal .modal-content {
-    background: linear-gradient(145deg, #111, #1a1a1a);
-  }
-  .feedback-thanks-icon {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 20px;
-  }
-  .feedback-thanks-icon .checkmark-circle {
-      stroke-dasharray: 240;
-      stroke-dashoffset: 240;
-      animation: draw-circle 0.8s 0.2s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-  }
-  .feedback-thanks-icon .checkmark-path {
-      stroke-dasharray: 80;
-      stroke-dashoffset: 80;
-      animation: draw-check 0.5s 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-  }
-  #feedbackThanksModal h2 {
-      animation: text-fade-in 0.5s 1.2s ease-out backwards;
-  }
-  #feedbackThanksModal p {
-      animation: text-fade-in 0.5s 1.3s ease-out backwards;
-  }
-  #feedbackThanksModal button {
-      animation: text-fade-in 0.5s 1.4s ease-out backwards;
-  }
-
-  @keyframes draw-circle { to { stroke-dashoffset: 0; } }
-  @keyframes draw-check { to { stroke-dashoffset: 0; } }
-  @keyframes text-fade-in { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* Mobile Optimizations */
+  /* --- MOBILE OPTIMIZATIONS --- */
   @media(max-width:768px){
-    main { margin: 16px auto; padding: 0 16px; }
-    .info-blocks{ grid-template-columns:1fr 1fr; gap:12px; }
-    .tabs{ flex-direction:row; gap:8px; }
-    .tab { font-size: 0.9rem; }
+    main {
+        margin: 16px auto;
+        padding: 0 16px;
+    }
+    .signin-card{
+        flex-direction:column;
+        align-items:stretch;
+        margin: 16px;
+        padding: 24px; /* More padding on mobile */
+        text-align: center;
+    }
+    .signin-right{width:100%;}
+    .info-blocks{
+        grid-template-columns:1fr 1fr; /* Two columns on medium screens */
+        gap:12px;
+    }
+    .tabs{
+        flex-direction:row; /* Keep tabs in a row */
+        gap:8px;
+    }
+    .tab {
+        font-size: 0.9rem;
+    }
     table{min-width:600px;}
   }
 
   @media(max-width:480px){
-    main { padding: 0 12px; }
-    .info-blocks{ grid-template-columns:1fr; }
-    .tabs{ flex-direction:column; }
-    .form-section { padding: 16px; }
-    td, th { padding: 10px 12px; font-size: 0.85rem; }
+    main {
+        padding: 0 12px;
+    }
+    .signin-card{
+        margin: 12px;
+        padding: 20px;
+    }
+    .info-blocks{
+        grid-template-columns:1fr; /* Single column on small screens */
+    }
+    .tabs{
+        flex-direction:column; /* Stack tabs on small screens */
+    }
+    .form-section {
+        padding: 16px;
+    }
+    td, th {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
   }
   ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:#111} ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
 </style>
@@ -278,6 +353,19 @@
     <div id="topUserArea"></div>
   </div>
 </header>
+
+<section class="signin-card" id="signinCard">
+  <div class="signin-left">
+    <div class="signin-title">Welcome to Rivava Finance</div>
+    <div class="signin-sub">Track earnings & expenses quickly — secure sign in required to save your data privately.</div>
+  </div>
+  <div class="signin-right">
+    <!-- --- MODIFICATION: This now links to login.html --- -->
+    <a href="./login.html" style="text-decoration: none;">
+        <button class="primary" style="width: auto; padding: 12px 24px;">Sign In / Register</button>
+    </a>
+  </div>
+</section>
 
 <main id="mainContent" style="display: none;">
   <div class="info-blocks">
@@ -323,27 +411,10 @@
   </button>
 </main>
 
-<!-- New User Modal -->
-<div id="newUserModal" class="modal-overlay">
-    <div class="modal-content">
-        <h2>Welcome to Rivava!</h2>
-        <p>Please confirm your details to get started.</p>
-        <label for="userNameInput" style="text-align: left; display: block; margin-bottom: 6px;">Full Name</label>
-        <input type="text" id="userNameInput" placeholder="Your full name">
-        <label for="phoneInput" style="text-align: left; display: block; margin-bottom: 6px;">Phone Number</label>
-        <input type="tel" id="phoneInput" placeholder="Your phone number">
-        <button onclick="completeRegistration()">Save & Continue</button>
-    </div>
-</div>
-
-
 <!-- Modals and Overlays -->
 <div id="welcomeOverlay" role="status" aria-live="polite">
-    <img id="welcomeAvatar" src="" alt="User Avatar">
-    <div class="welcome-content">
-        <div id="welcomeText" class="welcome-main-text"></div>
-        <div id="welcomeSubText" class="welcome-sub-text"></div>
-    </div>
+  <img id="welcomeAvatar" src="" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+  <div id="welcomeText" style="font-weight:800;color:#012"></div>
 </div>
 
 <div id="successModal" class="modal-overlay">
@@ -387,78 +458,22 @@
     </div>
 </div>
 
-<!-- NEW: Animated Thank You Modal for Feedback -->
-<div id="feedbackThanksModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="feedback-thanks-icon">
-            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle class="checkmark-circle" cx="30" cy="30" r="28" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <path class="checkmark-path" d="M18 30L27 39L44 22" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- NEW: Thank You Modal -->
+<div id="thankYouModal" class="modal-overlay">
+    <div class="modal-content thank-you-modal">
+        <div class="thank-you-icon">
+            <svg viewBox="0 0 52 52">
+                <path class="check-mark" fill="none" d="M14 27l5.917 5.917L38.083 20"/>
             </svg>
         </div>
         <h2>Thank You!</h2>
-        <p>Your feedback helps us improve Rivava for everyone.</p>
-        <button onclick="closeModal('feedbackThanksModal')">Awesome</button>
+        <p>Your feedback helps us improve Rivava for everyone. We appreciate you taking the time!</p>
+        <button onclick="closeModal('thankYouModal')">Got it!</button>
     </div>
 </div>
 
 
 <script>
-// --- 🐞 FIXED: ROBUST AUTHENTICATION & FIREBASE INTEGRATION ---
-// Global state to hold the current user object once authenticated.
-let currentUser = null;
-
-// Initialize Firebase App
-const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
-let db;
-try {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    db = firebase.firestore();
-} catch (error) {
-    console.error("Firebase Init Error:", error);
-}
-
-// Central Authentication Handler
-// This function runs once on page load and determines the user's state.
-function initializeAuthentication() {
-    const storedUserStr = localStorage.getItem('rivava_user');
-    if (!storedUserStr) {
-        // If no user in local storage, redirect to login.
-        window.location.href = './login.html';
-        return;
-    }
-
-    const localUser = JSON.parse(storedUserStr);
-    
-    // Check the user's document in Firestore to ensure they are fully registered.
-    db.collection('users').doc(localUser.sub).get().then(userDoc => {
-        if (!userDoc.exists || !userDoc.data().phone) {
-            // User exists locally but hasn't completed registration in Firestore.
-            document.getElementById('userNameInput').value = localUser.name;
-            openModal('newUserModal');
-        } else {
-            // User is fully authenticated and registered.
-            const dbUser = userDoc.data();
-            const updatedUser = { ...localUser, ...dbUser };
-            localStorage.setItem('rivava_user', JSON.stringify(updatedUser));
-            
-            // Set the global currentUser object. This is the crucial step.
-            currentUser = updatedUser; 
-            
-            // Now that auth is confirmed, initialize the rest of the app.
-            initializeAppUI(updatedUser);
-        }
-    }).catch(e => {
-        console.error("Auth check failed:", e);
-        localStorage.removeItem('rivava_user');
-        window.location.href = './login.html';
-    });
-}
-// --- 🐞 END: ROBUST AUTHENTICATION FIX ---
-
-
 let selectedFeedbackCategory = '';
 let deferredInstallPrompt = null;
 const installButton = document.getElementById('installBtn');
@@ -470,7 +485,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 installButton.addEventListener('click', async () => {
-    if (!deferredInstallPrompt) { return; }
+    if (!deferredInstallprompt) { return; }
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
     deferredInstallPrompt = null;
@@ -482,6 +497,12 @@ window.addEventListener('appinstalled', () => {
     installButton.style.display = 'none';
 });
 
+/* ----------------------
+  CONFIG & INITIALIZATION
+  ---------------------- */
+const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
+let db;
+try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch (error) { console.error("Firebase Init Error:", error); }
 
 /* ----------------------
   PAGE NAVIGATION
@@ -493,28 +514,13 @@ function viewHistory() {
 /* ----------------------
   MODAL & UI HELPERS
   ---------------------- */
-function showWelcome(name, picture){
-    const ov = document.getElementById('welcomeOverlay');
-    const subtextEl = ov.querySelector('#welcomeSubText');
-    const subtexts = ["Let's make today profitable.", "Your financial journey continues.", "Track every rupee, build your future.", "Smart tracking for a brighter tomorrow."];
-    const randomSubtext = subtexts[Math.floor(Math.random() * subtexts.length)];
-
-    ov.querySelector('#welcomeText').textContent = `Welcome back, ${name}!`;
-    ov.querySelector('#welcomeAvatar').src = picture || './icons_folder/icon-180x180.png'; // Fallback icon
-    subtextEl.textContent = randomSubtext;
-
-    ov.classList.add('show');
-    setTimeout(()=> ov.classList.remove('show'), 3500);
-}
-
+function showWelcome(name, picture){ const ov = document.getElementById('welcomeOverlay'); ov.querySelector('#welcomeText').textContent = `Welcome, ${name}`; ov.querySelector('#welcomeAvatar').src = picture || ''; ov.classList.add('show'); setTimeout(()=> ov.classList.remove('show'), 2500); }
 function openModal(modalId) { document.getElementById(modalId).classList.add('show'); }
 function closeModal(modalId) { document.getElementById(modalId).classList.remove('show'); }
 
 document.querySelectorAll('.modal-overlay').forEach(modal => {
     modal.addEventListener('click', (e) => {
-        if (e.target === modal && modal.id !== 'newUserModal') {
-            closeModal(modal.id);
-        }
+        if (e.target === modal) { closeModal(modal.id); }
     });
 });
 
@@ -522,7 +528,6 @@ function openFeedbackModal(reset = false) {
     if (reset) {
         document.getElementById('feedback-category-selection').style.display = 'flex';
         document.getElementById('feedback-text-input').style.display = 'none';
-        document.getElementById('feedbackText').value = '';
     }
     openModal('feedbackModal');
 }
@@ -538,33 +543,28 @@ function selectFeedbackCategory(category) {
 async function submitFeedback() {
     const feedbackText = document.getElementById('feedbackText').value.trim();
     if (!feedbackText || !selectedFeedbackCategory) return;
-    
-    // Use the globally confirmed currentUser object
-    if (!currentUser) { alert("You must be signed in to submit feedback."); return; }
+    const user = JSON.parse(localStorage.getItem('rivava_user'));
+    if (!user) { return; }
 
-    const payload = { userEmail: currentUser.email, category: selectedFeedbackCategory, feedback: feedbackText, submittedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    const payload = { userEmail: user.email, category: selectedFeedbackCategory, feedback: feedbackText, submittedAt: firebase.firestore.FieldValue.serverTimestamp() };
     const feedbackBtn = document.querySelector('#feedbackModal .primary');
     feedbackBtn.classList.add('is-loading');
     feedbackBtn.disabled = true;
 
     try {
         await db.collection('feedback').add(payload);
+        document.getElementById('feedbackText').value = '';
         closeModal('feedbackModal');
-        openModal('feedbackThanksModal'); 
-    } catch (error) { 
-        console.error("Feedback Error:", error); 
-        alert("Could not send feedback. Please try again.");
-    } 
-    finally { 
-        feedbackBtn.classList.remove('is-loading'); 
-        feedbackBtn.disabled = false; 
-    }
+        openModal('thankYouModal'); 
+    } catch (error) { console.error("Feedback Error:", error); } 
+    finally { feedbackBtn.classList.remove('is-loading'); feedbackBtn.disabled = false; }
 }
 
 /* ----------------------
   AUTH & USER UI
   ---------------------- */
 function setSignedInUI(userObj, showWelcomeFlag){
+  document.getElementById('signinCard').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
   document.getElementById('feedbackBtn').style.display = 'flex';
   const topUserArea = document.getElementById('topUserArea');
@@ -587,202 +587,87 @@ function setSignedInUI(userObj, showWelcomeFlag){
     <button class="dropdown-item" onclick="viewHistory()">View Dashboard</button>
     <button class="dropdown-item danger" onclick="signOut()">Sign out</button>
   </div>`;
-  profileContainer.querySelector('.profile-avatar-wrapper').onclick = (e) => { 
-      e.stopPropagation();
-      document.getElementById('profileDropdown').classList.toggle('show'); 
-  };
+  profileContainer.querySelector('.profile-avatar-wrapper').onclick = () => { document.getElementById('profileDropdown').classList.toggle('show'); };
   topUserArea.appendChild(profileContainer);
   if(showWelcomeFlag) { showWelcome(userObj.name.split(' ')[0], userObj.picture); }
 }
 
+function setSignedOutUI() {
+    document.getElementById('signinCard').style.display = 'flex';
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('feedbackBtn').style.display = 'none';
+    document.getElementById('topUserArea').innerHTML = '';
+    document.querySelector("#dataTable tbody").innerHTML = '';
+    updateTotalExpense();
+}
+
 function signOut(){ 
     localStorage.removeItem('rivava_user'); 
+    // --- MODIFICATION: Redirect to login page on sign out ---
     window.location.href = './login.html';
 }
-
-async function completeRegistration() {
-    const user = JSON.parse(localStorage.getItem('rivava_user'));
-    const phone = document.getElementById('phoneInput').value.trim();
-    const name = document.getElementById('userNameInput').value.trim();
-
-    if (!phone || !name) { alert("Please fill in all fields."); return; }
-    user.phone = phone;
-    user.name = name;
-
-    try {
-        await db.collection('users').doc(user.sub).set({
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            picture: user.picture || null,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        localStorage.setItem('rivava_user', JSON.stringify(user));
-        closeModal('newUserModal');
-        
-        // Set global user and initialize UI after successful registration
-        currentUser = user;
-        initializeAppUI(user, true); // Pass true to show welcome message
-
-    } catch (error) {
-        console.error("Error completing registration:", error);
-        alert("Could not complete registration. Please try again.");
-    }
-}
-
 
 /* ----------------------
   INITIALIZATION & CORE LOGIC
   ---------------------- */
-// This function now runs only AFTER authentication is confirmed.
-function initializeAppUI(user, showWelcomeMessage = false) {
-    setFixedDate();
-    startLiveTime();
-    setSignedInUI(user, showWelcomeMessage);
-    if ('serviceWorker' in navigator) { 
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW registered!', reg.scope))
-            .catch(err => console.log('SW registration failed: ', err)); 
-    }
-}
-
-// Start the authentication process when the window loads.
-window.addEventListener('load', initializeAuthentication);
-
-
-window.addEventListener('click', (e) => {
-    const pc = document.querySelector('.profile-container');
-    if (pc && !pc.contains(e.target)) {
-        document.getElementById('profileDropdown')?.classList.remove('show');
-    }
+window.addEventListener('load', ()=> {
+  setFixedDate();
+  startLiveTime();
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
+  const storedUser = localStorage.getItem('rivava_user');
+  if(storedUser){ 
+      try { 
+          const user = JSON.parse(storedUser);
+          setSignedInUI(user, false); 
+          
+          // --- MODIFICATION: Check for the flag from login.html ---
+          const isJustLoggedIn = sessionStorage.getItem('justLoggedIn');
+          if (isJustLoggedIn) {
+              showWelcome(user.name.split(' ')[0], user.picture);
+              sessionStorage.removeItem('justLoggedIn'); // Clean up the flag
+          }
+      } catch(e){ 
+          localStorage.removeItem('rivava_user'); 
+          setSignedOutUI(); 
+      } 
+  } 
+  else { 
+      setSignedOutUI(); 
+  }
 });
 
+window.addEventListener('click', (e) => { const pc = document.querySelector('.profile-container'); if (pc && !pc.contains(e.target)) { document.getElementById('profileDropdown')?.classList.remove('show'); } });
 function showTab(tab) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active')); document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active'); document.getElementById(tab).classList.add('active'); }
 function setFixedDate() { const d = new Date(); document.getElementById("fixedDate").textContent = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; }
 function startLiveTime() { const el = document.getElementById("liveTime"); function u() { const n = new Date(); let h=n.getHours(); el.textContent = `${String(h%12||12).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}:${String(n.getSeconds()).padStart(2,"0")} ${h>=12?'PM':'AM'}`; } u(); setInterval(u, 1000); }
 const dataTableBody = document.querySelector("#dataTable tbody");
 function updateTotalExpense() { let sum = 0; dataTableBody.querySelectorAll("tr").forEach(row => { if (row.cells[0].textContent === "Expense") { const amt = parseFloat(row.cells[1].textContent); if (!isNaN(amt)) sum += amt; } }); document.getElementById("totalExpense").textContent = `₹${sum.toFixed(2)}`; }
-function addRow(type, amount, category, payment, date, time) { const row = document.createElement("tr"); row.className = 'new-row'; row.innerHTML = `<td>${type}</td><td>${parseFloat(amount).toFixed(2)}</td><td>${category}</td><td>${payment}</td><td>${date}</td><td>${time}</td><td><button onclick="deleteRow(this)">Delete</button></td>`; dataTableBody.appendChild(row); setTimeout(()=> row.classList.remove('new-row'), 500); updateTotalExpense(); }
+function addRow(type, amount, category, payment, date, time) { const row = document.createElement("tr"); row.innerHTML = `<td>${type}</td><td>${parseFloat(amount).toFixed(2)}</td><td>${category}</td><td>${payment}</td><td>${date}</td><td>${time}</td><td><button onclick="deleteRow(this)">Delete</button></td>`; dataTableBody.appendChild(row); updateTotalExpense(); }
 function deleteRow(button) { button.closest("tr").remove(); updateTotalExpense(); }
 function handleEarningCategoryChange() { const sel = document.getElementById("earningCategory"), inp = document.getElementById("customEarningCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
 function handleCategoryChange() { const sel = document.getElementById("expenseCategory"), inp = document.getElementById("customCategory"); if (sel.value === "Other") { inp.style.display = "block"; inp.focus(); } else { inp.style.display = "none"; inp.value = ""; } }
 function addEarning() { const amountInput = document.getElementById("earningAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("earningCategory").value; if (category === "Other") { category = document.getElementById("customEarningCategory").value.trim(); if (!category) { document.getElementById("customEarningCategory").focus(); return; } } addRow("Earning", amount, category, "-", document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("earningCategory").value === "Other") { document.getElementById("customEarningCategory").value = ""; handleEarningCategoryChange(); document.getElementById("earningCategory").value = "Salary"; } }
 function addExpense() { const amountInput = document.getElementById("expenseAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("expenseCategory").value; if (category === "Other") { category = document.getElementById("customCategory").value.trim(); if (!category) { document.getElementById("customCategory").focus(); return; } } addRow("Expense", amount, category, document.getElementById("paymentMethod").value, document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("expenseCategory").value === "Other") { document.getElementById("customCategory").value = ""; handleCategoryChange(); document.getElementById("expenseCategory").value = "Personal"; } }
 
-
 async function submitForm() {
   if (dataTableBody.children.length === 0) return;
-  
-  // Use the globally confirmed currentUser object for submission
-  if (!currentUser || !currentUser.sub) { 
-      alert("Authentication error. Please sign in again to submit.");
-      return; 
-  }
+  const user = JSON.parse(localStorage.getItem('rivava_user'));
+  if (!user) { return; }
 
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.classList.add('is-loading');
   submitBtn.disabled = true;
 
-  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => {
-      const dateParts = r.cells[4].textContent.split('/');
-      const timeString = r.cells[5].textContent;
-      const [time, modifier] = timeString.split(' ');
-      let [hours, minutes, seconds] = time.split(':');
-      if (hours === '12') { hours = '00'; }
-      if (modifier === 'PM') { hours = parseInt(hours, 10) + 12; }
-      const transactionDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], hours, minutes, seconds);
-
-      return {
-          type: r.cells[0].textContent,
-          amount: +r.cells[1].textContent,
-          category: r.cells[2].textContent,
-          payment: r.cells[3].textContent,
-          transactionDate: firebase.firestore.Timestamp.fromDate(transactionDate),
-          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
-  });
-  
-  // Fixed: Ensure proper document reference and batch processing
-  const batch = db.batch();
-  const userDocRef = db.collection('users').doc(currentUser.sub);
-  const submissionsCollectionRef = userDocRef.collection('submissions');
-  
-  // Create a document for today's date
-  const today = new Date();
-  const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const dailyDocRef = submissionsCollectionRef.doc(dateString);
-  
-  // Get existing data or initialize empty arrays
-  let existingData = { earnings: [], expenses: [] };
-  
-  try {
-    const docSnapshot = await dailyDocRef.get();
-    if (docSnapshot.exists) {
-      existingData = docSnapshot.data();
-    }
-  } catch (error) {
-    console.log("No existing data found, creating new document");
-  }
-  
-  // Separate earnings and expenses
-  const earnings = [];
-  const expenses = [];
-  
-  rows.forEach(row => {
-    const item = {
-      amount: row.amount,
-      category: row.category,
-      payment: row.payment,
-      transactionDate: row.transactionDate,
-      submittedAt: row.submittedAt
-    };
-    
-    if (row.type === "Earning") {
-      earnings.push(item);
-    } else {
-      expenses.push(item);
-    }
-  });
-  
-  // Combine with existing data
-  const finalEarnings = [...existingData.earnings, ...earnings];
-  const finalExpenses = [...existingData.expenses, ...expenses];
-  
-  // Set the document data
-  batch.set(dailyDocRef, {
-    earnings: finalEarnings,
-    expenses: finalExpenses,
-    date: dateString,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  
-  // Also update the main user document with totals
-  const totalEarnings = finalEarnings.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpenses = finalExpenses.reduce((sum, item) => sum + item.amount, 0);
-  
-  batch.set(userDocRef, {
-    totalEarnings: totalEarnings,
-    totalExpenses: totalExpenses,
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-    name: currentUser.name,
-    email: currentUser.email,
-    phone: currentUser.phone
-  }, { merge: true });
+  const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => ({ type: r.cells[0].textContent, amount: +r.cells[1].textContent, category: r.cells[2].textContent, payment: r.cells[3].textContent, date: r.cells[4].textContent, time: r.cells[5].textContent }));
+  const payload = { userEmail: user.email, userName: user.name, transactions: rows, submittedAt: firebase.firestore.FieldValue.serverTimestamp() };
 
   try {
-    await batch.commit();
+    await db.collection('submissions').add(payload);
     openModal('successModal');
     dataTableBody.innerHTML = '';
     updateTotalExpense();
-  } catch (error) { 
-    console.error("Submit Error:", error); 
-    alert("There was an error saving your data. Please check your connection and try again.");
-  } 
-  finally { 
-    submitBtn.classList.remove('is-loading'); 
-    submitBtn.disabled = false; 
-  }
+  } catch (error) { console.error("Submit Error:", error); } 
+  finally { submitBtn.classList.remove('is-loading'); submitBtn.disabled = false; }
 }
 </script>
 
