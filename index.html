@@ -210,6 +210,39 @@
   #welcomeOverlay .welcome-main-text { font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
   #welcomeOverlay .welcome-sub-text { font-weight: 400; font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
   
+  /* --- NEW: Feedback Thank You Modal --- */
+  #feedbackThanksModal .modal-content {
+    background: linear-gradient(145deg, #111, #1a1a1a);
+  }
+  .feedback-thanks-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+  }
+  .feedback-thanks-icon .checkmark-circle {
+      stroke-dasharray: 240;
+      stroke-dashoffset: 240;
+      animation: draw-circle 0.8s 0.2s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  }
+  .feedback-thanks-icon .checkmark-path {
+      stroke-dasharray: 80;
+      stroke-dashoffset: 80;
+      animation: draw-check 0.5s 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  }
+  #feedbackThanksModal h2 {
+      animation: text-fade-in 0.5s 1.2s ease-out backwards;
+  }
+  #feedbackThanksModal p {
+      animation: text-fade-in 0.5s 1.3s ease-out backwards;
+  }
+  #feedbackThanksModal button {
+      animation: text-fade-in 0.5s 1.4s ease-out backwards;
+  }
+
+  @keyframes draw-circle { to { stroke-dashoffset: 0; } }
+  @keyframes draw-check { to { stroke-dashoffset: 0; } }
+  @keyframes text-fade-in { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
   /* Mobile Optimizations */
   @media(max-width:768px){
     main { margin: 16px auto; padding: 0 16px; }
@@ -353,6 +386,22 @@
     </div>
 </div>
 
+<!-- NEW: Animated Thank You Modal for Feedback -->
+<div id="feedbackThanksModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="feedback-thanks-icon">
+            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle class="checkmark-circle" cx="30" cy="30" r="28" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="checkmark-path" d="M18 30L27 39L44 22" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h2>Thank You!</h2>
+        <p>Your feedback helps us improve Rivava for everyone.</p>
+        <button onclick="closeModal('feedbackThanksModal')">Awesome</button>
+    </div>
+</div>
+
+
 <script>
 let selectedFeedbackCategory = '';
 let deferredInstallPrompt = null;
@@ -436,6 +485,7 @@ function selectFeedbackCategory(category) {
     document.getElementById('feedbackText').focus();
 }
 
+// --- ✨ IMPROVED: Submit Feedback with New Thank You Modal ---
 async function submitFeedback() {
     const feedbackText = document.getElementById('feedbackText').value.trim();
     if (!feedbackText || !selectedFeedbackCategory) return;
@@ -450,8 +500,16 @@ async function submitFeedback() {
     try {
         await db.collection('feedback').add(payload);
         closeModal('feedbackModal');
-    } catch (error) { console.error("Feedback Error:", error); } 
-    finally { feedbackBtn.classList.remove('is-loading'); feedbackBtn.disabled = false; }
+        // Show the new animated thank you modal on success
+        openModal('feedbackThanksModal'); 
+    } catch (error) { 
+        console.error("Feedback Error:", error); 
+        alert("Could not send feedback. Please try again.");
+    } 
+    finally { 
+        feedbackBtn.classList.remove('is-loading'); 
+        feedbackBtn.disabled = false; 
+    }
 }
 
 /* ----------------------
@@ -571,7 +629,7 @@ function handleCategoryChange() { const sel = document.getElementById("expenseCa
 function addEarning() { const amountInput = document.getElementById("earningAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("earningCategory").value; if (category === "Other") { category = document.getElementById("customEarningCategory").value.trim(); if (!category) { document.getElementById("customEarningCategory").focus(); return; } } addRow("Earning", amount, category, "-", document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("earningCategory").value === "Other") { document.getElementById("customEarningCategory").value = ""; handleEarningCategoryChange(); document.getElementById("earningCategory").value = "Salary"; } }
 function addExpense() { const amountInput = document.getElementById("expenseAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("expenseCategory").value; if (category === "Other") { category = document.getElementById("customCategory").value.trim(); if (!category) { document.getElementById("customCategory").focus(); return; } } addRow("Expense", amount, category, document.getElementById("paymentMethod").value, document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("expenseCategory").value === "Other") { document.getElementById("customCategory").value = ""; handleCategoryChange(); document.getElementById("expenseCategory").value = "Personal"; } }
 
-// --- ⚡️ FIXED & IMPROVED: Form Submission to Firebase ---
+// --- 🐞 FIXED & IMPROVED: Form Submission to Firebase 'submissions' collection ---
 async function submitForm() {
   if (dataTableBody.children.length === 0) return;
   const user = JSON.parse(localStorage.getItem('rivava_user'));
@@ -582,14 +640,12 @@ async function submitForm() {
   submitBtn.disabled = true;
 
   const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => {
-      // Helper function to parse DD/MM/YYYY and HH:MM:SS AM/PM into a valid Date object
       const dateParts = r.cells[4].textContent.split('/'); // [DD, MM, YYYY]
       const timeString = r.cells[5].textContent; // e.g., "02:05:30 PM"
       const [time, modifier] = timeString.split(' ');
       let [hours, minutes, seconds] = time.split(':');
       if (hours === '12') { hours = '00'; }
       if (modifier === 'PM') { hours = parseInt(hours, 10) + 12; }
-      // new Date() wants (YYYY, MonthIndex, Day, Hr, Min, Sec)
       const transactionDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], hours, minutes, seconds);
 
       return {
@@ -597,14 +653,13 @@ async function submitForm() {
           amount: +r.cells[1].textContent,
           category: r.cells[2].textContent,
           payment: r.cells[3].textContent,
-          // Convert the JS Date to a Firestore Timestamp for proper data handling
           transactionDate: firebase.firestore.Timestamp.fromDate(transactionDate),
           submittedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
   });
   
   const batch = db.batch();
-  // Saving to the 'submissions' collection as requested
+  // Correctly saving to the 'submissions' collection under the user's document
   const submissionsCollection = db.collection('users').doc(user.sub).collection('submissions');
   
   rows.forEach(submission => {
