@@ -126,13 +126,6 @@
   .dropdown-item.danger { color: var(--danger); }
   .dropdown-item.danger:hover { background-color: rgba(255, 82, 82, 0.1); }
 
-  /* Signin Card */
-  .signin-card{ max-width:920px;margin:28px auto;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:18px; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
-  .signin-left{flex:1;min-width:0}
-  .signin-right{width:220px;display:flex;flex-direction:column;align-items:center;gap:12px}
-  .signin-title{font-size:1.2rem;font-weight:700;margin-bottom:6px;}
-  .signin-sub{color:var(--muted);font-size:0.95rem;margin-bottom:12px;line-height:1.4}
-
   /* Main Content Area */
   main {
       max-width: 920px;
@@ -173,7 +166,7 @@
   .modal-actions button.secondary { background: #222; color: var(--text); }
   .modal-actions button.secondary:hover { background: #333; box-shadow: none; }
   
-  /* --- NEW: Thank You Modal Styles --- */
+  /* --- Thank You Modal Styles --- */
   .thank-you-modal {
     background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
     border: 1px solid var(--accent);
@@ -231,7 +224,6 @@
     color: #000;
     box-shadow: 0 4px 15px var(--accent-glow);
   }
-  /* --- End of New Styles --- */
 
   /* Other styles */
   .info-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:18px;}
@@ -251,7 +243,7 @@
   button.animated-add {
     background: var(--accent);
     border: none;
-    padding: 14px 20px; /* Increased padding for better touch target */
+    padding: 14px 20px;
     border-radius: 8px;
     color: #000;
     font-weight: 700;
@@ -291,20 +283,12 @@
         margin: 16px auto;
         padding: 0 16px;
     }
-    .signin-card{
-        flex-direction:column;
-        align-items:stretch;
-        margin: 16px;
-        padding: 24px; /* More padding on mobile */
-        text-align: center;
-    }
-    .signin-right{width:100%;}
     .info-blocks{
-        grid-template-columns:1fr 1fr; /* Two columns on medium screens */
+        grid-template-columns:1fr 1fr;
         gap:12px;
     }
     .tabs{
-        flex-direction:row; /* Keep tabs in a row */
+        flex-direction:row;
         gap:8px;
     }
     .tab {
@@ -317,15 +301,11 @@
     main {
         padding: 0 12px;
     }
-    .signin-card{
-        margin: 12px;
-        padding: 20px;
-    }
     .info-blocks{
-        grid-template-columns:1fr; /* Single column on small screens */
+        grid-template-columns:1fr;
     }
     .tabs{
-        flex-direction:column; /* Stack tabs on small screens */
+        flex-direction:column;
     }
     .form-section {
         padding: 16px;
@@ -338,7 +318,7 @@
   ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:#111} ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
 </style>
 </head>
-<body>
+<body style="visibility: hidden;"> <!-- Hide body until auth check is complete -->
 
 <header>
   <div class="brand">
@@ -354,20 +334,7 @@
   </div>
 </header>
 
-<section class="signin-card" id="signinCard">
-  <div class="signin-left">
-    <div class="signin-title">Welcome to Rivava Finance</div>
-    <div class="signin-sub">Track earnings & expenses quickly — secure sign in required to save your data privately.</div>
-  </div>
-  <div class="signin-right">
-    <!-- --- MODIFICATION: This now links to login.html --- -->
-    <a href="./login.html" style="text-decoration: none;">
-        <button class="primary" style="width: auto; padding: 12px 24px;">Sign In / Register</button>
-    </a>
-  </div>
-</section>
-
-<main id="mainContent" style="display: none;">
+<main id="mainContent">
   <div class="info-blocks">
     <div class="info-block">Time<span class="value" id="liveTime">--:--:-- --</span></div>
     <div class="info-block">Date<span class="value" id="fixedDate">--/--/----</span></div>
@@ -458,7 +425,6 @@
     </div>
 </div>
 
-<!-- NEW: Thank You Modal -->
 <div id="thankYouModal" class="modal-overlay">
     <div class="modal-content thank-you-modal">
         <div class="thank-you-icon">
@@ -485,7 +451,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 installButton.addEventListener('click', async () => {
-    if (!deferredInstallprompt) { return; }
+    if (!deferredInstallPrompt) { return; }
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
     deferredInstallPrompt = null;
@@ -563,8 +529,7 @@ async function submitFeedback() {
 /* ----------------------
   AUTH & USER UI
   ---------------------- */
-function setSignedInUI(userObj, showWelcomeFlag){
-  document.getElementById('signinCard').style.display = 'none';
+function setSignedInUI(userObj){
   document.getElementById('mainContent').style.display = 'block';
   document.getElementById('feedbackBtn').style.display = 'flex';
   const topUserArea = document.getElementById('topUserArea');
@@ -589,21 +554,13 @@ function setSignedInUI(userObj, showWelcomeFlag){
   </div>`;
   profileContainer.querySelector('.profile-avatar-wrapper').onclick = () => { document.getElementById('profileDropdown').classList.toggle('show'); };
   topUserArea.appendChild(profileContainer);
-  if(showWelcomeFlag) { showWelcome(userObj.name.split(' ')[0], userObj.picture); }
-}
-
-function setSignedOutUI() {
-    document.getElementById('signinCard').style.display = 'flex';
-    document.getElementById('mainContent').style.display = 'none';
-    document.getElementById('feedbackBtn').style.display = 'none';
-    document.getElementById('topUserArea').innerHTML = '';
-    document.querySelector("#dataTable tbody").innerHTML = '';
-    updateTotalExpense();
+  
+  // Make the body visible now that the UI is ready
+  document.body.style.visibility = 'visible';
 }
 
 function signOut(){ 
     localStorage.removeItem('rivava_user'); 
-    // --- MODIFICATION: Redirect to login page on sign out ---
     window.location.href = './login.html';
 }
 
@@ -611,29 +568,35 @@ function signOut(){
   INITIALIZATION & CORE LOGIC
   ---------------------- */
 window.addEventListener('load', ()=> {
-  setFixedDate();
-  startLiveTime();
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
+  // --- MODIFICATION: Auth check is now the first step ---
   const storedUser = localStorage.getItem('rivava_user');
-  if(storedUser){ 
-      try { 
-          const user = JSON.parse(storedUser);
-          setSignedInUI(user, false); 
-          
-          // --- MODIFICATION: Check for the flag from login.html ---
-          const isJustLoggedIn = sessionStorage.getItem('justLoggedIn');
-          if (isJustLoggedIn) {
-              showWelcome(user.name.split(' ')[0], user.picture);
-              sessionStorage.removeItem('justLoggedIn'); // Clean up the flag
-          }
-      } catch(e){ 
-          localStorage.removeItem('rivava_user'); 
-          setSignedOutUI(); 
-      } 
-  } 
-  else { 
-      setSignedOutUI(); 
+  
+  if(!storedUser) {
+      // If no user is found, redirect to login page immediately.
+      window.location.href = './login.html';
+      return; // Stop executing the rest of the script
   }
+
+  // If a user is found, proceed to set up the page
+  try { 
+      const user = JSON.parse(storedUser);
+      setSignedInUI(user); 
+      
+      // These functions can now run safely
+      setFixedDate();
+      startLiveTime();
+      if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
+      
+      const isJustLoggedIn = sessionStorage.getItem('justLoggedIn');
+      if (isJustLoggedIn) {
+          showWelcome(user.name.split(' ')[0], user.picture);
+          sessionStorage.removeItem('justLoggedIn');
+      }
+  } catch(e){ 
+      // If user data is corrupted, clear it and redirect to login
+      localStorage.removeItem('rivava_user'); 
+      window.location.href = './login.html';
+  } 
 });
 
 window.addEventListener('click', (e) => { const pc = document.querySelector('.profile-container'); if (pc && !pc.contains(e.target)) { document.getElementById('profileDropdown')?.classList.remove('show'); } });
