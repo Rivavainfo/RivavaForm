@@ -22,6 +22,7 @@
 
 <!-- Load Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
@@ -403,6 +404,61 @@
 
 
 <script>
+// --- 🐞 START: ROBUST AUTHENTICATION FIX ---
+// Global state to hold the current user object once authenticated.
+let currentUser = null;
+
+// Initialize Firebase App
+const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
+let db;
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+} catch (error) {
+    console.error("Firebase Init Error:", error);
+}
+
+// Central Authentication Handler
+// This function runs once on page load and determines the user's state.
+function initializeAuthentication() {
+    const storedUserStr = localStorage.getItem('rivava_user');
+    if (!storedUserStr) {
+        // If no user in local storage, redirect to login.
+        window.location.href = './login.html';
+        return;
+    }
+
+    const localUser = JSON.parse(storedUserStr);
+    
+    // Check the user's document in Firestore to ensure they are fully registered.
+    db.collection('users').doc(localUser.sub).get().then(userDoc => {
+        if (!userDoc.exists || !userDoc.data().phone) {
+            // User exists locally but hasn't completed registration in Firestore.
+            document.getElementById('userNameInput').value = localUser.name;
+            openModal('newUserModal');
+        } else {
+            // User is fully authenticated and registered.
+            const dbUser = userDoc.data();
+            const updatedUser = { ...localUser, ...dbUser };
+            localStorage.setItem('rivava_user', JSON.stringify(updatedUser));
+            
+            // Set the global currentUser object. This is the crucial step.
+            currentUser = updatedUser; 
+            
+            // Now that auth is confirmed, initialize the rest of the app.
+            initializeAppUI(updatedUser);
+        }
+    }).catch(e => {
+        console.error("Auth check failed:", e);
+        localStorage.removeItem('rivava_user');
+        window.location.href = './login.html';
+    });
+}
+// --- 🐞 END: ROBUST AUTHENTICATION FIX ---
+
+
 let selectedFeedbackCategory = '';
 let deferredInstallPrompt = null;
 const installButton = document.getElementById('installBtn');
@@ -426,12 +482,6 @@ window.addEventListener('appinstalled', () => {
     installButton.style.display = 'none';
 });
 
-/* ----------------------
-  CONFIG & INITIALIZATION
-  ---------------------- */
-const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
-let db;
-try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch (error) { console.error("Firebase Init Error:", error); }
 
 /* ----------------------
   PAGE NAVIGATION
@@ -485,14 +535,14 @@ function selectFeedbackCategory(category) {
     document.getElementById('feedbackText').focus();
 }
 
-// --- ✨ IMPROVED: Submit Feedback with New Thank You Modal ---
 async function submitFeedback() {
     const feedbackText = document.getElementById('feedbackText').value.trim();
     if (!feedbackText || !selectedFeedbackCategory) return;
-    const user = JSON.parse(localStorage.getItem('rivava_user'));
-    if (!user) { return; }
+    
+    // Use the globally confirmed currentUser object
+    if (!currentUser) { alert("You must be signed in to submit feedback."); return; }
 
-    const payload = { userEmail: user.email, category: selectedFeedbackCategory, feedback: feedbackText, submittedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    const payload = { userEmail: currentUser.email, category: selectedFeedbackCategory, feedback: feedbackText, submittedAt: firebase.firestore.FieldValue.serverTimestamp() };
     const feedbackBtn = document.querySelector('#feedbackModal .primary');
     feedbackBtn.classList.add('is-loading');
     feedbackBtn.disabled = true;
@@ -500,7 +550,6 @@ async function submitFeedback() {
     try {
         await db.collection('feedback').add(payload);
         closeModal('feedbackModal');
-        // Show the new animated thank you modal on success
         openModal('feedbackThanksModal'); 
     } catch (error) { 
         console.error("Feedback Error:", error); 
@@ -565,13 +614,17 @@ async function completeRegistration() {
             name: user.name,
             email: user.email,
             phone: user.phone,
-            picture: user.picture || null, // Ensure picture is not undefined
+            picture: user.picture || null,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
         localStorage.setItem('rivava_user', JSON.stringify(user));
         closeModal('newUserModal');
-        setSignedInUI(user, true);
+        
+        // Set global user and initialize UI after successful registration
+        currentUser = user;
+        initializeAppUI(user, true); // Pass true to show welcome message
+
     } catch (error) {
         console.error("Error completing registration:", error);
         alert("Could not complete registration. Please try again.");
@@ -582,33 +635,21 @@ async function completeRegistration() {
 /* ----------------------
   INITIALIZATION & CORE LOGIC
   ---------------------- */
-window.addEventListener('load', async ()=> {
-  setFixedDate();
-  startLiveTime();
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg.scope)).catch(err => console.log('SW registration failed: ', err)); }
-  
-  const storedUserStr = localStorage.getItem('rivava_user');
-  if(!storedUserStr){ window.location.href = './login.html'; return; } 
+// This function now runs only AFTER authentication is confirmed.
+function initializeAppUI(user, showWelcomeMessage = false) {
+    setFixedDate();
+    startLiveTime();
+    setSignedInUI(user, showWelcomeMessage);
+    if ('serviceWorker' in navigator) { 
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW registered!', reg.scope))
+            .catch(err => console.log('SW registration failed: ', err)); 
+    }
+}
 
-  try {
-      const user = JSON.parse(storedUserStr);
-      const userDoc = await db.collection('users').doc(user.sub).get();
+// Start the authentication process when the window loads.
+window.addEventListener('load', initializeAuthentication);
 
-      if (!userDoc.exists || !userDoc.data().phone) {
-          document.getElementById('userNameInput').value = user.name;
-          openModal('newUserModal');
-      } else {
-          const dbUser = userDoc.data();
-          const updatedUser = { ...user, ...dbUser };
-          localStorage.setItem('rivava_user', JSON.stringify(updatedUser));
-          setSignedInUI(updatedUser, false);
-      }
-  } catch(e){ 
-      console.error("Auth check failed:", e);
-      localStorage.removeItem('rivava_user'); 
-      window.location.href = './login.html';
-  }
-});
 
 window.addEventListener('click', (e) => {
     const pc = document.querySelector('.profile-container');
@@ -629,19 +670,23 @@ function handleCategoryChange() { const sel = document.getElementById("expenseCa
 function addEarning() { const amountInput = document.getElementById("earningAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("earningCategory").value; if (category === "Other") { category = document.getElementById("customEarningCategory").value.trim(); if (!category) { document.getElementById("customEarningCategory").focus(); return; } } addRow("Earning", amount, category, "-", document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("earningCategory").value === "Other") { document.getElementById("customEarningCategory").value = ""; handleEarningCategoryChange(); document.getElementById("earningCategory").value = "Salary"; } }
 function addExpense() { const amountInput = document.getElementById("expenseAmount"); const amount = amountInput.value.trim(); if (!amount || +amount <= 0) { amountInput.focus(); return; } let category = document.getElementById("expenseCategory").value; if (category === "Other") { category = document.getElementById("customCategory").value.trim(); if (!category) { document.getElementById("customCategory").focus(); return; } } addRow("Expense", amount, category, document.getElementById("paymentMethod").value, document.getElementById("fixedDate").textContent, document.getElementById("liveTime").textContent); amountInput.value = ""; if (document.getElementById("expenseCategory").value === "Other") { document.getElementById("customCategory").value = ""; handleCategoryChange(); document.getElementById("expenseCategory").value = "Personal"; } }
 
-// --- 🐞 FIXED & IMPROVED: Form Submission to Firebase 'submissions' collection ---
+
 async function submitForm() {
   if (dataTableBody.children.length === 0) return;
-  const user = JSON.parse(localStorage.getItem('rivava_user'));
-  if (!user || !user.sub) { alert("You must be signed in to submit."); return; }
+  
+  // Use the globally confirmed currentUser object for submission
+  if (!currentUser || !currentUser.sub) { 
+      alert("Authentication error. Please sign in again to submit.");
+      return; 
+  }
 
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.classList.add('is-loading');
   submitBtn.disabled = true;
 
   const rows = Array.from(dataTableBody.querySelectorAll('tr')).map(r => {
-      const dateParts = r.cells[4].textContent.split('/'); // [DD, MM, YYYY]
-      const timeString = r.cells[5].textContent; // e.g., "02:05:30 PM"
+      const dateParts = r.cells[4].textContent.split('/');
+      const timeString = r.cells[5].textContent;
       const [time, modifier] = timeString.split(' ');
       let [hours, minutes, seconds] = time.split(':');
       if (hours === '12') { hours = '00'; }
@@ -659,8 +704,7 @@ async function submitForm() {
   });
   
   const batch = db.batch();
-  // Correctly saving to the 'submissions' collection under the user's document
-  const submissionsCollection = db.collection('users').doc(user.sub).collection('submissions');
+  const submissionsCollection = db.collection('users').doc(currentUser.sub).collection('submissions');
   
   rows.forEach(submission => {
       const newSubmissionRef = submissionsCollection.doc();
