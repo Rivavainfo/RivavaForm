@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Rivava Finance</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Google Sign-In Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Modular Firebase Imports are handled in the script block below -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bg-dark: #000000;
@@ -225,8 +225,6 @@
             border: 1px solid #222;
             border-right: none;
             border-radius: 8px 0 0 8px;
-            display: flex;
-            align-items: center;
         }
         .phone-input-container input {
             border-radius: 0 8px 8px 0;
@@ -250,7 +248,7 @@
             transition: all 0.2s ease;
             position: relative;
         }
-        .registration-content button:hover:not(:disabled) {
+        .registration-content button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px var(--accent-glow);
         }
@@ -272,7 +270,7 @@
             margin-top: 15px;
         }
         
-        /* --- WELCOME ANIMATION STYLES --- */
+        /* --- NEW WELCOME ANIMATION STYLES --- */
         #welcomeScreen {
             position: fixed;
             top: 0;
@@ -365,7 +363,7 @@
 
     <div class="login-wrapper">
         <div class="login-container" id="loginContainer">
-            <img src="https://placehold.co/100x100/000000/00ffc3?text=R" alt="Rivava Logo" class="logo">
+            <img src="./logo.png" alt="Rivava Logo" class="logo" onerror="this.src='https://placehold.co/100x100/000000/00ffc3?text=R'">
             <h1>Welcome to Rivava</h1>
             <p>Sign in to begin your financial journey.</p>
             <div id="g_id_signin_container"></div>
@@ -414,97 +412,32 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- MANDATORY CANVAS GLOBAL VARIABLES ---
-        // NOTE: The Google Client ID is hardcoded here and MUST be replaced by the user with a valid one.
-        const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com"; 
-
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        let app;
+    <script>
+        const GOOGLE_CLIENT_ID = "151251461452-qooai71ob9njlduadhpqr55kuf5hfb40.apps.googleusercontent.com";
+        const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
+        
         let db;
-        let auth;
-        let currentCanvasUserId = null; // The UID assigned by Firebase Auth to this Canvas session
-        let currentUserData = null; // Data extracted from Google GSI payload
+        let currentUserData = null;
         let phoneCheckTimeout;
 
-        /**
-         * Initializes Firebase and authenticates the user using the Canvas token.
-         */
-        async function initializeFirebase() {
-            try {
-                if (!firebaseConfig || !Object.keys(firebaseConfig).length) {
-                    throw new Error("Firebase config is missing or empty.");
-                }
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                currentCanvasUserId = auth.currentUser.uid;
-                console.log("Firebase initialized. Canvas User ID:", currentCanvasUserId);
-                return true;
-            } catch (error) {
-                console.error("Firebase Initialization/Auth Error:", error);
-                return false;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
             }
+            db = firebase.firestore();
+        } catch (error) {
+            console.error("Firebase Init Error:", error);
         }
 
-        /**
-         * Generates the Firestore document reference for the user's profile.
-         * Path: /artifacts/{appId}/users/{userId}/profiles/{googleSubId}
-         * @param {string} googleSubId The 'sub' ID from the Google JWT.
-         */
-        function getProfileRef(googleSubId) {
-            if (!currentCanvasUserId || !googleSubId) {
-                console.error("Auth or Google ID missing for profile reference.");
-                return null;
-            }
-            // Uses the Canvas security path for private user data
-            return doc(db, 'artifacts', appId, 'users', currentCanvasUserId, 'profiles', googleSubId);
-        }
-        
-        /**
-         * Generates the Firestore document reference for the public phone index.
-         * Path: /artifacts/{appId}/public/data/phoneIndex/{phone_number}
-         * @param {string} phone The phone number including prefix (e.g., '+919999900000').
-         */
-        function getPhoneIndexRef(phone) {
-            if (!phone) return null;
-            // Document ID is the phone number without the '+' (e.g., '919999900000')
-            return doc(db, 'artifacts', appId, 'public', 'data', 'phoneIndex', phone.replace('+', ''));
-        }
-
-        /**
-         * Decodes a Google JWT for user information.
-         * @param {string} token The Google ID token.
-         */
         function parseJwt(token) {
             try {
                 const base64Url = token.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                 const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
                 return JSON.parse(jsonPayload);
-            } catch (e) { 
-                console.error("Error parsing JWT:", e);
-                return null; 
-            }
+            } catch (e) { return null; }
         }
 
-        /**
-         * Debounces a function call.
-         */
         function debounce(func, delay) {
             return function(...args) {
                 clearTimeout(phoneCheckTimeout);
@@ -512,14 +445,10 @@
             };
         }
 
-        /**
-         * Handles the Google Sign-In response.
-         * @param {object} response The credential response from Google.
-         */
-        window.handleCredentialResponse = async (response) => {
+        async function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
-            if (!payload || !currentCanvasUserId) {
-                console.error("Invalid login response or Firebase not ready.");
+            if (!payload) {
+                console.error("Invalid login response");
                 return;
             }
             
@@ -527,27 +456,24 @@
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
-                sub: payload.sub // Google's unique user ID
+                sub: payload.sub
             };
 
             document.getElementById('loginContainer').classList.add('hidden');
 
-            const userRef = getProfileRef(currentUserData.sub);
-            if (!userRef) return;
+            const userRef = db.collection('users').doc(currentUserData.sub);
 
             try {
-                const userDoc = await getDoc(userRef);
+                const userDoc = await userRef.get();
                 
-                if (userDoc.exists()) {
+                if (userDoc.exists) {
                     const userData = userDoc.data();
-                    // Check if profile is complete
                     if (userData.phone && userData.gender) {
-                        // Profile is complete, update last login and redirect
-                        await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+                        userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
                         localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
                         window.location.href = './index.html';
-                    } else {
-                        // Profile is incomplete, show registration modal
+                    } 
+                    else {
                         document.getElementById('registration-title').textContent = "Update Your Profile";
                         document.getElementById('userNameInput').value = userData.name || currentUserData.name;
                         if (userData.phone) {
@@ -558,8 +484,8 @@
                         }
                         document.getElementById('registrationModal').classList.add('show');
                     }
-                } else {
-                    // New user, show registration modal with default name
+                } 
+                else {
                     document.getElementById('registration-title').textContent = "Complete Your Profile";
                     document.getElementById('userNameInput').value = currentUserData.name;
                     document.getElementById('registrationModal').classList.add('show');
@@ -572,61 +498,51 @@
             }
         }
 
-        /**
-         * Checks if the phone number is already registered by another Google ID.
-         */
         async function checkPhoneNumber(phone) {
             const phoneErrorMsg = document.getElementById('phone-error-message');
             const submitBtn = document.getElementById('completeRegistrationBtn');
             const formattedPhone = `+91${phone}`;
-            
-            phoneErrorMsg.style.display = 'none';
-            submitBtn.disabled = false;
 
-            if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-                 // Allow submission if incomplete/invalid format, validation is done on submit
+            if (phone.length !== 10) {
+                phoneErrorMsg.style.display = 'none';
+                submitBtn.disabled = false;
                 return;
             }
 
             try {
-                // Check public index collection
-                const indexRef = getPhoneIndexRef(formattedPhone);
-                if (!indexRef) return;
-
-                const indexDoc = await getDoc(indexRef);
-
-                if (indexDoc.exists()) {
-                    const indexData = indexDoc.data();
-                    // If the found Google ID is NOT the current user's Google ID, the number is taken.
-                    if (indexData.googleSubId !== currentUserData.sub) {
-                        phoneErrorMsg.textContent = "This number is already registered to another account.";
+                const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
+                if (!querySnapshot.empty) {
+                    const doc = querySnapshot.docs[0];
+                    // This logic correctly handles the case where the number belongs to another user.
+                    if (doc.id !== currentUserData.sub) {
+                        phoneErrorMsg.textContent = "This number is already registered.";
                         phoneErrorMsg.style.display = 'block';
                         submitBtn.disabled = true;
+                    } else {
+                        phoneErrorMsg.style.display = 'none';
+                        submitBtn.disabled = false;
                     }
+                } else {
+                    phoneErrorMsg.style.display = 'none';
+                    submitBtn.disabled = false;
                 }
             } catch (error) {
                 console.error("Error checking phone number:", error);
-                // Fail safe: If error occurs, assume it might be a collision, or allow the user to proceed.
-                // For production, we'd typically block on a read failure. For this env, let's allow on failure.
-                phoneErrorMsg.textContent = "Could not verify number. Try submitting.";
+                phoneErrorMsg.textContent = "Could not verify number. Try again.";
                 phoneErrorMsg.style.display = 'block';
-                // submitBtn.disabled = true; // Decided to keep false to allow submission on read error
+                submitBtn.disabled = true;
             }
         }
 
-        /**
-         * Saves the profile data to Firestore and redirects the user.
-         */
-        window.completeRegistration = async () => {
+        async function completeRegistration() {
             const name = document.getElementById('userNameInput').value.trim();
             const phone = document.getElementById('phoneInput').value.trim();
             const gender = document.getElementById('genderInput').value;
             const generalErrorMsg = document.getElementById('general-error-message');
             const submitBtn = document.getElementById('completeRegistrationBtn');
-            const formattedPhone = `+91${phone}`;
 
             if (!name || !/^\d{10}$/.test(phone) || !gender) {
-                generalErrorMsg.textContent = "Please fill out all fields correctly (Name, 10-digit number, Gender).";
+                generalErrorMsg.textContent = "Please fill out all fields correctly.";
                 generalErrorMsg.style.display = 'block';
                 return;
             }
@@ -635,40 +551,25 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Saving...';
 
-            const userRef = getProfileRef(currentUserData.sub);
-            const phoneIndexRef = getPhoneIndexRef(formattedPhone);
-            const serverTimestampValue = serverTimestamp();
+            const userRef = db.collection('users').doc(currentUserData.sub);
+            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
 
             const dataToSave = {
                 name: name,
                 email: currentUserData.email,
                 picture: currentUserData.picture || null,
-                phone: formattedPhone,
+                phone: `+91${phone}`,
                 gender: gender,
-                lastLogin: serverTimestampValue,
-                canvasUserId: currentCanvasUserId // Optional: link to the canvas session user ID
+                lastLogin: serverTimestamp
             };
 
+            const userDoc = await userRef.get();
+            if (!userDoc.exists) {
+                dataToSave.createdAt = serverTimestamp;
+            }
+
             try {
-                // 1. Check phone index one last time before saving
-                const indexDoc = await getDoc(phoneIndexRef);
-                if (indexDoc.exists() && indexDoc.data().googleSubId !== currentUserData.sub) {
-                    throw new Error("Phone number collision detected.");
-                }
-
-                // 2. Save/Update the user's private profile document
-                const userDoc = await getDoc(userRef);
-                if (!userDoc.exists()) {
-                    dataToSave.createdAt = serverTimestampValue;
-                }
-                await setDoc(userRef, dataToSave, { merge: true });
-
-                // 3. Update the public phone index document
-                await setDoc(phoneIndexRef, {
-                    googleSubId: currentUserData.sub,
-                    timestamp: serverTimestampValue
-                });
-
+                await userRef.set(dataToSave, { merge: true });
                 currentUserData = {...currentUserData, ...dataToSave};
                 document.getElementById('registrationModal').classList.remove('show');
                 showWelcomeAnimation(currentUserData);
@@ -676,11 +577,11 @@
                 setTimeout(() => {
                     localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
                     window.location.href = './index.html';
-                }, 2500);
+                }, 2500); // Faster redirect
 
             } catch (error) {
                 console.error("Registration Error:", error);
-                generalErrorMsg.textContent = error.message.includes("collision") ? "This mobile number is already in use by another account." : "Could not save details due to a network or database error. Please try again.";
+                generalErrorMsg.textContent = "Could not save details. Please try again.";
                 generalErrorMsg.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save & Continue';
@@ -708,38 +609,28 @@
             welcomeScreen.classList.add('show');
         }
         
-        window.onload = async () => {
-            // 1. Check for existing session and redirect
+        window.onload = function () {
             if(localStorage.getItem('rivava_user')) {
                 window.location.href = './index.html';
                 return;
             }
 
-            // 2. Initialize Firebase Auth
-            const firebaseReady = await initializeFirebase();
-            if (!firebaseReady) {
-                document.getElementById('loginContainer').innerHTML = '<h1>Setup Error</h1><p class="error-message" style="display:block;">Firebase initialization failed. Check console for details.</p>';
-                return;
-            }
-
-            // 3. Initialize Google Sign-In
             if (window.google?.accounts?.id) {
                 google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
-                    callback: window.handleCredentialResponse
+                    callback: handleCredentialResponse
                 });
                 google.accounts.id.renderButton(
                     document.getElementById('g_id_signin_container'),
                     { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
                 );
             } else {
-                console.warn("Google GSI client not loaded, trying again...");
+                console.warn("Google GSI client not loaded, retrying...");
                 setTimeout(window.onload, 300);
-                return; // Prevent running other code until GSI is ready
             }
 
-            // 4. Attach event listeners
             const phoneInput = document.getElementById('phoneInput');
+            // Use 'input' for real-time checking, debounced for performance
             phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 400));
         };
     </script>
