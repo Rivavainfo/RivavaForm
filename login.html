@@ -40,15 +40,14 @@
             window.completeRegistration = completeRegistration;
             window.initGoogleSignIn = initGoogleSignIn;
             window.checkPhoneNumber = checkPhoneNumber;
+            window.debounce = debounce;
         } catch (error) {
             console.error("Firebase Initialization Error:", error);
-            // Handle fatal init errors gracefully
         }
 
         let currentUserData = null;
         let phoneCheckTimeout;
 
-        // Utility to parse JWT (Needed for initial data extraction from Google ID token)
         function parseJwt(token) {
             try {
                 const base64Url = token.split('.')[1];
@@ -58,14 +57,12 @@
             } catch (e) { return null; }
         }
 
-        // Debounce utility
         function debounce(func, delay) {
             return function(...args) {
                 clearTimeout(phoneCheckTimeout);
                 phoneCheckTimeout = setTimeout(() => func.apply(this, args), delay);
             };
         }
-        window.debounce = debounce; // Expose globally
 
         /**
          * 1. Handles the Google Sign-In response (ID token).
@@ -97,7 +94,7 @@
                 
                 // 2. Check Firestore profile using Firebase UID
                 const userRef = doc(db, 'users', currentUserData.uid);
-                const userDoc = await getDoc(userRef);
+                const userDoc = await getDoc(userRef); 
 
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
@@ -138,7 +135,14 @@
             } catch (error) {
                 console.error("Authentication/User Check Error:", error);
                 const generalErrorMsg = document.getElementById('general-error-message');
-                generalErrorMsg.textContent = "Sign-in failed. Please check your network or try again.";
+                
+                let errorMessage = "Sign-in failed. Please check your network or refresh and try again.";
+                
+                if (error.code) {
+                    errorMessage = `Sign-in Error (${error.code}): Authentication setup may be incomplete in Firebase Console.`;
+                }
+
+                generalErrorMsg.textContent = errorMessage;
                 generalErrorMsg.style.display = 'block';
                 document.getElementById('loginContainer').classList.remove('hidden');
                 document.getElementById('completeRegistrationBtn').disabled = false;
@@ -249,7 +253,7 @@
 
             } catch (error) {
                 console.error("Registration Save Error:", error);
-                generalErrorMsg.textContent = "Could not save details. Please try again.";
+                generalErrorMsg.textContent = "Could not save details. Please try again. Check your security rules for write access.";
                 generalErrorMsg.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save & Continue';
@@ -280,7 +284,6 @@
         function initGoogleSignIn() {
             // Check if user is already in Local Storage (Quick redirect for already signed-in users)
             if(localStorage.getItem('rivava_user')) {
-                // Note: In a real app, you would check Firebase auth state here too.
                 window.location.href = './index.html';
                 return;
             }
@@ -288,7 +291,11 @@
             if (window.google?.accounts?.id) {
                 google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse // This function is now exposed globally
+                    callback: handleCredentialResponse,
+                    // *** FIX FOR MOBILE/IFRAME ISSUES ***
+                    // Forces the sign-in flow to use a pop-up window, which is more reliable
+                    // in mobile browsers and embedded environments (like Canvas).
+                    ux_mode: 'popup'
                 });
                 google.accounts.id.renderButton(
                     document.getElementById('g_id_signin_container'),
@@ -300,7 +307,6 @@
             }
 
             const phoneInput = document.getElementById('phoneInput');
-            // Use 'input' for real-time checking, debounced for performance
             phoneInput.addEventListener('input', debounce(() => {
                 const val = phoneInput.value.replace(/[^0-9]/g, '');
                 phoneInput.value = val;
