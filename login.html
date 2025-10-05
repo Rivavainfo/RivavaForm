@@ -5,318 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Rivava Finance</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Firebase Modular SDK v11.6.1 Imports -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // --- GLOBAL VARIABLES SETUP ---
-        // UPDATED CLIENT ID AS REQUESTED BY USER
-        const GOOGLE_CLIENT_ID = "151251461452-tdkaqdi20tbe3vcu31e1nv8m6ruukr46.apps.googleusercontent.com";
-        const FIREBASE_CONFIG = { 
-            apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", 
-            authDomain: "rivava-finance-tracker.firebaseapp.com", 
-            projectId: "rivava-finance-tracker", 
-            storageBucket: "rivava-finance-tracker.appspot.com", 
-            messagingSenderId: "615077199032", 
-            appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" 
-        };
-
-        // Initialize Firebase services
-        let db, auth;
-        try {
-            const app = initializeApp(FIREBASE_CONFIG);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            setLogLevel('debug'); // RE-ENABLED DEBUG LOGGING
-            
-            // Expose services globally for use by non-module scripts (like inline functions)
-            window.db = db;
-            window.auth = auth;
-            window.serverTimestamp = serverTimestamp;
-            window.handleCredentialResponse = handleCredentialResponse;
-            window.completeRegistration = completeRegistration;
-            window.initGoogleSignIn = initGoogleSignIn;
-            window.checkPhoneNumber = checkPhoneNumber;
-            window.debounce = debounce;
-        } catch (error) {
-            console.error("Firebase Initialization Error:", error);
-        }
-
-        let currentUserData = null;
-        let phoneCheckTimeout;
-
-        function parseJwt(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) { return null; }
-        }
-
-        function debounce(func, delay) {
-            return function(...args) {
-                clearTimeout(phoneCheckTimeout);
-                phoneCheckTimeout = setTimeout(() => func.apply(this, args), delay);
-            };
-        }
-
-        /**
-         * 1. Handles the Google Sign-In response (ID token).
-         * 2. Uses the token to sign the user into Firebase Authentication.
-         * 3. Checks Firestore for existing user profile data.
-         * 4. Redirects or shows the registration modal.
-         */
-        async function handleCredentialResponse(response) {
-            document.getElementById('completeRegistrationBtn').disabled = true;
-            document.getElementById('general-error-message').style.display = 'none';
-
-            try {
-                // 1. Authenticate with Firebase using the Google ID token
-                const credential = GoogleAuthProvider.credential(response.credential);
-                const userCredential = await signInWithCredential(auth, credential);
-                const firebaseUser = userCredential.user;
-
-                // Extract basic user info from the ID token payload (or use Firebase user properties)
-                const payload = parseJwt(response.credential);
-                
-                currentUserData = {
-                    uid: firebaseUser.uid, // Use Firebase UID as primary ID
-                    name: firebaseUser.displayName || payload.name,
-                    email: firebaseUser.email || payload.email,
-                    picture: firebaseUser.photoURL || payload.picture,
-                };
-                
-                document.getElementById('loginContainer').classList.add('hidden');
-                
-                // 2. Check Firestore profile using Firebase UID
-                const userRef = doc(db, 'users', currentUserData.uid);
-                const userDoc = await getDoc(userRef); 
-
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    
-                    if (userData.phone && userData.gender) {
-                        // Profile complete, redirect
-                        await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
-                        
-                        // Store combined user data in local storage before redirecting
-                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
-                        showWelcomeAnimation({...currentUserData, ...userData});
-                        
-                        setTimeout(() => {
-                            window.location.href = './index.html';
-                        }, 2500);
-                    } else {
-                        // Profile incomplete, show modal
-                        document.getElementById('registration-title').textContent = "Update Your Profile";
-                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
-                        if (userData.phone) {
-                            // Pre-fill phone, removing +91 prefix for the input field
-                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
-                        }
-                        if(userData.gender) {
-                            document.getElementById('genderInput').value = userData.gender;
-                        }
-                        document.getElementById('registrationModal').classList.add('show');
-                        document.getElementById('completeRegistrationBtn').disabled = false;
-                    }
-                } else {
-                    // New user, show modal with pre-filled name
-                    document.getElementById('registration-title').textContent = "Complete Your Profile";
-                    document.getElementById('userNameInput').value = currentUserData.name;
-                    document.getElementById('registrationModal').classList.add('show');
-                    document.getElementById('completeRegistrationBtn').disabled = false;
-                }
-
-            } catch (error) {
-                console.error("Authentication/User Check Error:", error);
-                const generalErrorMsg = document.getElementById('general-error-message');
-                
-                let errorMessage = "Sign-in failed. Please check the browser console (F12) for detailed logs and verify Firebase configuration.";
-                
-                if (error.code) {
-                    errorMessage = `Sign-in Error (${error.code}): The Client ID may not be authorized in Firebase Auth settings.`;
-                }
-
-                generalErrorMsg.textContent = errorMessage;
-                generalErrorMsg.style.display = 'block';
-                document.getElementById('loginContainer').classList.remove('hidden');
-                document.getElementById('completeRegistrationBtn').disabled = false;
-            }
-        }
-
-        /**
-         * Checks if the 10-digit mobile number is already registered to a different user.
-         */
-        async function checkPhoneNumber(phone) {
-            if (!currentUserData || !currentUserData.uid) return;
-            
-            const phoneErrorMsg = document.getElementById('phone-error-message');
-            const submitBtn = document.getElementById('completeRegistrationBtn');
-            const formattedPhone = `+91${phone}`;
-
-            if (phone.length !== 10) {
-                // Not 10 digits, assume valid input format
-                phoneErrorMsg.style.display = 'none';
-                submitBtn.disabled = false;
-                return;
-            }
-
-            try {
-                const usersCol = collection(db, 'users');
-                const q = query(usersCol, where('phone', '==', formattedPhone));
-                const querySnapshot = await getDocs(q);
-                
-                if (!querySnapshot.empty) {
-                    const doc = querySnapshot.docs[0];
-                    // Check if the found phone number belongs to the currently signed-in user
-                    if (doc.id !== currentUserData.uid) {
-                        phoneErrorMsg.textContent = "This mobile number is already registered to another account.";
-                        phoneErrorMsg.style.display = 'block';
-                        submitBtn.disabled = true;
-                    } else {
-                        // This number belongs to the current user (used for pre-fill/update)
-                        phoneErrorMsg.style.display = 'none';
-                        submitBtn.disabled = false;
-                    }
-                } else {
-                    phoneErrorMsg.style.display = 'none';
-                    submitBtn.disabled = false;
-                }
-            } catch (error) {
-                console.error("Error checking phone number:", error);
-                phoneErrorMsg.textContent = "Could not verify number. Try again.";
-                phoneErrorMsg.style.display = 'block';
-                submitBtn.disabled = true;
-            }
-        }
-
-        /**
-         * Saves the completed profile data to Firestore and redirects.
-         */
-        async function completeRegistration() {
-            const name = document.getElementById('userNameInput').value.trim();
-            const phone = document.getElementById('phoneInput').value.trim();
-            const gender = document.getElementById('genderInput').value;
-            const generalErrorMsg = document.getElementById('general-error-message');
-            const submitBtn = document.getElementById('completeRegistrationBtn');
-
-            if (submitBtn.disabled || !currentUserData || !currentUserData.uid) {
-                generalErrorMsg.textContent = "System error or validation failed. Please refresh.";
-                generalErrorMsg.style.display = 'block';
-                return;
-            }
-
-            if (!name || !/^\d{10}$/.test(phone) || !gender) {
-                generalErrorMsg.textContent = "Please fill out all fields correctly (10 digit mobile number).";
-                generalErrorMsg.style.display = 'block';
-                return;
-            }
-            generalErrorMsg.style.display = 'none';
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
-
-            const userRef = doc(db, 'users', currentUserData.uid);
-            const dataToSave = {
-                uid: currentUserData.uid,
-                name: name,
-                email: currentUserData.email,
-                picture: currentUserData.picture || null,
-                phone: `+91${phone}`,
-                gender: gender,
-                lastLogin: serverTimestamp()
-            };
-
-            try {
-                const userDoc = await getDoc(userRef);
-                if (!userDoc.exists()) {
-                    dataToSave.createdAt = serverTimestamp();
-                }
-
-                await setDoc(userRef, dataToSave, { merge: true });
-                
-                // Update local storage data
-                const finalUserData = {...currentUserData, ...dataToSave};
-                localStorage.setItem('rivava_user', JSON.stringify(finalUserData));
-                
-                document.getElementById('registrationModal').classList.remove('show');
-                showWelcomeAnimation(finalUserData);
-
-                setTimeout(() => {
-                    window.location.href = './index.html';
-                }, 2500);
-
-            } catch (error) {
-                console.error("Registration Save Error:", error);
-                generalErrorMsg.textContent = "Could not save details. Please try again.";
-                generalErrorMsg.style.display = 'block';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Save & Continue';
-            }
-        }
-
-        function showWelcomeAnimation(user) {
-            const welcomeScreen = document.getElementById('welcomeScreen');
-            const avatarContainer = document.getElementById('welcomeAvatarContainer');
-            
-            let avatarHTML;
-            if (user.picture) {
-                avatarHTML = `<img src="${user.picture}" alt="User Avatar" class="welcome-avatar" onerror="this.onerror=null; this.src='https://placehold.co/130x130/050505/${user.gender === 'Female' ? 'ff9ff3' : '4d94ff'}?text=${user.name.charAt(0).toUpperCase()}'">`;
-            } else {
-                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
-                const colorMap = {'Male': '#4d94ff', 'Female': '#ff9ff3', 'Other': '#feca57'};
-                const color = colorMap[user.gender] || '#00ffc3';
-                avatarHTML = `<div class="welcome-avatar-initials" style="background-color: ${color}; color: #000;">${initial}</div>`;
-            }
-            
-            avatarContainer.innerHTML = avatarHTML;
-
-            document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
-            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
-            welcomeScreen.classList.add('show');
-        }
-
-        function initGoogleSignIn() {
-            // Check if user is already in Local Storage (Quick redirect for already signed-in users)
-            if(localStorage.getItem('rivava_user')) {
-                window.location.href = './index.html';
-                return;
-            }
-
-            if (window.google?.accounts?.id) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse,
-                    // FIX FOR MOBILE/IFRAME ISSUES: Forces the sign-in flow to use a pop-up window
-                    ux_mode: 'popup'
-                });
-                google.accounts.id.renderButton(
-                    document.getElementById('g_id_signin_container'),
-                    { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
-                );
-            } else {
-                console.warn("Google GSI client not loaded, retrying...");
-                setTimeout(initGoogleSignIn, 300);
-            }
-
-            const phoneInput = document.getElementById('phoneInput');
-            phoneInput.addEventListener('input', debounce(() => {
-                const val = phoneInput.value.replace(/[^0-9]/g, '');
-                phoneInput.value = val;
-                checkPhoneNumber(val);
-            }, 400));
-        }
-
-        // Wait for the window to fully load before initializing GSI and Firebase
-        window.onload = initGoogleSignIn;
-    </script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bg-dark: #000000;
@@ -534,9 +225,6 @@
             border: 1px solid #222;
             border-right: none;
             border-radius: 8px 0 0 8px;
-            display: flex;
-            align-items: center;
-            font-weight: 600;
         }
         .phone-input-container input {
             border-radius: 0 8px 8px 0;
@@ -582,7 +270,7 @@
             margin-top: 15px;
         }
         
-        /* --- WELCOME ANIMATION STYLES --- */
+        /* --- NEW WELCOME ANIMATION STYLES --- */
         #welcomeScreen {
             position: fixed;
             top: 0;
@@ -638,6 +326,7 @@
             justify-content: center;
             font-size: 4rem;
             font-weight: 700;
+            color: #000;
         }
         .welcome-text-container {
             margin-top: 24px;
@@ -689,7 +378,7 @@
                 <input type="text" id="userNameInput" placeholder="Enter your full name">
             </div>
             <div class="form-group">
-                <label for="phoneInput">Mobile Number (India)</label>
+                <label for="phoneInput">Mobile Number</label>
                 <div class="phone-input-container">
                     <span class="phone-prefix">+91</span>
                     <input type="tel" id="phoneInput" placeholder="10-digit mobile number" maxlength="10">
@@ -722,6 +411,229 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const GOOGLE_CLIENT_ID = "151251461452-tdkaqdi20tbe3vcu31e1nv8m6ruukr46.apps.googleusercontent.com";
+        const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
+        
+        let db;
+        let currentUserData = null;
+        let phoneCheckTimeout;
+
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        } catch (error) {
+            console.error("Firebase Init Error:", error);
+        }
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) { return null; }
+        }
+
+        function debounce(func, delay) {
+            return function(...args) {
+                clearTimeout(phoneCheckTimeout);
+                phoneCheckTimeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        async function handleCredentialResponse(response) {
+            const payload = parseJwt(response.credential);
+            if (!payload) {
+                console.error("Invalid login response");
+                return;
+            }
+            
+            currentUserData = {
+                name: payload.name,
+                email: payload.email,
+                picture: payload.picture,
+                sub: payload.sub
+            };
+
+            document.getElementById('loginContainer').classList.add('hidden');
+
+            const userRef = db.collection('users').doc(currentUserData.sub);
+
+            try {
+                const userDoc = await userRef.get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (userData.phone && userData.gender) {
+                        userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
+                        window.location.href = './index.html';
+                    } 
+                    else {
+                        document.getElementById('registration-title').textContent = "Update Your Profile";
+                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
+                        if (userData.phone) {
+                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
+                        }
+                        if(userData.gender) {
+                            document.getElementById('genderInput').value = userData.gender;
+                        }
+                        document.getElementById('registrationModal').classList.add('show');
+                    }
+                } 
+                else {
+                    document.getElementById('registration-title').textContent = "Complete Your Profile";
+                    document.getElementById('userNameInput').value = currentUserData.name;
+                    document.getElementById('registrationModal').classList.add('show');
+                }
+            } catch (error) {
+                console.error("Error checking user document:", error);
+                const generalErrorMsg = document.getElementById('general-error-message');
+                generalErrorMsg.textContent = "Error checking your account. Please try again.";
+                generalErrorMsg.style.display = 'block';
+            }
+        }
+
+        async function checkPhoneNumber(phone) {
+            const phoneErrorMsg = document.getElementById('phone-error-message');
+            const submitBtn = document.getElementById('completeRegistrationBtn');
+            const formattedPhone = `+91${phone}`;
+
+            if (phone.length !== 10) {
+                phoneErrorMsg.style.display = 'none';
+                submitBtn.disabled = false;
+                return;
+            }
+
+            try {
+                const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
+                if (!querySnapshot.empty) {
+                    const doc = querySnapshot.docs[0];
+                    // This logic correctly handles the case where the number belongs to another user.
+                    if (doc.id !== currentUserData.sub) {
+                        phoneErrorMsg.textContent = "This number is already registered.";
+                        phoneErrorMsg.style.display = 'block';
+                        submitBtn.disabled = true;
+                    } else {
+                        phoneErrorMsg.style.display = 'none';
+                        submitBtn.disabled = false;
+                    }
+                } else {
+                    phoneErrorMsg.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error("Error checking phone number:", error);
+                phoneErrorMsg.textContent = "Could not verify number. Try again.";
+                phoneErrorMsg.style.display = 'block';
+                submitBtn.disabled = true;
+            }
+        }
+
+        async function completeRegistration() {
+            const name = document.getElementById('userNameInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            const gender = document.getElementById('genderInput').value;
+            const generalErrorMsg = document.getElementById('general-error-message');
+            const submitBtn = document.getElementById('completeRegistrationBtn');
+
+            if (!name || !/^\d{10}$/.test(phone) || !gender) {
+                generalErrorMsg.textContent = "Please fill out all fields correctly.";
+                generalErrorMsg.style.display = 'block';
+                return;
+            }
+            generalErrorMsg.style.display = 'none';
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            const userRef = db.collection('users').doc(currentUserData.sub);
+            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+            const dataToSave = {
+                name: name,
+                email: currentUserData.email,
+                picture: currentUserData.picture || null,
+                phone: `+91${phone}`,
+                gender: gender,
+                lastLogin: serverTimestamp
+            };
+
+            const userDoc = await userRef.get();
+            if (!userDoc.exists) {
+                dataToSave.createdAt = serverTimestamp;
+            }
+
+            try {
+                await userRef.set(dataToSave, { merge: true });
+                currentUserData = {...currentUserData, ...dataToSave};
+                document.getElementById('registrationModal').classList.remove('show');
+                showWelcomeAnimation(currentUserData);
+
+                setTimeout(() => {
+                    localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
+                    window.location.href = './index.html';
+                }, 2500); // Faster redirect
+
+            } catch (error) {
+                console.error("Registration Error:", error);
+                generalErrorMsg.textContent = "Could not save details. Please try again.";
+                generalErrorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save & Continue';
+            }
+        }
+
+        function showWelcomeAnimation(user) {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const avatarContainer = document.getElementById('welcomeAvatarContainer');
+            
+            let avatarHTML;
+            if (user.picture) {
+                avatarHTML = `<img src="${user.picture}" alt="User Avatar" class="welcome-avatar">`;
+            } else {
+                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+                const colors = ['#00ffc3', '#ff6b6b', '#4d94ff', '#feca57', '#ff9ff3'];
+                const color = colors[Math.abs(initial.charCodeAt(0) - 65) % colors.length];
+                avatarHTML = `<div class="welcome-avatar-initials" style="background-color: ${color};">${initial}</div>`;
+            }
+            
+            avatarContainer.innerHTML = avatarHTML;
+
+            document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
+            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
+            welcomeScreen.classList.add('show');
+        }
+        
+        window.onload = function () {
+            if(localStorage.getItem('rivava_user')) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            if (window.google?.accounts?.id) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('g_id_signin_container'),
+                    { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
+                );
+            } else {
+                console.warn("Google GSI client not loaded, retrying...");
+                setTimeout(window.onload, 300);
+            }
+
+            const phoneInput = document.getElementById('phoneInput');
+            // Use 'input' for real-time checking, debounced for performance
+            phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 400));
+        };
+    </script>
 
 </body>
 </html>
