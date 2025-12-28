@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Rivava Finance</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --bg-dark: #000000;
@@ -17,20 +19,12 @@
             --text: #f0f0f0;
             --muted: #888;
             --danger: #ff5252;
-            --success: #00ffc3;
             --border-color: #1a1a1a;
             --brand-pink: #f82a99;
             --brand-blue: #2aa1f8;
         }
         
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
@@ -41,18 +35,14 @@
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
-            -webkit-font-smoothing: antialiased;
             position: relative;
         }
 
+        /* Background Effects */
         .background-glow {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; overflow: hidden;
         }
         .shape {
             position: absolute;
@@ -60,302 +50,85 @@
             filter: blur(120px);
             opacity: 0.15;
         }
-        .shape-1 {
-            width: 400px;
-            height: 400px;
-            background: var(--brand-pink);
-            top: 10%;
-            left: 10%;
-            animation: move 20s infinite alternate ease-in-out;
-        }
-        .shape-2 {
-            width: 350px;
-            height: 350px;
-            background: var(--brand-blue);
-            bottom: 5%;
-            right: 5%;
-            animation: move 25s infinite alternate-reverse ease-in-out;
-        }
+        .shape-1 { width: 400px; height: 400px; background: var(--brand-pink); top: 10%; left: 10%; animation: move 20s infinite alternate ease-in-out; }
+        .shape-2 { width: 350px; height: 350px; background: var(--brand-blue); bottom: 5%; right: 5%; animation: move 25s infinite alternate-reverse ease-in-out; }
+        
         @keyframes move {
             from { transform: translate(0, 0) scale(1); }
             to { transform: translate(50px, -50px) scale(1.1); }
         }
-        
-        .login-wrapper {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
 
+        /* Login Card */
+        .login-wrapper { position: relative; z-index: 2; width: 100%; display: flex; justify-content: center; padding: 20px; }
         .login-container {
-            text-align: center;
-            padding: 40px;
+            text-align: center; padding: 40px;
             background: rgba(13, 13, 13, 0.7);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
             border: 1px solid var(--border-color);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            transform: scale(0.95);
-            animation: fadeIn 0.8s 0.2s ease-out forwards;
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            width: 100%;
-            max-width: 400px;
+            width: 100%; max-width: 400px;
+            transition: all 0.5s ease;
         }
-        .login-container.hidden {
-            opacity: 0;
-            transform: scale(0.9);
-            pointer-events: none;
-        }
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            animation: logo-pop 0.8s 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) backwards;
-        }
-        @keyframes logo-pop {
-            0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-        h1 {
-            font-size: 2rem;
-            margin: 0 0 10px;
-            font-weight: 700;
-            background: linear-gradient(90deg, var(--accent), #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        p {
-            color: var(--muted);
-            margin-bottom: 30px;
-        }
-        #g_id_signin_container {
-            display: inline-block;
-            transition: transform 0.2s ease;
-        }
-        #g_id_signin_container:hover {
-            transform: translateY(-2px);
-        }
+        .login-container.hidden { opacity: 0; transform: scale(0.9); pointer-events: none; }
+        
+        .logo { width: 80px; height: 80px; border-radius: 12px; margin-bottom: 20px; }
+        h1 { font-size: 2rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--accent), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p { color: var(--muted); margin-bottom: 30px; }
 
+        /* Modal Styles */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
         .modal-content {
-            background: var(--card-dark);
-            padding: 30px;
-            border-radius: 16px;
-            border: 1px solid #222;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-            width: 90%;
-            max-width: 420px;
-            transform: scale(0.9);
-            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            background: var(--card-dark); padding: 30px; border-radius: 16px;
+            border: 1px solid #222; width: 90%; max-width: 420px;
+            transform: scale(0.9); transition: transform 0.3s ease;
         }
-        .modal-overlay.show .modal-content {
-            transform: scale(1);
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        /* Forms */
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; }
+        input, select {
+            width: 100%; padding: 12px; border-radius: 8px;
+            background: #050505; border: 1px solid #222; color: #fff;
+            font-family: inherit;
         }
+        .phone-input-container { display: flex; }
+        .phone-prefix { padding: 12px; background: #222; border: 1px solid #222; border-radius: 8px 0 0 8px; }
+        .phone-input-container input { border-radius: 0 8px 8px 0; }
         
-        .registration-content {
-            text-align: left;
+        button {
+            width: 100%; padding: 14px; background: var(--accent);
+            border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+            margin-top: 10px; transition: 0.2s;
         }
-        .registration-content h2 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: var(--accent);
-            font-size: 1.8rem;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            position: relative;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            background: #050505;
-            border: 1px solid #222;
-            color: var(--text);
-            font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
-            box-sizing: border-box;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .phone-input-container {
-            display: flex;
-        }
-        .phone-prefix {
-            padding: 12px;
-            background: #222;
-            border: 1px solid #222;
-            border-right: none;
-            border-radius: 8px 0 0 8px;
-        }
-        .phone-input-container input {
-            border-radius: 0 8px 8px 0;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(0,255,195,0.2);
-        }
-        .registration-content button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 8px;
-            background: var(--accent);
-            color: #000;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-        .registration-content button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px var(--accent-glow);
-        }
-        .registration-content button:disabled {
-            background: #555;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .error-message {
-            color: var(--danger);
-            font-size: 0.85rem;
-            min-height: 1.2em;
-            display: none;
-            margin-top: 5px;
-        }
-        #general-error-message {
-            text-align: center;
-            margin-top: 15px;
-        }
-        
-        /* --- NEW WELCOME ANIMATION STYLES --- */
+        button:disabled { background: #444; cursor: not-allowed; }
+
+        /* Welcome Screen */
         #welcomeScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease-in-out;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
         }
-        #welcomeScreen.show {
-            opacity: 1;
-            pointer-events: auto;
+        #welcomeScreen.show { opacity: 1; pointer-events: auto; }
+        .welcome-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--accent); }
+        .welcome-avatar-initials { 
+            width: 120px; height: 120px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; color: #000; font-weight: bold;
         }
-        .welcome-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            width: 100%;
-            padding: 20px;
-        }
-        .welcome-avatar-wrapper {
-            position: relative;
-            width: 130px;
-            height: 130px;
-            opacity: 0;
-            transform: scale(0.3);
-            animation: avatar-swoop 0.8s 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        @keyframes avatar-swoop {
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .welcome-avatar, .welcome-avatar-initials {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 4px solid var(--accent);
-            box-shadow: 0 0 35px var(--accent-glow);
-        }
-        .welcome-avatar-initials {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4rem;
-            font-weight: 700;
-            color: #000;
-        }
-        .welcome-text-container {
-            margin-top: 24px;
-            opacity: 0;
-            transform: translateY(30px);
-            animation: text-slide-up 0.7s 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-        }
-        @keyframes text-slide-up {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        #welcomeText {
-            font-size: clamp(2rem, 6vw, 2.5rem);
-            font-weight: 700;
-            line-height: 1.2;
-            color: var(--text);
-        }
-        #welcomeSubText {
-            font-size: clamp(1rem, 3vw, 1.1rem);
-            color: var(--muted);
-            margin-top: 8px;
-            max-width: 350px;
-        }
+        .error-message { color: var(--danger); font-size: 0.8rem; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
-    
+
     <div class="background-glow">
         <div class="shape shape-1"></div>
         <div class="shape shape-2"></div>
@@ -371,87 +144,86 @@
     </div>
 
     <div id="registrationModal" class="modal-overlay">
-        <div class="modal-content registration-content">
-            <h2 id="registration-title">Complete Your Profile</h2>
+        <div class="modal-content">
+            <h2 id="registration-title" style="text-align:center; color:var(--accent)">Complete Your Profile</h2>
             <div class="form-group">
-                <label for="userNameInput">Full Name</label>
+                <label>Full Name</label>
                 <input type="text" id="userNameInput" placeholder="Enter your full name">
             </div>
             <div class="form-group">
-                <label for="phoneInput">Mobile Number</label>
+                <label>Mobile Number</label>
                 <div class="phone-input-container">
                     <span class="phone-prefix">+91</span>
-                    <input type="tel" id="phoneInput" placeholder="10-digit mobile number" maxlength="10">
+                    <input type="tel" id="phoneInput" placeholder="10-digit number" maxlength="10">
                 </div>
                 <p id="phone-error-message" class="error-message"></p>
             </div>
             <div class="form-group">
-                <label for="genderInput">Gender</label>
+                <label>Gender</label>
                 <select id="genderInput">
-                    <option value="" disabled selected>Select your gender</option>
+                    <option value="" disabled selected>Select gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                 </select>
             </div>
             <button id="completeRegistrationBtn" onclick="completeRegistration()">Save & Continue</button>
-            <p id="general-error-message" class="error-message"></p>
+            <p id="general-error-message" class="error-message" style="text-align:center"></p>
         </div>
     </div>
 
-    <!-- Redesigned Welcome Animation -->
     <div id="welcomeScreen">
-        <div class="welcome-content">
-            <div class="welcome-avatar-wrapper" id="welcomeAvatarContainer">
-                <!-- Avatar will be inserted here by script -->
-            </div>
-            <div class="welcome-text-container">
-                <div id="welcomeText"></div>
-                <div id="welcomeSubText"></div>
-            </div>
-        </div>
+        <div id="welcomeAvatarContainer"></div>
+        <h2 id="welcomeText" style="margin-top:20px"></h2>
+        <p id="welcomeSubText">Your journey starts now.</p>
     </div>
 
     <script>
         const GOOGLE_CLIENT_ID = "151251461452-tdkaqdi20tbe3vcu31e1nv8m6ruukr46.apps.googleusercontent.com";
-        const firebaseConfig = { apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", authDomain: "rivava-finance-tracker.firebaseapp.com", projectId: "rivava-finance-tracker", storageBucket: "rivava-finance-tracker.appspot.com", messagingSenderId: "615077199032", appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" };
-        
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAEB3DSSIWATjfcbmkO094GsO56paxrDhU", 
+            authDomain: "rivava-finance-tracker.firebaseapp.com", 
+            projectId: "rivava-finance-tracker", 
+            storageBucket: "rivava-finance-tracker.appspot.com", 
+            messagingSenderId: "615077199032", 
+            appId: "1:615077199032:web:fb2007f8a603fa8abcc84d" 
+        };
+
         let db;
         let currentUserData = null;
-        let phoneCheckTimeout;
 
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
+        // 1. Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.firestore();
+
+        // 2. Google Login Init
+        function initGoogleSignIn() {
+            if (window.google && google.accounts && google.accounts.id) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('g_id_signin_container'),
+                    { theme: 'outline', size: 'large', shape: 'rounded' }
+                );
+            } else {
+                setTimeout(initGoogleSignIn, 500);
             }
-            db = firebase.firestore();
-        } catch (error) {
-            console.error("Firebase Init Error:", error);
         }
 
         function parseJwt(token) {
             try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-                return JSON.parse(jsonPayload);
+                return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
             } catch (e) { return null; }
-        }
-
-        function debounce(func, delay) {
-            return function(...args) {
-                clearTimeout(phoneCheckTimeout);
-                phoneCheckTimeout = setTimeout(() => func.apply(this, args), delay);
-            };
         }
 
         async function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
-            if (!payload) {
-                console.error("Invalid login response");
-                return;
-            }
-            
+            if (!payload) return;
+
             currentUserData = {
                 name: payload.name,
                 email: payload.email,
@@ -460,180 +232,92 @@
             };
 
             document.getElementById('loginContainer').classList.add('hidden');
-
             const userRef = db.collection('users').doc(currentUserData.sub);
 
             try {
                 const userDoc = await userRef.get();
-                
                 if (userDoc.exists) {
                     const userData = userDoc.data();
                     if (userData.phone && userData.gender) {
-                        userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                        localStorage.setItem('rivava_user', JSON.stringify({ ...currentUserData, ...userData }));
-                        window.location.href = './index.html';
-                    } 
-                    else {
-                        document.getElementById('registration-title').textContent = "Update Your Profile";
-                        document.getElementById('userNameInput').value = userData.name || currentUserData.name;
-                        if (userData.phone) {
-                            document.getElementById('phoneInput').value = userData.phone.replace('+91', '');
-                        }
-                        if(userData.gender) {
-                            document.getElementById('genderInput').value = userData.gender;
-                        }
-                        document.getElementById('registrationModal').classList.add('show');
+                        // Existing complete user
+                        await userRef.update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() });
+                        proceedToApp({...currentUserData, ...userData});
+                    } else {
+                        // User exists but incomplete
+                        showModal(userData);
                     }
-                } 
-                else {
-                    document.getElementById('registration-title').textContent = "Complete Your Profile";
-                    document.getElementById('userNameInput').value = currentUserData.name;
-                    document.getElementById('registrationModal').classList.add('show');
+                } else {
+                    // New User
+                    showModal();
                 }
-            } catch (error) {
-                console.error("Error checking user document:", error);
-                const generalErrorMsg = document.getElementById('general-error-message');
-                generalErrorMsg.textContent = "Error checking your account. Please try again.";
-                generalErrorMsg.style.display = 'block';
+            } catch (e) {
+                console.error("Login Error:", e);
             }
         }
 
-        async function checkPhoneNumber(phone) {
-            const phoneErrorMsg = document.getElementById('phone-error-message');
-            const submitBtn = document.getElementById('completeRegistrationBtn');
-            const formattedPhone = `+91${phone}`;
-
-            if (phone.length !== 10) {
-                phoneErrorMsg.style.display = 'none';
-                submitBtn.disabled = false;
-                return;
-            }
-
-            try {
-                const querySnapshot = await db.collection('users').where('phone', '==', formattedPhone).limit(1).get();
-                if (!querySnapshot.empty) {
-                    const doc = querySnapshot.docs[0];
-                    // This logic correctly handles the case where the number belongs to another user.
-                    if (doc.id !== currentUserData.sub) {
-                        phoneErrorMsg.textContent = "This number is already registered.";
-                        phoneErrorMsg.style.display = 'block';
-                        submitBtn.disabled = true;
-                    } else {
-                        phoneErrorMsg.style.display = 'none';
-                        submitBtn.disabled = false;
-                    }
-                } else {
-                    phoneErrorMsg.style.display = 'none';
-                    submitBtn.disabled = false;
-                }
-            } catch (error) {
-                console.error("Error checking phone number:", error);
-                phoneErrorMsg.textContent = "Could not verify number. Try again.";
-                phoneErrorMsg.style.display = 'block';
-                submitBtn.disabled = true;
-            }
+        function showModal(data = {}) {
+            document.getElementById('userNameInput').value = data.name || currentUserData.name;
+            if (data.phone) document.getElementById('phoneInput').value = data.phone.replace('+91', '');
+            document.getElementById('registrationModal').classList.add('show');
         }
 
         async function completeRegistration() {
             const name = document.getElementById('userNameInput').value.trim();
             const phone = document.getElementById('phoneInput').value.trim();
             const gender = document.getElementById('genderInput').value;
-            const generalErrorMsg = document.getElementById('general-error-message');
-            const submitBtn = document.getElementById('completeRegistrationBtn');
+            const btn = document.getElementById('completeRegistrationBtn');
 
-            if (!name || !/^\d{10}$/.test(phone) || !gender) {
-                generalErrorMsg.textContent = "Please fill out all fields correctly.";
-                generalErrorMsg.style.display = 'block';
+            if (!name || phone.length !== 10 || !gender) {
+                document.getElementById('general-error-message').textContent = "Please fill all fields.";
+                document.getElementById('general-error-message').style.display = "block";
                 return;
             }
-            generalErrorMsg.style.display = 'none';
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
+
+            btn.disabled = true;
+            btn.textContent = "Saving...";
 
             const userRef = db.collection('users').doc(currentUserData.sub);
-            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-            const dataToSave = {
-                name: name,
-                email: currentUserData.email,
-                picture: currentUserData.picture || null,
-                phone: `+91${phone}`,
-                gender: gender,
-                lastLogin: serverTimestamp
+            const finalData = {
+                name, email: currentUserData.email, picture: currentUserData.picture,
+                phone: `+91${phone}`, gender, lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            const userDoc = await userRef.get();
-            if (!userDoc.exists) {
-                dataToSave.createdAt = serverTimestamp;
-            }
-
             try {
-                await userRef.set(dataToSave, { merge: true });
-                currentUserData = {...currentUserData, ...dataToSave};
-                document.getElementById('registrationModal').classList.remove('show');
-                showWelcomeAnimation(currentUserData);
-
-                setTimeout(() => {
-                    localStorage.setItem('rivava_user', JSON.stringify(currentUserData));
-                    window.location.href = './index.html';
-                }, 2500); // Faster redirect
-
-            } catch (error) {
-                console.error("Registration Error:", error);
-                generalErrorMsg.textContent = "Could not save details. Please try again.";
-                generalErrorMsg.style.display = 'block';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Save & Continue';
+                await userRef.set(finalData, { merge: true });
+                proceedToApp(finalData);
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = "Save & Continue";
             }
         }
 
-        function showWelcomeAnimation(user) {
-            const welcomeScreen = document.getElementById('welcomeScreen');
-            const avatarContainer = document.getElementById('welcomeAvatarContainer');
+        function proceedToApp(user) {
+            document.getElementById('registrationModal').classList.remove('show');
             
-            let avatarHTML;
-            if (user.picture) {
-                avatarHTML = `<img src="${user.picture}" alt="User Avatar" class="welcome-avatar">`;
-            } else {
-                const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
-                const colors = ['#00ffc3', '#ff6b6b', '#4d94ff', '#feca57', '#ff9ff3'];
-                const color = colors[Math.abs(initial.charCodeAt(0) - 65) % colors.length];
-                avatarHTML = `<div class="welcome-avatar-initials" style="background-color: ${color};">${initial}</div>`;
-            }
+            // Show Animation
+            const container = document.getElementById('welcomeAvatarContainer');
+            container.innerHTML = user.picture ? 
+                `<img src="${user.picture}" class="welcome-avatar">` : 
+                `<div class="welcome-avatar-initials" style="background:var(--accent)">${user.name[0]}</div>`;
             
-            avatarContainer.innerHTML = avatarHTML;
-
             document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
-            document.getElementById('welcomeSubText').textContent = "Your journey to financial clarity starts now.";
-            welcomeScreen.classList.add('show');
-        }
-        
-        window.onload = function () {
-            if(localStorage.getItem('rivava_user')) {
+            document.getElementById('welcomeScreen').classList.add('show');
+
+            localStorage.setItem('rivava_user', JSON.stringify(user));
+            
+            setTimeout(() => {
                 window.location.href = './index.html';
-                return;
-            }
+            }, 2500);
+        }
 
-            if (window.google?.accounts?.id) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse
-                });
-                google.accounts.id.renderButton(
-                    document.getElementById('g_id_signin_container'),
-                    { theme: 'outline', size: 'large', type: 'standard', shape: 'rounded' }
-                );
+        window.onload = () => {
+            if (localStorage.getItem('rivava_user')) {
+                window.location.href = './index.html';
             } else {
-                console.warn("Google GSI client not loaded, retrying...");
-                setTimeout(window.onload, 300);
+                initGoogleSignIn();
             }
-
-            const phoneInput = document.getElementById('phoneInput');
-            // Use 'input' for real-time checking, debounced for performance
-            phoneInput.addEventListener('input', debounce(() => checkPhoneNumber(phoneInput.value), 400));
         };
     </script>
-
 </body>
 </html>
